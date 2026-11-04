@@ -91,7 +91,7 @@
   --live-soft: rgba(10, 117, 80, 0.12);
   --live-glow: 0 0 0 1px rgba(10, 117, 80, 0.5), 0 0 14px rgba(10, 117, 80, 0.25);
   --dead: #8794a8;
-  --warn: #a15c00;
+  --warn: #8a4b00;
   --warn-soft: rgba(161, 92, 0, 0.1);
   --alarm: #c62828;
   --alarm-soft: rgba(198, 40, 40, 0.08);

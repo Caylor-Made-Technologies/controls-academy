@@ -102,8 +102,10 @@ export function MotorPanel({ rt, onDevice, compact }: { rt: SimRuntime; onDevice
             <span className="pb-cap" />
             {s.estopIn ? 'Twist out' : 'E-stop'}
           </button>
-          <Lamp on={Boolean(io.DO[1])} color="green" label="Running" />
-          <Lamp on={Boolean(io.DO[2])} color="amber" label="Fault" />
+          <div className="flex gap-2">
+            <Lamp on={Boolean(io.DO[1])} color="green" label="Running" />
+            <Lamp on={Boolean(io.DO[2])} color="amber" label="Fault" />
+          </div>
         </div>
       </div>
 
@@ -175,7 +177,7 @@ export function IoCards({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: stri
   const row = (kind: 'DI' | 'DO', list: typeof ins) => (
     <div className="rounded-xl border border-line bg-sunk p-2.5">
       <p className="text-[0.68rem] font-bold tracking-widest uppercase text-muted m-0 mb-2">{kind === 'DI' ? 'Input card · 24 VDC' : 'Output card'}</p>
-      <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+      <div className="grid grid-cols-3 gap-1.5">
         {list.map((d) => {
           const on = kind === 'DI' ? io.DI[d.io!.point] : io.DO[d.io!.point];
           const forced = forces[kind].has(d.io!.point);
@@ -198,7 +200,7 @@ export function IoCards({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: stri
     </div>
   );
   return (
-    <div className="grid gap-2 sm:grid-cols-2">
+    <div className="grid gap-2">
       {row('DI', ins)}
       {row('DO', outs)}
     </div>

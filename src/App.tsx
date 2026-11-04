@@ -7,10 +7,10 @@ import { href, navigate, useRoute } from './lib/router';
 import { sfx } from './lib/sound';
 import { applyTheme, usePrefs } from './state/prefs';
 import { useProgress } from './state/progress';
-import { CommandPalette } from './features/CommandPalette';
 import { Onboarding } from './features/onboarding/Onboarding';
 import LearnPage from './features/learn/LearnPage';
 
+const CommandPalette = lazy(() => import('./features/CommandPalette').then((m) => ({ default: m.CommandPalette })));
 const LessonPage = lazy(() => import('./features/learn/LessonPage'));
 const ReviewPage = lazy(() => import('./features/learn/ReviewPage'));
 const SimulatorPage = lazy(() => import('./features/simulator/SimulatorPage'));
@@ -185,7 +185,7 @@ export default function App() {
         </div>
       </nav>
 
-      <CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} />
+      {paletteOpen && <Suspense fallback={null}><CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} /></Suspense>}
       {!prefs.onboarded && <Onboarding onDone={(path) => { prefs.setPrefs({ onboarded: true }); if (path) navigate(path); }} />}
     </LayoutGroup>
   );

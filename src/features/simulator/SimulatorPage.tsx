@@ -127,7 +127,7 @@ function Dialects({ program }: { program: Program }) {
       <p className="eyebrow m-0">Brand dialects</p>
       <h2 className="text-lg font-bold mb-1">Same logic, ten dialects</h2>
       <p className="text-sm text-muted mt-0">Your program's tags as each platform would address them. Switch the skin above and the ladder relabels itself.</p>
-      <div className="overflow-x-auto -mx-1">
+      <div className="overflow-x-auto -mx-1" tabIndex={0} role="region" aria-label="Addresses in every brand dialect">
         <table className="text-xs border-collapse min-w-full">
           <thead>
             <tr>

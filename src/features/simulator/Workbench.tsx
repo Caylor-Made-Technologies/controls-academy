@@ -209,7 +209,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
                 ))}
                 <button type="button" className="btn btn-sm whitespace-nowrap" onClick={() => setMoreOpen(true)}>More…</button>
               </div>
-              <div className="flex flex-wrap gap-1.5" role="toolbar" aria-label="Edit">
+              <div className="flex gap-1.5 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible [&>*]:flex-none" role="toolbar" aria-label="Edit">
                 <button type="button" className="btn btn-sm" onClick={() => { const r = addRung(program, sel?.rungId); apply(r.program); setSel({ rungId: r.rungId }); }}><Icon name="plus" size={16} /> Rung</button>
                 <button type="button" className="btn btn-sm" disabled={!selElem} onClick={() => { const ins = newInstr('XIC'); apply(addParallel(program, sel!, ins)); setSel({ rungId: sel!.rungId, elemId: ins.id }); setEditOpen(true); }} title="Add a parallel branch (OR)"><Icon name="branch" size={16} /> Branch</button>
                 <button type="button" className="btn btn-sm" disabled={!selInstr} onClick={() => setEditOpen(true)}><Icon name="edit" size={16} /> Edit</button>
