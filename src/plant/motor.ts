@@ -10,7 +10,7 @@
  */
 import { program } from '../engine/text';
 import type { Program } from '../engine/types';
-import type { FaultDef, FieldDevice, FieldIO, MeterPoint, PlantScene } from './types';
+import type { FaultDef, FieldDevice, PlantScene } from './types';
 
 export interface MotorState {
   startPressed: boolean;
