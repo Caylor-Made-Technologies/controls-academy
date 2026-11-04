@@ -3,7 +3,7 @@
 **Learn PLCs and industrial controls from zero — free, offline, hands-on.**
 Built by [Caylor Made Technologies](https://caylor-made-technologies.pages.dev), Hereford, TX. *Advanced Engineering. Built Different.*
 
-Live: https://caylor-made-technologies.github.io/controls-sim/ · Sister app: [Critical Facilities Simulator](https://caylor-made-technologies.github.io/critical-facilities-sim/)
+Live: https://caylor-made-technologies.github.io/controls-academy/ · Sister app: [Critical Facilities Simulator](https://caylor-made-technologies.github.io/critical-facilities-sim/)
 
 <p>
   <img src="docs/screenshot-learn-phone.png" alt="Learn tab on a phone: level ring, recommended lesson, skill map" width="260">

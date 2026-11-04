@@ -83,7 +83,7 @@ export function Onboarding({ onDone }: { onDone: (path?: string) => void }) {
       <div className="absolute top-0 right-0 w-[320px] opacity-60 pointer-events-none" aria-hidden="true"><Traces className="w-full h-auto" /></div>
       <div className="min-h-full flex flex-col max-w-xl mx-auto px-4" style={{ paddingTop: 'calc(var(--safe-top) + 24px)', paddingBottom: 'calc(var(--safe-bottom) + 20px)' }}>
         <div className="flex items-center justify-between mb-6">
-          <div className="flex gap-1.5" aria-label={`Step ${step + 1} of 4`}>
+          <div className="flex gap-1.5" role="img" aria-label={`Step ${step + 1} of 4`}>
             {[0, 1, 2, 3].map((i) => <span key={i} className="h-1.5 rounded-full transition-all" style={{ width: i === step ? 28 : 10, background: i <= step ? 'var(--blue-glow)' : 'var(--border)' }} />)}
           </div>
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => finish(false)}>Skip</button>

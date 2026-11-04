@@ -152,7 +152,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
         </div>
       )}
       {!hidePanel && view3d && (
-        <Suspense fallback={<div className="card skeleton h-[clamp(380px,68svh,560px)] lg:h-[540px]" aria-label="Loading 3D panel" aria-busy="true" />}>
+        <Suspense fallback={<div className="card skeleton h-[clamp(380px,68svh,560px)] lg:h-[540px]" role="status" aria-label="Loading 3D panel" aria-busy="true" />}>
           <Panel3D rt={rt} onDevice={(id) => setDevice(id)} />
         </Suspense>
       )}

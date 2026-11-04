@@ -3,7 +3,7 @@ import react from '@vitejs/plugin-react';
 import tailwindcss from '@tailwindcss/vite';
 import { VitePWA } from 'vite-plugin-pwa';
 
-const base = '/controls-sim/';
+const base = '/controls-academy/';
 
 export default defineConfig({
   base,

@@ -3,7 +3,7 @@ import { createRequire } from 'node:module';
 const require = createRequire(import.meta.url);
 let pw;
 try { pw = require('playwright'); } catch { pw = require('/opt/node-tools/node_modules/playwright'); }
-const URL0 = 'http://localhost:4180/controls-sim/';
+const URL0 = process.env.SITE_URL ?? 'http://localhost:4180/controls-academy/';
 const b = await pw.chromium.launch();
 const ctx = await b.newContext({ viewport: { width: 390, height: 844 }, deviceScaleFactor: 2 });
 const page = await ctx.newPage();

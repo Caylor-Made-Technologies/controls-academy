@@ -50,7 +50,7 @@ docs/           BASELINE, HOW_WE_BEAT_IT, DECISIONS, VERIFY, CHECKLIST, CONTENT_
 ## Run / test / deploy
 - `npm run dev` · `npm test` · `npm run typecheck` · `npm run lint` · `npm run build`
 - `npm run e2e` builds nothing; run `npm run build` first. It serves `dist/` and drives Chromium.
-- Push to `main` → `.github/workflows/deploy.yml` → https://caylor-made-technologies.github.io/controls-sim/
+- Push to `main` → `.github/workflows/deploy.yml` → https://caylor-made-technologies.github.io/controls-academy/
 - Pages source must be **GitHub Actions** (Settings → Pages), not "Deploy from a branch".
 
 ## Content accuracy rules

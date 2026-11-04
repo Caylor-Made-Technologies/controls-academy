@@ -10,7 +10,7 @@ try { pw = require('playwright'); } catch { pw = require('/opt/node-tools/node_m
 const axeSrc = readFileSync(require.resolve('axe-core/axe.min.js'), 'utf8');
 
 const ROOT = new URL('../../dist/', import.meta.url).pathname;
-const BASE = '/controls-sim/';
+const BASE = '/controls-academy/';
 const TYPES = { '.html': 'text/html', '.js': 'text/javascript', '.css': 'text/css', '.png': 'image/png', '.svg': 'image/svg+xml', '.woff2': 'font/woff2', '.webmanifest': 'application/manifest+json', '.json': 'application/json', '.txt': 'text/plain', '.ico': 'image/x-icon' };
 const server = createServer((req, res) => {
   let p = decodeURIComponent(req.url.split('?')[0]);
@@ -20,8 +20,9 @@ const server = createServer((req, res) => {
   res.writeHead(200, { 'Content-Type': TYPES[extname(p)] ?? 'application/octet-stream' });
   res.end(readFileSync(p));
 });
-await new Promise((r) => server.listen(4179, r));
-const url = `http://localhost:4179${BASE}`;
+const LIVE = process.env.SITE_URL;
+if (!LIVE) await new Promise((r) => server.listen(4179, r));
+const url = LIVE ?? `http://localhost:4179${BASE}`;
 mkdirSync('test-results', { recursive: true });
 
 const ROUTES = ['learn', 'lesson/three-wire', 'lesson/sinking-sourcing', 'sim', 'troubleshoot', 'reference', 'reference/brand/rockwell', 'reference/instructions', 'reference/glossary', 'profile', 'about', 'review'];
@@ -56,6 +57,6 @@ for (const theme of ['dark', 'light']) {
   }
 }
 await browser.close();
-server.close();
+if (!LIVE) server.close();
 console.log(failures ? `\n${failures} problem(s)` : '\n✓ all routes clean: no console errors, axe 0, no horizontal overflow');
 process.exit(failures ? 1 : 0);

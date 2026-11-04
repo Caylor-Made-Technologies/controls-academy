@@ -146,7 +146,7 @@ function Hunt({ fault, onExit, onNext }: { fault: FaultDef; onExit: () => void; 
     <div>
       <div className="flex items-center gap-2 mb-3">
         <button type="button" className="btn btn-ghost btn-sm -ml-2" onClick={onExit}><Icon name="back" size={16} /> All faults</button>
-        <span className="ml-auto chip font-mono tabular-nums text-base !min-h-[34px]" aria-label={`Elapsed ${fmtTime(elapsed)}`}><Icon name="slow" size={16} /> {fmtTime(elapsed)}</span>
+        <span role="timer" className="ml-auto chip font-mono tabular-nums text-base !min-h-[34px]" aria-label={`Elapsed ${fmtTime(elapsed)}`}><Icon name="slow" size={16} /> {fmtTime(elapsed)}</span>
       </div>
 
       <section className="card card-pad mb-3" style={{ borderColor: 'var(--warn)' }}>
@@ -193,7 +193,7 @@ function Hunt({ fault, onExit, onNext }: { fault: FaultDef; onExit: () => void; 
       {/* Meter */}
       <section className="card card-pad mb-3" aria-label="Multimeter">
         <div className="flex flex-wrap gap-3 items-end">
-          <div className="rounded-xl px-4 py-2 font-mono text-2xl tabular-nums min-w-[9rem] text-center" style={{ background: '#0c1a12', color: '#7dffbe', boxShadow: 'inset 0 0 0 2px #1f3a2b' }} aria-live="polite" aria-label={`Meter reading ${reading ?? 'none'}`}>
+          <div className="rounded-xl px-4 py-2 font-mono text-2xl tabular-nums min-w-[9rem] text-center" style={{ background: '#0c1a12', color: '#7dffbe', boxShadow: 'inset 0 0 0 2px #1f3a2b' }} role="status" aria-live="polite" aria-label={`Meter reading ${reading ?? 'none'}`}>
             {reading ?? '----'}
           </div>
           <label className="flex-1 min-w-[12rem]">

@@ -168,10 +168,10 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
         <div className="absolute bottom-2 left-2 right-2 flex gap-1.5 flex-wrap items-end">
           <button type="button" className="hud-chip" aria-pressed={xray} onClick={() => setXray(!xray)}><Icon name="bolt" size={14} /> X-ray current</button>
           <button type="button" className="hud-chip" aria-pressed={explode} onClick={() => { setExplode(!explode); if (!explode) fly('contactor'); }}><Icon name="layers" size={14} /> Explode contactor</button>
-          <span className="ml-auto hud-chip !cursor-default" aria-label={`3D quality ${tier}`}>{tier.toUpperCase()}</span>
+          <span role="note" className="ml-auto hud-chip !cursor-default" aria-label={`3D quality ${tier}`}>{tier.toUpperCase()}</span>
         </div>
         {xray && (
-          <div className="absolute top-12 right-2 hud-legend text-[0.68rem] space-y-0.5" aria-label="Current flow legend">
+          <div className="absolute top-12 right-2 hud-legend text-[0.68rem] space-y-0.5" role="note" aria-label="Current flow legend">
             <p className="m-0"><span className="dot" style={{ background: '#3ddc97' }} /> 120 VAC coil circuit</p>
             <p className="m-0"><span className="dot" style={{ background: '#22d3ee' }} /> 480 VAC motor power</p>
             <p className="m-0"><span className="dot" style={{ background: '#ffb547' }} /> 24 VDC inputs</p>

@@ -25,7 +25,7 @@ p.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') err
 p.on('pageerror', (e) => errors.push(e.message));
 const ok = (c, msg) => { console.log(c ? '✓' : '✗', msg); if (!c) process.exitCode = 1; };
 
-await p.goto('http://localhost:4180/controls-sim/#/sim');
+await p.goto((process.env.SITE_URL ?? 'http://localhost:4180/controls-academy/') + '#/sim');
 await p.waitForSelector('section[aria-label="3D control panel"] canvas', { timeout: 30000 });
 ok(true, '3D panel renders');
 for (const name of ['PLC rack', 'Overload for M1', 'X-ray current', 'Explode contactor', 'Whole panel']) {
