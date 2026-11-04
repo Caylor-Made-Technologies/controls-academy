@@ -1,7 +1,7 @@
 {
   "name": "controls-academy",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "Free, offline PLC and industrial controls training simulator. Built by Caylor Made Technologies.",
   "license": "MIT",
   "type": "module",
@@ -18,10 +18,13 @@
     "icons": "node assets-src/render.mjs"
   },
   "dependencies": {
+    "@react-three/drei": "10.7.9",
+    "@react-three/fiber": "9.8.2",
     "framer-motion": "12.43.0",
     "idb-keyval": "6.3.0",
     "react": "19.1.10",
     "react-dom": "19.1.10",
+    "three": "0.182.0",
     "zustand": "5.0.15"
   },
   "devDependencies": {
@@ -30,6 +33,7 @@
     "@types/node": "22.19.1",
     "@types/react": "19.1.17",
     "@types/react-dom": "19.1.11",
+    "@types/three": "0.182.0",
     "@vitejs/plugin-react": "4.7.0",
     "@vitest/coverage-v8": "3.2.7",
     "axe-core": "4.10.3",

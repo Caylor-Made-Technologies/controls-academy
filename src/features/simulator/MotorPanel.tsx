@@ -22,7 +22,7 @@ function PushButton({ label, color, pressed, onChange, hint }: { label: string; 
       aria-pressed={pressed}
       aria-label={`${label} pushbutton. ${hint}. Hold to press.`}
       onPointerDown={(e) => {
-        (e.target as HTMLElement).setPointerCapture?.(e.pointerId);
+        try { (e.target as HTMLElement).setPointerCapture?.(e.pointerId); } catch { /* synthetic or already released */ }
         down();
       }}
       onPointerUp={up}

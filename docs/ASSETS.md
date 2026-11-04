@@ -8,4 +8,6 @@
 | Montserrat font | Self-hosted woff2 | SIL OFL 1.1 (`public/fonts/Montserrat-OFL.txt`) |
 | Machine, ladder and figure graphics | Inline SVG drawn in code | Original |
 | Sounds | Generated at runtime with Web Audio | Original |
-| 3D models | None yet (Phase 8b: procedural or CC0 only, listed here) | — |
+| 3D control panel, operator station, motor | Procedural three.js geometry in `src/three/PanelScene.tsx` (no model files) | Original |
+| 3D labels, glow halos, brushed-metal texture | Drawn on canvas at runtime (`src/three/textures.ts`) | Original |
+| 3D lighting | drei `Lightformer` environment built in code (no HDR download) | Original |

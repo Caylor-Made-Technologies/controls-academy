@@ -86,7 +86,7 @@
   .tabbar {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 30;
     padding-bottom: var(--safe-bottom);
-    background: color-mix(in srgb, var(--surface) 94%, transparent);
+    background: color-mix(in srgb, var(--surface) 97%, transparent);
     border-top: 1px solid var(--border);
     backdrop-filter: saturate(1.4) blur(12px);
     -webkit-backdrop-filter: saturate(1.4) blur(12px);
@@ -335,3 +335,91 @@
 .motor-spin { transform-box: fill-box; transform-origin: center; }
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
 @keyframes flow { to { stroke-dashoffset: -28; } }
+
+/* ---------- 3D panel HUD ---------- */
+.panel3d-bg { background: radial-gradient(120% 90% at 50% 10%, #16202d 0%, #0d131b 60%, #090d12 100%); }
+.hud-row { scrollbar-width: none; }
+.hud-row::-webkit-scrollbar { display: none; }
+.hud-chip {
+  display: inline-flex; align-items: center; gap: 6px; flex: none; min-height: 36px; padding: 0 12px; border-radius: 999px; cursor: pointer;
+  font-size: 0.78rem; font-weight: 700; color: #e8f1ff; white-space: nowrap;
+  background: rgba(11, 15, 20, 0.62); border: 1px solid rgba(110, 166, 255, 0.28);
+  backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);
+  transition: background-color 0.15s, border-color 0.15s, transform 0.12s var(--ease);
+}
+.hud-chip:active { transform: scale(0.95); }
+.hud-chip[aria-pressed='true'] { background: rgba(30, 111, 255, 0.55); border-color: #6ea6ff; }
+.hud-legend { padding: 8px 10px; border-radius: 12px; color: #e8f1ff; background: rgba(11, 15, 20, 0.7); border: 1px solid rgba(110, 166, 255, 0.25); }
+.hud-legend .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
+
+/* ==========================================================================
+   Signature layer — blueprint ground, spotlight cards, bus-bar tabs, power-on
+   ========================================================================== */
+body {
+  background-image:
+    radial-gradient(1200px 600px at 85% -10%, rgba(30, 111, 255, 0.10), transparent 60%),
+    radial-gradient(900px 500px at -10% 110%, rgba(34, 211, 238, 0.06), transparent 60%),
+    linear-gradient(rgba(110, 166, 255, 0.045) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(110, 166, 255, 0.045) 1px, transparent 1px);
+  background-size: auto, auto, 28px 28px, 28px 28px;
+  background-attachment: fixed;
+}
+:root[data-theme='light'] body {
+  background-image:
+    radial-gradient(1200px 600px at 85% -10%, rgba(27, 99, 235, 0.08), transparent 60%),
+    linear-gradient(rgba(27, 95, 217, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(27, 95, 217, 0.05) 1px, transparent 1px);
+  background-size: auto, 28px 28px, 28px 28px;
+}
+
+/* Spotlight: a soft glow follows the pointer across interactive cards */
+.card-link, .btn-primary { position: relative; isolation: isolate; overflow: hidden; }
+.card-link::after, .btn-primary::after {
+  content: ''; position: absolute; inset: 0; z-index: -1; pointer-events: none; opacity: calc(var(--spot, 0) * 1);
+  background: radial-gradient(220px circle at var(--mx, 50%) var(--my, 50%), rgba(61, 139, 255, 0.16), transparent 65%);
+  transition: opacity 0.25s var(--ease);
+}
+.btn-primary::after { background: radial-gradient(120px circle at var(--mx, 50%) var(--my, 50%), rgba(255, 255, 255, 0.22), transparent 70%); }
+.card-link:hover { border-color: color-mix(in srgb, var(--blue-glow) 45%, var(--border)); box-shadow: var(--shadow), 0 0 0 1px rgba(61, 139, 255, 0.12); }
+.card-link { transition: transform 0.2s var(--spring), border-color 0.2s, box-shadow 0.25s; }
+@media (hover: hover) { .card-link:hover { transform: translateY(-2px); } }
+
+/* Bus-bar tab bar: a live trace runs along the top edge to the active tab */
+.tabbar::before {
+  content: ''; position: absolute; left: 0; right: 0; top: -1px; height: 1px;
+  background: linear-gradient(90deg, transparent, rgba(61, 139, 255, 0.5), rgba(34, 211, 238, 0.5), transparent);
+}
+.tab-bus {
+  position: absolute; top: -2px; width: 34px; height: 3px; border-radius: 3px;
+  background: var(--grad-live); box-shadow: 0 0 12px var(--live), 0 0 2px var(--live);
+}
+.tab[aria-current='page'] svg { filter: drop-shadow(0 0 6px rgba(61, 139, 255, 0.55)); }
+.tab svg { transition: transform 0.25s var(--spring); }
+.tab:active svg { transform: scale(0.86); }
+
+/* Header gains depth once you scroll */
+.app-header { transition: box-shadow 0.25s, background-color 0.25s; }
+.app-header[data-scrolled='true'] { box-shadow: 0 8px 24px rgba(0, 0, 0, 0.28); }
+
+/* Sheet grab zone (drag down to close on phones) */
+.sheet-grab-zone { padding: 6px 0 4px; margin: -8px -16px 0; cursor: grab; touch-action: none; }
+
+/* Rung energize flash */
+.rung .rung-num { transition: border-color 0.15s, box-shadow 0.35s var(--ease), color 0.2s; }
+.rung[data-live='true'] .rung-num { color: var(--live); box-shadow: inset -6px 0 14px -8px var(--live); }
+
+/* Power-on intro */
+.power-on {
+  position: fixed; inset: 0; z-index: 90; display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 8px;
+  background: radial-gradient(800px 500px at 50% 40%, #101a2b, #070a0f 70%);
+  transition: opacity 0.35s var(--ease), transform 0.35s var(--ease);
+}
+.power-on.is-leaving { opacity: 0; transform: scale(1.03); pointer-events: none; }
+.power-on-trace { width: min(320px, 80vw); height: auto; }
+.power-on-trace path { fill: none; stroke-linecap: round; stroke-width: 5; }
+.po-rail { stroke: #e8f4ff; stroke-dasharray: 90; stroke-dashoffset: 90; animation: draw 0.45s var(--ease) forwards; }
+.po-contact, .po-coil { stroke: #5b6a80; stroke-dasharray: 60; stroke-dashoffset: 60; animation: draw 0.35s var(--ease) 0.3s forwards, energize 0.3s ease 0.75s forwards; }
+.po-rung { stroke: #5b6a80; stroke-dasharray: 260; stroke-dashoffset: 260; animation: draw 0.45s var(--ease) 0.25s forwards, energize 0.3s ease 0.75s forwards; }
+@keyframes energize { to { stroke: #3ddc97; filter: drop-shadow(0 0 8px #3ddc97); } }
+.power-on-mark { display: flex; flex-direction: column; align-items: center; opacity: 0; transform: translateY(8px); animation: rise 0.45s var(--ease) 0.55s forwards; }
+@keyframes rise { to { opacity: 1; transform: none; } }

@@ -34,6 +34,9 @@ jobs:
           npx --yes playwright@1.63.0 install --with-deps chromium
           npm i --no-save playwright@1.63.0
           node tests/e2e/run.mjs
+          (npx vite preview --port 4180 > /dev/null 2>&1 &) && sleep 3
+          node tests/e2e/flows.mjs
+          node tests/e2e/three.mjs
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'
         with:

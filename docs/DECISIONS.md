@@ -2,6 +2,13 @@
 
 Reasonable choices made where the build prompt was open. Newest first.
 
+- **2026-11-04 3D is procedural, not downloaded models.** Every part is built from three.js primitives with canvas-drawn labels and a code-built light environment. Reason: offline + strict CSP, zero licensing risk, tiny download, generic (unbranded) hardware by construction.
+- **2026-11-04 Fake bloom instead of post-processing.** Emissive LEDs + additive halo sprites. Reason: real bloom costs a full-screen pass every frame on phones; halos look the same at this scale.
+- **2026-11-04 The 3D view reads the engine inside the render loop**, not through React state. Reason: the scan runs ~100×/s; re-rendering React that often would stutter on phones.
+- **2026-11-04 3D opens by default only on the Simulator tab**, and never with reduced motion or "2D only". Lessons and Fault Hunt stay 2D with a 3D toggle. Reason: speed on phones; nothing in the course is 3D-only.
+- **2026-11-04 three pinned to 0.182.0.** r183+ prints a Clock deprecation warning every load, which would break the zero-console-warnings rule.
+- **2026-11-04 Unique motion language**: power-on intro (a rung energizing), sideways slides between tabs and upward slides when drilling in, a glowing bus-bar under the active tab. Reason: make it feel like a Caylor Made controls product, not a template. All of it turns off with reduced motion.
+
 - **2026-11-04 Repo and URL are `controls-sim`.** The prompt suggested `controls-academy`; the repo that exists is `Caylor-Made-Technologies/controls-sim`, so the site lives at `/controls-sim/`. The product name stays **Controls Academy**.
 - **Brand = the sibling app's tokens exactly** (`#0b0f14`, `#1e6fff`, blue→cyan gradient, Montserrat/Inter self-hosted, CM monogram, "Advanced Engineering. Built Different."). Added one color: energized green `#3ddc97` for "logic true", reused from the sibling's "ok" status so the apps still match.
 - **App icon** = an energized ladder rung (contact → coil) inside the same blue/cyan circuit ring as the sibling's bolt icon. Original SVG in `assets-src/`, rendered with Playwright.

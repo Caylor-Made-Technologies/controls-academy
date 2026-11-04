@@ -82,6 +82,7 @@ export default function SimulatorPage() {
           <Workbench
             key={key}
             initial={initial}
+            start3D
             onProgramChange={(p) => { current.current = p; saveProgram(p); }}
             extraTools={
               <>

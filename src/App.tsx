@@ -1,10 +1,12 @@
-import { lazy, Suspense, useEffect, useState } from 'react';
+import { lazy, Suspense, useEffect, useRef, useState } from 'react';
 import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from 'framer-motion';
 import { AppMark, Footer, Wordmark } from './components/Brand';
 import { Icon, type IconName } from './components/Icon';
 import { SkeletonPage } from './components/Skeleton';
 import { href, navigate, useRoute } from './lib/router';
 import { sfx } from './lib/sound';
+import { installSpotlight } from './lib/spotlight';
+import { PowerOn } from './components/PowerOn';
 import { applyTheme, usePrefs } from './state/prefs';
 import { useProgress } from './state/progress';
 import { Onboarding } from './features/onboarding/Onboarding';
@@ -27,6 +29,8 @@ const TABS: { id: TabId; label: string; icon: IconName; path: string }[] = [
   { id: 'reference', label: 'Reference', icon: 'book', path: 'reference' },
   { id: 'profile', label: 'Profile', icon: 'user', path: 'profile' },
 ];
+
+const ORDER: Record<TabId, number> = { learn: 0, sim: 1, troubleshoot: 2, reference: 3, profile: 4 };
 
 function tabFor(seg: string | undefined): TabId {
   switch (seg) {
@@ -61,6 +65,17 @@ export default function App() {
   const reduce = useReducedMotion();
   const tab = tabFor(route[0]);
   const routeKey = route.join('/');
+  // Direction-aware transitions: tabs slide sideways in tab order; drilling in (lesson, guide) rises up.
+  const prev = useRef({ tab, depth: route.length });
+  const dir = ORDER[tab] === ORDER[prev.current.tab] ? (route.length >= prev.current.depth ? 'in' : 'out') : ORDER[tab] > ORDER[prev.current.tab] ? 'right' : 'left';
+  useEffect(() => { prev.current = { tab, depth: route.length }; });
+  const [scrolled, setScrolled] = useState(false);
+  useEffect(() => {
+    installSpotlight();
+    const on = () => setScrolled(window.scrollY > 8);
+    window.addEventListener('scroll', on, { passive: true });
+    return () => window.removeEventListener('scroll', on);
+  }, []);
 
   useEffect(() => {
     void usePrefs.getState().hydrate();
@@ -112,6 +127,7 @@ export default function App() {
 
   return (
     <LayoutGroup>
+      <PowerOn />
       <a className="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to content</a>
 
       {/* Desktop rail */}
@@ -137,7 +153,7 @@ export default function App() {
       </nav>
 
       <div className="with-rail">
-        <header className="app-header lg:hidden">
+        <header className="app-header lg:hidden" data-scrolled={scrolled}>
           <div className="app-header-inner">
             <a href={href('learn')} className="flex items-center gap-2.5 no-underline min-w-0">
               <AppMark size={32} />
@@ -155,13 +171,19 @@ export default function App() {
         </header>
 
         <main id="main" tabIndex={-1} className="page outline-none">
-          <AnimatePresence mode="wait" initial={false}>
+          <AnimatePresence mode="wait" initial={false} custom={dir}>
             <motion.div
               key={routeKey.split('?')[0] || 'learn'}
-              initial={reduce ? { opacity: 0 } : { opacity: 0, y: 10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={reduce ? { opacity: 0 } : { opacity: 0, y: -6 }}
-              transition={{ duration: reduce ? 0.01 : 0.22, ease: [0.2, 0.8, 0.2, 1] }}
+              custom={dir}
+              variants={{
+                enter: (d: string) => (reduce ? { opacity: 0 } : { opacity: 0, x: d === 'right' ? 28 : d === 'left' ? -28 : 0, y: d === 'in' ? 14 : d === 'out' ? -10 : 0}),
+                center: { opacity: 1, x: 0, y: 0 },
+                exit: (d: string) => (reduce ? { opacity: 0 } : { opacity: 0, x: d === 'right' ? -18 : d === 'left' ? 18 : 0, y: d === 'in' ? -6 : 0}),
+              }}
+              initial="enter"
+              animate="center"
+              exit="exit"
+              transition={reduce ? { duration: 0.01 } : { opacity: { duration: 0.16 }, default: { type: 'spring', stiffness: 420, damping: 36, mass: 0.8 } }}
             >
               <Suspense fallback={<SkeletonPage />}>
                 <Page route={route} />
@@ -178,6 +200,7 @@ export default function App() {
           {TABS.map((t) => (
             <a key={t.id} href={href(t.path)} className="tab" aria-current={tab === t.id ? 'page' : undefined} onClick={() => { if (tab === t.id) window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
               {tab === t.id && <motion.span layoutId="tab-pill" className="tab-pill" transition={{ type: 'spring', stiffness: 520, damping: 38 }} />}
+              {tab === t.id && <motion.span layoutId="tab-bus" className="tab-bus" transition={{ type: 'spring', stiffness: 380, damping: 30 }} />}
               <Icon name={t.icon} className="relative" />
               <span className="relative">{t.label}</span>
             </a>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent, type ReactNode } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent, type ReactNode } from 'react';
 import { AnimatePresence, motion } from 'framer-motion';
 import { Icon } from '../../components/Icon';
 import { Sheet } from '../../components/Sheet';
@@ -18,6 +18,9 @@ import { Ladder } from './Ladder';
 import { MotorPanel } from './MotorPanel';
 import { OperandSheet } from './OperandSheet';
 import { SimRuntime, type RunMode } from './runtime';
+import { hasWebGL, prefer3D } from '../../three/support';
+
+const Panel3D = lazy(() => import('../../three/Panel3D'));
 
 const QUICK: OpCode[] = ['XIC', 'XIO', 'OTE', 'OTL', 'OTU', 'ONS', 'TON', 'TOF', 'RTO', 'CTU', 'CTD', 'RES', 'EQU', 'GRT', 'LES', 'MOV', 'ADD', 'CPT'];
 
@@ -46,9 +49,11 @@ export interface WorkbenchProps {
   /** Device taps reported upward (fault hunt picks the culprit). */
   onDevicePick?: (id: string) => void;
   devicePickLabel?: string;
+  /** Open in the 3D view when the device supports it. */
+  start3D?: boolean;
 }
 
-export function Workbench({ initial, editable = true, onProgramChange, onRuntime, hidePanel, onUnsafe, extraTools, onDevicePick, devicePickLabel }: WorkbenchProps) {
+export function Workbench({ initial, editable = true, onProgramChange, onRuntime, hidePanel, onUnsafe, extraTools, onDevicePick, devicePickLabel, start3D }: WorkbenchProps) {
   const rt = useRuntime(initial);
   const skinId = usePrefs((s) => s.skin);
   const setPrefs = usePrefs((s) => s.setPrefs);
@@ -64,6 +69,10 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
   const [commentOpen, setCommentOpen] = useState(false);
   const [xref, setXref] = useState<string | null>(null);
   const [, bump] = useState(0);
+  const quality = usePrefs((s) => s.quality);
+  const [view3d, setView3d] = useState(() => Boolean(start3D) && prefer3D(quality));
+  const can3d = useMemo(() => hasWebGL() && quality !== '2d', [quality]);
+  useEffect(() => { if (!can3d) setView3d(false); }, [can3d]);
 
   useEffect(() => { onRuntime?.(rt); }, [rt, onRuntime]);
   useEffect(() => { sawSkin(skinId); }, [skinId, sawSkin]);
@@ -133,10 +142,24 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
 
   return (
     <div className="space-y-3">
+      {!hidePanel && can3d && (
+        <div className="flex items-center gap-2">
+          <div className="seg" role="group" aria-label="Machine view">
+            <button type="button" aria-pressed={!view3d} onClick={() => setView3d(false)}>2D</button>
+            <button type="button" aria-pressed={view3d} onClick={() => setView3d(true)}>3D panel</button>
+          </div>
+          {view3d && <span className="text-xs text-muted">Live — synced to the logic below.</span>}
+        </div>
+      )}
+      {!hidePanel && view3d && (
+        <Suspense fallback={<div className="card skeleton h-[clamp(380px,68svh,560px)] lg:h-[540px]" aria-label="Loading 3D panel" aria-busy="true" />}>
+          <Panel3D rt={rt} onDevice={(id) => setDevice(id)} />
+        </Suspense>
+      )}
       <div className={hidePanel ? '' : 'grid gap-3 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] items-start'}>
         {!hidePanel && (
           <div className="lg:sticky lg:top-[72px]">
-            <MotorPanel rt={rt} onDevice={(id) => setDevice(id)} />
+            <MotorPanel rt={rt} onDevice={(id) => setDevice(id)} compact={view3d} />
           </div>
         )}
 

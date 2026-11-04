@@ -28,5 +28,6 @@ Montserrat + Inter, CM monogram in About/footer, circuit-trace headers, the same
 | 19 | Playwright gate: zero console errors + axe 0 + no overflow + screenshots at 375×812 and 1440×900, in CI | ☑ |
 | 20 | Modular CSS: Tailwind utilities + token layer, no global class clashes | ☑ |
 | 21 | Fault-Hunt Mode scored on time *and* safety, with teaching moments | ☑ (starter set) |
-| 22 | Interactive 3D panel + plant scenes with 2D fallback, lazy-loaded | ☐ Phase 8b |
+| 22 | Interactive 3D panel (live I/O, camera tours, X-ray current, exploded contactor, quality tiers, 2D fallback, lazy-loaded) | ☑ panel · ☐ 3D plant scenes, meter, wiring trainer |
+| 24 | Signature motion: power-on intro, direction-aware page slides, bus-bar tab indicator, pointer spotlight, drag-to-close sheets, blueprint grid | ☑ |
 | 23 | Lighthouse ≥ 95 on mobile across categories | ☐ Phase 10 (main bundle 139 KB gz to trim) |

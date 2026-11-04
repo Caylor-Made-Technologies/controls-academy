@@ -1,4 +1,4 @@
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, motion, useDragControls, useReducedMotion } from 'framer-motion';
 import { useEffect, useId, useRef, type ReactNode } from 'react';
 import { Icon } from './Icon';
 
@@ -7,6 +7,7 @@ export function Sheet({ open, onClose, title, children, wide = false }: { open: 
   const ref = useRef<HTMLDivElement>(null);
   const id = useId();
   const reduce = useReducedMotion();
+  const controls = useDragControls();
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
@@ -46,8 +47,14 @@ export function Sheet({ open, onClose, title, children, wide = false }: { open: 
             animate={reduce ? { opacity: 1 } : isDesktop ? { opacity: 1, scale: 1, x: '-50%', y: '-50%' } : { y: 0 }}
             exit={reduce ? { opacity: 0 } : isDesktop ? { opacity: 0, scale: 0.97, x: '-50%', y: '-48%' } : { y: '100%' }}
             transition={{ type: 'spring', stiffness: 420, damping: 38 }}
+            drag={!isDesktop && !reduce ? 'y' : false}
+            dragConstraints={{ top: 0, bottom: 0 }}
+            dragElastic={{ top: 0.05, bottom: 0.6 }}
+            dragListener={false}
+            dragControls={controls}
+            onDragEnd={(_, info) => { if (info.offset.y > 110 || info.velocity.y > 600) onClose(); }}
           >
-            <div className="sheet-grab" />
+            <div className="sheet-grab-zone" onPointerDown={(e) => controls.start(e)} aria-hidden="true"><div className="sheet-grab" /></div>
             <div className="flex items-center justify-between gap-3 mb-3">
               <h2 id={id} className="text-lg font-bold">{title}</h2>
               <button className="btn btn-ghost icon-btn" onClick={onClose} aria-label="Close">
