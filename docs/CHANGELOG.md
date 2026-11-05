@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.0 — 2026-11-05
+- **Course expansion:** 29 new lessons (49 total) in 4 levels (Beginner → Intermediate → Advanced → Expert), new Track 11 "Expert Practice", 2 capstones (build start/stop from a blank rung; design the flour batch mixer), Structured Text code blocks, the "Controls Pro" badge and the `build-start-stop` task check.
+- **PLC hardware library (3D):** 48 PLC, remote I/O and logic-module families you commonly see in US plants, from 17 brands (Allen-Bradley/Rockwell, Siemens, Schneider/Modicon, Mitsubishi, AutomationDirect, Omron, Emerson/GE, Beckhoff, IDEC, Unitronics, WAGO, Phoenix Contact, Eaton, Keyence, Opto 22, Delta, B&R). Each one has a procedural 3D model (orbit, pinch, tap a module), a flat front view (thumbnails, no-WebGL and "2D only"), where you'll see it in the US, software, what to look at, and its status (current / mature / legacy). Simplified look-alikes: approximate proportions, neutral colors, no logos.
+- **Simulator 3D panel uses real-world form factors:** the PLC in the panel now matches your platform (e.g. CompactLogix 5380 for Logix, S7-1200 for TIA, CLICK for AutomationDirect), live from the engine (RUN/FORCE/FAULT and every I/O point). A HUD menu swaps in any library model or the generic rack; "Use in the simulator" on a model page does the same.
+- **Brand field guides:** 9 new brands and, for every brand, where you meet it in the US plus the HMIs, drives and networks that usually come with it. Each guide lists its 3D models. Search finds every model.
+- Every-feature test fixed for tracks 10 and 11 (exact certificate button names) and extended with brand and hardware-library checks; route gate covers the library and a model page.
+
 ## 0.3.0 — 2026-11-05
 - **Site moved** with the repo rename: https://caylor-made-technologies.github.io/controls-academy/ (Vite base updated; the old base left a blank page at the new URL for a short time).
 - **Bugs found by the new every-feature test and fixed:**

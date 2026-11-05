@@ -14,9 +14,14 @@ export interface BrandGuide {
   firstDay: string[];
   tips: string[];
   gotchas: string[];
+  /** Where you meet this brand in the US and how common it is. */
+  us?: string;
+  hmi?: string[];
+  drives?: string[];
+  networks?: string[];
 }
 
-export const BRAND_GUIDES: BrandGuide[] = [
+const BASE_GUIDES: BrandGuide[] = [
   {
     id: 'rockwell', name: 'Allen-Bradley / Rockwell Automation', skin: 'ab-logix',
     software: [
@@ -144,6 +149,165 @@ export const BRAND_GUIDES: BrandGuide[] = [
     gotchas: ['Runs on Windows plus a real-time kernel — Windows updates and IT policies matter.'],
   },
 ];
+
+/** US field notes for every brand: where you'll see it, HMIs, drives and networks. */
+const US_NOTES: Record<string, Pick<BrandGuide, 'us' | 'hmi' | 'drives' | 'networks'>> = {
+  rockwell: {
+    us: 'The most common PLC brand in US plants. Expect it in food and beverage, grain and flour, automotive, water, and data-center utility controls. If you learn one platform first, learn this one.',
+    hmi: ['PanelView Plus / PanelView 5000 (FactoryTalk View ME or Optix) // VERIFY current names', 'FactoryTalk View SE (SCADA)'],
+    drives: ['PowerFlex 4-class (40, 525) small drives', 'PowerFlex 750-series large drives'],
+    networks: ['EtherNet/IP (current standard)', 'DeviceNet and ControlNet (older)', 'DH+ and Remote I/O (legacy PLC-5/SLC)', 'DF1 serial'],
+  },
+  siemens: {
+    us: 'Second most common in the US and the world leader overall. Very common on machines built in Europe, in automotive, and in larger process plants.',
+    hmi: ['SIMATIC Basic / Comfort panels', 'WinCC Unified panels and PC runtime'],
+    drives: ['SINAMICS G120 (general purpose)', 'SINAMICS S120 (motion)', 'MICROMASTER (legacy)'],
+    networks: ['PROFINET (current standard)', 'PROFIBUS DP (older, still common)', 'MPI (legacy programming)'],
+  },
+  schneider: {
+    us: 'Strong in US water and wastewater, infrastructure, and Square D power equipment. Modicon invented Modbus, so you will see Modbus everywhere it goes.',
+    hmi: ['Magelis / Harmony HMIs (Vijeo Designer, EcoStruxure Operator Terminal Expert) // VERIFY current names'],
+    drives: ['Altivar drives (ATV320, ATV340, ATV600/900 families)'],
+    networks: ['Modbus TCP and Modbus RTU', 'EtherNet/IP on newer controllers', 'Modbus Plus (legacy)'],
+  },
+  mitsubishi: {
+    us: 'Common on packaging, assembly and imported Japanese machines. Less common as a plant-wide standard in the US, but you will meet it on OEM equipment.',
+    hmi: ['GOT HMIs (GT Designer)'],
+    drives: ['FR-series inverters (FR-D, FR-E, FR-A)'],
+    networks: ['CC-Link / CC-Link IE', 'SLMP over Ethernet', 'Serial (older FX)'],
+  },
+  automationdirect: {
+    us: 'A US company (Georgia) selling low-cost PLCs online. Popular with small shops, farms, grain elevators and home learners because the software is free.',
+    hmi: ['C-more touch panels', 'C-more Micro (small text panels)'],
+    drives: ['GS-series drives (GS10, GS20, DURApulse)'],
+    networks: ['Modbus TCP / RTU', 'EtherNet/IP (Productivity, Do-more) // VERIFY per model'],
+  },
+  omron: {
+    us: 'Common on packaging, food machines and Japanese-built equipment. Big in sensors and safety relays too.',
+    hmi: ['NB and NA series HMIs'],
+    drives: ['MX2 and RX inverters'],
+    networks: ['EtherNet/IP', 'EtherCAT (for motion on NX/NJ)', 'Host Link / serial (older CP/CJ)'],
+  },
+  emerson: {
+    us: 'Formerly GE Fanuc / GE Intelligent Platforms. Still strong in US municipal water and wastewater, power and oil and gas.',
+    hmi: ['QuickPanel+ HMIs', 'iFIX / Cimplicity SCADA (often seen with these PLCs) // VERIFY current ownership of these SCADA products'],
+    drives: ['Not a major drive brand; expect third-party drives'],
+    networks: ['Ethernet (SRTP, EGD), Modbus TCP', 'PROFINET on RX3i', 'Genius bus (legacy)'],
+  },
+  beckhoff: {
+    us: 'PC-based control from Germany, growing in US high-speed machinery and some building automation. Structured Text heavy.',
+    hmi: ['TwinCAT HMI on panel PCs'],
+    drives: ['AX-series servo drives'],
+    networks: ['EtherCAT (Beckhoff invented it)', 'ADS for PC communication', 'Many fieldbus terminals (PROFINET, EtherNet/IP, Modbus, BACnet)'],
+  },
+};
+
+/** Other brands you commonly meet in US panels. */
+const MORE_GUIDES: BrandGuide[] = [
+  {
+    id: 'idec', name: 'IDEC', skin: 'iec',
+    software: [{ name: 'WindLDR (Automation Organizer)', for: 'MicroSmart PLCs' }, { name: 'WindO/I-NV4', for: 'HMIs // VERIFY' }],
+    hardware: ['MicroSmart FC6A / FC6A Plus', 'MicroSmart FC5A (older)', 'SmartAXIS logic modules', 'HG HMIs'],
+    addressing: [['Inputs / outputs', 'I0, Q0 // VERIFY numbering scheme per model'], ['Internal relay', 'M0'], ['Data register', 'D0']],
+    firstDay: ['Upload the program and save it with the date.', 'Note the model and any expansion modules.'],
+    tips: ['IDEC is also a big name in pushbuttons, relays and E-stops — you will see their devices even where the PLC is another brand.'],
+    gotchas: ['Check the address numbering on your model before you write new logic. // VERIFY'],
+    us: 'A Japanese company with a large US presence. Common in small machines, pump panels and HVAC. Their pilot devices and relays are everywhere.',
+    networks: ['Modbus TCP / RTU', 'Ethernet'],
+  },
+  {
+    id: 'unitronics', name: 'Unitronics', skin: 'iec',
+    software: [{ name: 'UniLogic', for: 'UniStream' }, { name: 'VisiLogic', for: 'Vision series' }, { name: 'U90 Ladder', for: 'Jazz / M91 (older) // VERIFY' }],
+    hardware: ['UniStream (HMI + PLC)', 'Vision series (HMI + PLC)', 'Samba', 'Jazz (small)'],
+    addressing: [['Memory bits / integers (Vision)', 'MB0, MI0 // VERIFY'], ['Inputs / outputs (Vision)', 'I0, O0 // VERIFY'], ['UniStream', 'Tags']],
+    firstDay: ['Back up the project from the panel and save it with the date.', 'Note whether the HMI screens and the logic live in the same project (they usually do).'],
+    tips: ['One project holds both the screens and the ladder logic.'],
+    gotchas: ['If the screen dies, the controller may be dead too — they are one unit.', 'Default network settings and passwords should be changed on any connected unit.'],
+    us: 'Common on small US machines, water skids and pump stations because the screen and PLC are one low-cost unit.',
+    networks: ['Modbus TCP / RTU', 'EtherNet/IP (some models) // VERIFY', 'CANopen'],
+  },
+  {
+    id: 'wago', name: 'WAGO', skin: 'iec',
+    software: [{ name: 'e!COCKPIT', for: 'PFC100 / PFC200 // VERIFY current tool name' }, { name: 'CODESYS V3', for: 'PFC controllers' }],
+    hardware: ['PFC100 / PFC200 controllers', '750 / 753 I/O system', 'Compact Controller 100', 'Terminal blocks and relays'],
+    addressing: [['Variables', 'IEC 61131-3 variables (CODESYS)'], ['I/O', '%IX / %QX linked to the I/O image']],
+    firstDay: ['Get the project and the controller\'s web management page address.', 'List the I/O slices in order; it must match the project.'],
+    tips: ['WAGO push-in terminals are the orange-lever and push-in blocks you see in many panels.', 'Controllers have a web management page for status and diagnostics.'],
+    gotchas: ['A slice added or moved changes the process image. Update the project.'],
+    us: 'Very common for terminal blocks; WAGO controllers show up in building automation, energy and water.',
+    networks: ['Modbus TCP', 'EtherNet/IP', 'BACnet (some controllers) // VERIFY', 'MQTT and IIoT'],
+  },
+  {
+    id: 'phoenix', name: 'Phoenix Contact', skin: 'iec',
+    software: [{ name: 'PLCnext Engineer', for: 'PLCnext controllers (AXC F)' }, { name: 'PC WORX', for: 'Older ILC controllers' }],
+    hardware: ['PLCnext AXC F controllers', 'ILC (older)', 'Axioline and Inline I/O', 'Power supplies, terminals, surge protection'],
+    addressing: [['Variables', 'IEC 61131-3 variables']],
+    firstDay: ['Get the project and find the controller\'s address.', 'Note the I/O station layout.'],
+    tips: ['You will see their terminal blocks, power supplies and surge protection in panels of every brand.'],
+    gotchas: ['PLCnext can run code in several languages at once. Ask what runs where before changing anything.'],
+    us: 'Huge for terminal blocks, power supplies and surge protection in US panels. PLCnext controllers are growing in infrastructure and energy.',
+    networks: ['PROFINET', 'Modbus TCP', 'EtherNet/IP (some) // VERIFY'],
+  },
+  {
+    id: 'eaton', name: 'Eaton', skin: 'iec',
+    software: [{ name: 'easySoft', for: 'easyE4 programmable relays' }, { name: 'XSOFT-CODESYS', for: 'XC controllers // VERIFY' }, { name: 'Galileo', for: 'XV HMIs // VERIFY' }],
+    hardware: ['easyE4 / easy relays', 'XC controllers', 'XV HMIs', 'DG1 and PowerXL drives', 'Contactors, starters, breakers'],
+    addressing: [['easyE4', 'I1, Q1, M1 (operand-style) // VERIFY']],
+    firstDay: ['Read the program from the relay and save it.', 'Many Eaton panels are mostly hardwired with starters and relays — check the print first.'],
+    tips: ['Eaton (and Cutler-Hammer before it) built a huge share of US motor control centers.'],
+    gotchas: ['Small logic relays are often programmed from the front keys; a hand-edited program may differ from the office copy.'],
+    us: 'Everywhere in US power distribution and motor control (breakers, MCCs, starters). easy relays show up in simple controls.',
+    drives: ['DG1, PowerXL DM1, DC1'],
+    networks: ['Modbus', 'Ethernet'],
+  },
+  {
+    id: 'keyence', name: 'Keyence', skin: 'iec',
+    software: [{ name: 'KV STUDIO', for: 'KV series PLCs' }],
+    hardware: ['KV-8000 / KV-7000 (building block)', 'KV Nano (compact)', 'Sensors, vision systems, safety scanners'],
+    addressing: [['Relays / data memory', 'R000, MR000, DM0 // VERIFY'], ['Timers / counters', 'T0, C0 // VERIFY']],
+    firstDay: ['Upload the project and save it.', 'Check whether vision or sensor settings are stored in the devices themselves.'],
+    tips: ['Keyence sensors and vision cameras are common even where the PLC is another brand.'],
+    gotchas: ['Address names differ a lot from other brands. Keep the manual handy. // VERIFY'],
+    us: 'Growing fast in US automotive and electronics assembly, inspection and packaging, partly because of strong local sales support.',
+    networks: ['EtherNet/IP', 'KV proprietary links // VERIFY'],
+  },
+  {
+    id: 'opto22', name: 'Opto 22', skin: 'iec',
+    software: [{ name: 'PAC Control', for: 'SNAP PAC and groov EPIC (flowchart-based)' }, { name: 'CODESYS', for: 'groov EPIC // VERIFY' }, { name: 'groov View', for: 'HMI' }],
+    hardware: ['groov EPIC', 'groov RIO (remote I/O)', 'SNAP PAC (older)'],
+    addressing: [['Variables / points', 'Named points and variables (tag-based)']],
+    firstDay: ['Back up the strategy file and the controller configuration.', 'Find out whether it also runs Node-RED or other software. // VERIFY'],
+    tips: ['A US company (California). Popular for data collection, energy monitoring and IIoT projects.'],
+    gotchas: ['PAC Control uses flowcharts, not ladder. Expect a different way of reading logic.'],
+    us: 'Found in water, energy monitoring, test stands and IIoT projects across the US.',
+    networks: ['Ethernet, Modbus TCP', 'MQTT, OPC UA // VERIFY'],
+  },
+  {
+    id: 'delta', name: 'Delta Electronics', skin: 'mitsubishi',
+    software: [{ name: 'ISPSoft / WPLSoft', for: 'DVP series // VERIFY' }, { name: 'DIADesigner', for: 'AS series // VERIFY' }],
+    hardware: ['DVP series (ES2, SS2, SE…)', 'AS series', 'DOP HMIs', 'VFD drives (MS300, C2000)'],
+    addressing: [['Inputs / outputs (DVP)', 'X0, Y0 (octal) // VERIFY'], ['Internal relay / data register', 'M0, D0']],
+    firstDay: ['Upload and save the program.', 'Check the exact model; DVP and AS families use different software.'],
+    tips: ['Addressing on DVP feels a lot like Mitsubishi FX. The simulator\'s Mitsubishi dialect is the closest match.'],
+    gotchas: ['Low-cost machines sometimes ship with no backup. Make one before touching anything.'],
+    us: 'Common on low-cost and imported OEM machines; Delta drives are common too.',
+    drives: ['MS300, C2000, VFD-E'],
+    networks: ['Modbus RTU / TCP', 'EtherNet/IP (some) // VERIFY'],
+  },
+  {
+    id: 'bnr', name: 'B&R (part of ABB)', skin: 'iec',
+    software: [{ name: 'B&R Automation Studio', for: 'X20, X90, Power Panel' }],
+    hardware: ['X20 controllers and I/O', 'X90 mobile controllers', 'Power Panel HMIs', 'ACOPOS servo drives'],
+    addressing: [['Variables', 'IEC 61131-3 variables']],
+    firstDay: ['Get the Automation Studio project and the exact version used.', 'Ask the OEM for support contacts; many B&R machines are tightly OEM-controlled.'],
+    tips: ['Heavy on motion and Structured Text.'],
+    gotchas: ['Projects often need the exact Automation Studio version that built them. // VERIFY'],
+    us: 'Seen on European packaging, plastics and printing machines in US plants.',
+    networks: ['POWERLINK', 'OPC UA', 'Ethernet'],
+  },
+];
+
+export const BRAND_GUIDES: BrandGuide[] = [...BASE_GUIDES.map((g) => ({ ...g, ...US_NOTES[g.id] })), ...MORE_GUIDES];
 
 export interface PracticeTool {
   name: string;

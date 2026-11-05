@@ -72,7 +72,7 @@ export function PlatformBar({ program }: { program: Program }) {
                       aria-checked={on}
                       className="card card-link p-3 text-left cursor-pointer"
                       style={on ? { borderColor: 'var(--blue-glow)', boxShadow: 'var(--glow)' } : undefined}
-                      onClick={() => { setPrefs({ skin: sk.id as SkinId }); setOpen(false); }}
+                      onClick={() => { setPrefs({ skin: sk.id as SkinId, hwModel: '' }); setOpen(false); }}
                     >
                       <span className="flex items-start justify-between gap-2">
                         <span className="min-w-0">

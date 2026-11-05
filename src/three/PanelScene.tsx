@@ -3,17 +3,20 @@
  * Everything live (LEDs, contactor armature, overload flag, motor shaft, current flow)
  * is read from the SimRuntime inside useFrame, so the scan never triggers React renders.
  */
-import { Billboard, Edges, Instances, Instance, RoundedBox } from '@react-three/drei';
+import { Billboard, Edges, Instances, Instance } from '@react-three/drei';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-  AdditiveBlending, CanvasTexture, CatmullRomCurve3, DoubleSide, MathUtils, Matrix4, SRGBColorSpace, Vector3,
-  type Group, type InstancedMesh, type Mesh, type MeshStandardMaterial, type Sprite,
+  CanvasTexture, CatmullRomCurve3, DoubleSide, MathUtils, Matrix4, SRGBColorSpace, Vector3,
+  type Group, type InstancedMesh, type Mesh, type MeshStandardMaterial,
 } from 'three';
 import type { SimRuntime } from '../features/simulator/runtime';
 import { addressMap, type Skin } from '../skins';
 import { PARTS, type PartId } from './info';
-import { brushedTexture, floorTexture, haloTexture, labelTexture } from './textures';
+import { brushedTexture, floorTexture } from './textures';
+import { Box, Label, Led } from './kit';
+import { HardwareModel, type HwLive } from './HardwareModel';
+import type { HwModel } from '../content/hardware';
 
 export interface SceneProps {
   rt: SimRuntime;
@@ -24,6 +27,8 @@ export interface SceneProps {
   xray: boolean;
   explode: boolean;
   shadows: boolean;
+  /** Hardware-library model to show instead of the generic PLC rack (null = generic rack). */
+  hw?: HwModel | null;
 }
 
 const C = {
@@ -33,63 +38,6 @@ const C = {
 };
 
 // ---------- small building blocks ----------
-
-function Box({ size, pos, color, rough = 0.6, metal = 0.1, children, mref, opacity, round }: { size: [number, number, number]; pos: [number, number, number]; color: string; rough?: number; metal?: number; children?: ReactNode; mref?: React.Ref<Mesh>; opacity?: number; round?: number }) {
-  // Real hardware has softened edges; rounded corners catch the light and read as molded parts.
-  const minDim = Math.min(...size);
-  const r = round ?? (minDim >= 0.03 ? Math.min(0.0055, minDim * 0.12) : 0);
-  if (r > 0) {
-    return (
-      <RoundedBox ref={mref} args={size} radius={r} smoothness={2} position={pos} castShadow receiveShadow>
-        <meshStandardMaterial color={color} roughness={rough} metalness={metal} transparent={opacity !== undefined} opacity={opacity ?? 1} />
-        {children}
-      </RoundedBox>
-    );
-  }
-  return (
-    <mesh ref={mref} position={pos} castShadow receiveShadow>
-      <boxGeometry args={size} />
-      <meshStandardMaterial color={color} roughness={rough} metalness={metal} transparent={opacity !== undefined} opacity={opacity ?? 1} />
-      {children}
-    </mesh>
-  );
-}
-
-function Label({ text, pos, w = 0.06, h = 0.015, fg, bg, rot }: { text: string; pos: [number, number, number]; w?: number; h?: number; fg?: string; bg?: string; rot?: [number, number, number] }) {
-  const tex = useMemo(() => labelTexture(text, { fg: fg ?? '#11161d', bg: bg ?? '#f2f4f7', w: Math.round(w * 4000), h: Math.round(h * 4000), size: Math.round(h * 4000 * 0.62) }), [text, fg, bg, w, h]);
-  return (
-    <mesh position={pos} rotation={rot}>
-      <planeGeometry args={[w, h]} />
-      <meshBasicMaterial map={tex} transparent toneMapped={false} />
-    </mesh>
-  );
-}
-
-/** An LED with a fake-bloom halo. `read` is polled every frame. */
-function Led({ pos, color, read, size = 0.007, halo = 0.05 }: { pos: [number, number, number]; color: string; read: () => boolean; size?: number; halo?: number }) {
-  const mat = useRef<MeshStandardMaterial>(null);
-  const spr = useRef<Sprite>(null);
-  const htex = useMemo(() => haloTexture(), []);
-  useFrame(() => {
-    const on = read();
-    if (mat.current) {
-      mat.current.emissiveIntensity = on ? 3 : 0;
-      mat.current.color.set(on ? color : '#3a4250');
-    }
-    if (spr.current) spr.current.visible = on;
-  });
-  return (
-    <group position={pos}>
-      <mesh>
-        <boxGeometry args={[size, size, 0.004]} />
-        <meshStandardMaterial ref={mat} color="#3a4250" emissive={color} emissiveIntensity={0} toneMapped={false} />
-      </mesh>
-      <sprite ref={spr} scale={[halo, halo, 1]} position={[0, 0, 0.004]}>
-        <spriteMaterial map={htex} color={color} blending={AdditiveBlending} depthWrite={false} transparent opacity={0.85} />
-      </sprite>
-    </group>
-  );
-}
 
 /** Clickable wrapper with a selection outline. */
 function Part({ id, onSelect, selected, outline, children }: { id: PartId; onSelect: (p: PartId) => void; selected: boolean; outline: { size: [number, number, number]; pos: [number, number, number] }; children: ReactNode }) {
@@ -197,7 +145,7 @@ const v = (x: number, y: number, z: number) => new Vector3(x, y, z);
 
 // ---------- the scene ----------
 
-export function PanelScene({ rt, skin, selected, onSelect, xray, explode }: SceneProps) {
+export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw }: SceneProps) {
   const s = () => rt.scene.state;
   const io = () => rt.io;
   const plc = () => rt.plc;
@@ -205,6 +153,21 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode }: Scen
   const brushed = useMemo(() => brushedTexture(), []);
   const floor = useMemo(() => floorTexture(), []);
   const sel = (id: PartId) => selected === id;
+  const hwLive = useMemo<HwLive>(() => ({
+    di: (i) => Boolean(rt.io.DI[i]),
+    do: (i) => Boolean(rt.io.DO[i]),
+    run: () => rt.plc.mode === 'RUN' && !rt.plc.fault,
+    force: () => rt.plc.hasForces,
+    fault: () => Boolean(rt.plc.fault) && Math.floor(performance.now() / 400) % 2 === 0,
+    power: () => rt.scene.activeFault !== 'fuse',
+  }), [rt]);
+  const hwSel = useMemo(() => {
+    if (!hw || !selected) return null;
+    const kind = selected === 'plc-psu' ? 'psu' : selected === 'di-card' ? 'di' : selected === 'do-card' ? 'do' : selected === 'cpu' ? 'cpu' : null;
+    if (!kind) return null;
+    const i = hw.shape.units.findIndex((u) => u.kind === kind || (kind === 'cpu' && (u.kind === 'brick' || u.kind === 'logic' || u.kind === 'safety' || u.kind === 'pc' || u.kind === 'hmi')));
+    return i >= 0 ? i : null;
+  }, [hw, selected]);
   const enclosureOpacity = xray ? 0.18 : 1;
 
   // Curves for wiring (panel coordinates).
@@ -394,39 +357,58 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode }: Scen
       {/* ---------- PLC rack on DIN rail ---------- */}
       <Box size={[0.66, 0.035, 0.008]} pos={[0.02, 0.14, 0.0]} color={C.din} metal={0.8} rough={0.3} />
       <RackTrim />
-      <Part id="plc-psu" onSelect={onSelect} selected={sel('plc-psu')} outline={{ size: [0.07, 0.15, 0.12], pos: [-0.17, 0.14, 0.05] }}>
-        <Box size={[0.058, 0.13, 0.1]} pos={[-0.17, 0.14, 0.05]} color={C.module} />
-        <Label text="PS" pos={[-0.17, 0.19, 0.101]} w={0.03} h={0.012} fg="#c9d3e0" bg="#1a2030" />
-        <Label text="24 VDC" pos={[-0.17, 0.114, 0.1072]} w={0.05} h={0.011} fg="#11161d" bg="#f2f4f7" />
-        <Led pos={[-0.17, 0.165, 0.102]} color="#3ddc97" read={ctrlPower} />
-      </Part>
-      <Part id="cpu" onSelect={onSelect} selected={sel('cpu')} outline={{ size: [0.08, 0.15, 0.12], pos: [-0.105, 0.14, 0.05] }}>
-        <Box size={[0.068, 0.13, 0.1]} pos={[-0.105, 0.14, 0.05]} color={C.module} />
-        <Label text={skin.maker.replace(/\s*\(.*\)$/, '')} pos={[-0.105, 0.194, 0.101]} w={0.062} h={0.01} fg="#ffffff" bg="#1b63eb" />
-        <Label text={skin.hw.cpu} pos={[-0.105, 0.182, 0.101]} w={0.062} h={0.01} fg="#c9d3e0" bg="#1a2030" />
-        <Led pos={[-0.12, 0.165, 0.102]} color="#3ddc97" read={() => plc().mode === 'RUN' && !plc().fault} />
-        <Led pos={[-0.105, 0.165, 0.102]} color="#ffb547" read={() => plc().hasForces} />
-        <Led pos={[-0.09, 0.165, 0.102]} color="#ff6b6b" read={() => Boolean(plc().fault) && Math.floor(performance.now() / 400) % 2 === 0} />
-        <Label text="RUN FRC FLT" pos={[-0.105, 0.152, 0.101]} w={0.055} h={0.008} fg="#9aa7b8" bg="#2b3240" />
-        <Box size={[0.026, 0.01, 0.004]} pos={[-0.105, 0.13, 0.103]} color="#0b0f14" />
-        <mesh position={[-0.105, 0.13, 0.106]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.0035, 0.0035, 0.004, 12]} /><meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.25} /></mesh>
-      </Part>
-      <Part id="di-card" onSelect={onSelect} selected={sel('di-card')} outline={{ size: [0.06, 0.15, 0.12], pos: [-0.045, 0.14, 0.05] }}>
-        <Box size={[0.048, 0.13, 0.1]} pos={[-0.045, 0.14, 0.05]} color={C.module} />
-        <Label text="IN" pos={[-0.045, 0.19, 0.101]} w={0.03} h={0.012} fg="#c9d3e0" bg="#1a2030" />
-        <Label text={skin.hw.din} pos={[-0.045, 0.114, 0.1072]} w={0.042} h={0.011} fg="#11161d" bg="#f2f4f7" />
-        {Array.from({ length: 8 }, (_, i) => (
-          <Led key={i} pos={[-0.055 + (i % 2) * 0.02, 0.168 - Math.floor(i / 2) * 0.016, 0.102]} color="#ffb547" read={() => Boolean(io().DI[i])} size={0.006} halo={0.035} />
-        ))}
-      </Part>
-      <Part id="do-card" onSelect={onSelect} selected={sel('do-card')} outline={{ size: [0.06, 0.15, 0.12], pos: [0.01, 0.14, 0.05] }}>
-        <Box size={[0.048, 0.13, 0.1]} pos={[0.01, 0.14, 0.05]} color={C.module} />
-        <Label text="OUT" pos={[0.01, 0.19, 0.101]} w={0.03} h={0.012} fg="#c9d3e0" bg="#1a2030" />
-        <Label text={skin.hw.dout} pos={[0.01, 0.114, 0.1072]} w={0.042} h={0.011} fg="#11161d" bg="#f2f4f7" />
-        {Array.from({ length: 8 }, (_, i) => (
-          <Led key={i} pos={[0.0 + (i % 2) * 0.02, 0.168 - Math.floor(i / 2) * 0.016, 0.102]} color="#3ddc97" read={() => Boolean(io().DO[i])} size={0.006} halo={0.035} />
-        ))}
-      </Part>
+      {hw ? (
+        <group position={[-0.08, 0.14, 0.0]}>
+          <HardwareModel
+            shape={hw.shape}
+            fit={[0.27, 0.165]}
+            maxScale={1.15}
+            labelText={skin.hw.cpu}
+            selected={hwSel}
+            onSelect={(i) => {
+              const k = hw.shape.units[i].kind;
+              onSelect(k === 'psu' ? 'plc-psu' : k === 'di' ? 'di-card' : k === 'do' ? 'do-card' : 'cpu');
+            }}
+            live={hwLive}
+          />
+        </group>
+      ) : (
+        <>
+        <Part id="plc-psu" onSelect={onSelect} selected={sel('plc-psu')} outline={{ size: [0.07, 0.15, 0.12], pos: [-0.17, 0.14, 0.05] }}>
+          <Box size={[0.058, 0.13, 0.1]} pos={[-0.17, 0.14, 0.05]} color={C.module} />
+          <Label text="PS" pos={[-0.17, 0.19, 0.101]} w={0.03} h={0.012} fg="#c9d3e0" bg="#1a2030" />
+          <Label text="24 VDC" pos={[-0.17, 0.114, 0.1072]} w={0.05} h={0.011} fg="#11161d" bg="#f2f4f7" />
+          <Led pos={[-0.17, 0.165, 0.102]} color="#3ddc97" read={ctrlPower} />
+        </Part>
+        <Part id="cpu" onSelect={onSelect} selected={sel('cpu')} outline={{ size: [0.08, 0.15, 0.12], pos: [-0.105, 0.14, 0.05] }}>
+          <Box size={[0.068, 0.13, 0.1]} pos={[-0.105, 0.14, 0.05]} color={C.module} />
+          <Label text={skin.maker.replace(/\s*\(.*\)$/, '')} pos={[-0.105, 0.194, 0.101]} w={0.062} h={0.01} fg="#ffffff" bg="#1b63eb" />
+          <Label text={skin.hw.cpu} pos={[-0.105, 0.182, 0.101]} w={0.062} h={0.01} fg="#c9d3e0" bg="#1a2030" />
+          <Led pos={[-0.12, 0.165, 0.102]} color="#3ddc97" read={() => plc().mode === 'RUN' && !plc().fault} />
+          <Led pos={[-0.105, 0.165, 0.102]} color="#ffb547" read={() => plc().hasForces} />
+          <Led pos={[-0.09, 0.165, 0.102]} color="#ff6b6b" read={() => Boolean(plc().fault) && Math.floor(performance.now() / 400) % 2 === 0} />
+          <Label text="RUN FRC FLT" pos={[-0.105, 0.152, 0.101]} w={0.055} h={0.008} fg="#9aa7b8" bg="#2b3240" />
+          <Box size={[0.026, 0.01, 0.004]} pos={[-0.105, 0.13, 0.103]} color="#0b0f14" />
+          <mesh position={[-0.105, 0.13, 0.106]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.0035, 0.0035, 0.004, 12]} /><meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.25} /></mesh>
+        </Part>
+        <Part id="di-card" onSelect={onSelect} selected={sel('di-card')} outline={{ size: [0.06, 0.15, 0.12], pos: [-0.045, 0.14, 0.05] }}>
+          <Box size={[0.048, 0.13, 0.1]} pos={[-0.045, 0.14, 0.05]} color={C.module} />
+          <Label text="IN" pos={[-0.045, 0.19, 0.101]} w={0.03} h={0.012} fg="#c9d3e0" bg="#1a2030" />
+          <Label text={skin.hw.din} pos={[-0.045, 0.114, 0.1072]} w={0.042} h={0.011} fg="#11161d" bg="#f2f4f7" />
+          {Array.from({ length: 8 }, (_, i) => (
+            <Led key={i} pos={[-0.055 + (i % 2) * 0.02, 0.168 - Math.floor(i / 2) * 0.016, 0.102]} color="#ffb547" read={() => Boolean(io().DI[i])} size={0.006} halo={0.035} />
+          ))}
+        </Part>
+        <Part id="do-card" onSelect={onSelect} selected={sel('do-card')} outline={{ size: [0.06, 0.15, 0.12], pos: [0.01, 0.14, 0.05] }}>
+          <Box size={[0.048, 0.13, 0.1]} pos={[0.01, 0.14, 0.05]} color={C.module} />
+          <Label text="OUT" pos={[0.01, 0.19, 0.101]} w={0.03} h={0.012} fg="#c9d3e0" bg="#1a2030" />
+          <Label text={skin.hw.dout} pos={[0.01, 0.114, 0.1072]} w={0.042} h={0.011} fg="#11161d" bg="#f2f4f7" />
+          {Array.from({ length: 8 }, (_, i) => (
+            <Led key={i} pos={[0.0 + (i % 2) * 0.02, 0.168 - Math.floor(i / 2) * 0.016, 0.102]} color="#3ddc97" read={() => Boolean(io().DO[i])} size={0.006} halo={0.035} />
+          ))}
+        </Part>
+        </>
+      )}
       <Part id="switch" onSelect={onSelect} selected={sel('switch')} outline={{ size: [0.12, 0.11, 0.1], pos: [0.26, 0.14, 0.04] }}>
         <Box size={[0.1, 0.09, 0.07]} pos={[0.26, 0.14, 0.035]} color="#334155" />
         {[0.225, 0.245, 0.265, 0.285].map((x, i) => (

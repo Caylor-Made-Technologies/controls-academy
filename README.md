@@ -19,9 +19,10 @@ A phone-first, installable training app that takes someone who has never touched
 - **Ten brand dialects, clearly labeled** — a platform bar always says which PLC you're on (maker, family, software style) with a picker grouped by manufacturer; the same logic is shown with Allen-Bradley Logix, SLC 500, Micro800, Siemens TIA and S7 classic, Modicon, Mitsubishi (octal!), AutomationDirect, Omron and IEC conventions.
 - **3D control panel** — a live, explorable enclosure: PLC LEDs follow the I/O, the contactor pulls in, the overload flag pops, X-ray shows current flowing, camera tours fly you to each part, exploded contactor. Lazy-loaded with a 2D fallback.
 - **A machine to control** — motor start/stop station with hardwired E-stop, overload, aux-contact proof and pilot lights.
-- **Course** — 20 lessons so far across electrical safety, prints, hardwired control, PLC fundamentals, ladder logic, going online, troubleshooting and Modbus, with interactive figures, hands-on tasks and quizzes.
+- **Course** — 49 lessons in 4 levels (Beginner → Expert) across electrical safety, prints, hardwired control, PLC fundamentals, ladder logic, going online, troubleshooting, networks, VFD/HMI/BACnet, capstones and expert practice, with interactive figures, hands-on tasks and quizzes.
+- **PLC hardware library in 3D** — 48 PLC, remote I/O and logic-module families from 17 brands you commonly see in US plants. Orbit them, tap a module to learn what it does, and drop any of them into the simulator's 3D panel. Simplified look-alikes, no logos.
 - **Fault Hunt** — find injected faults with a meter (live-dead-live), I/O LEDs and the logic, scored on speed *and* safety.
-- **Reference** — brand field guides, instruction reference, glossary, safety rules.
+- **Reference** — 17 brand field guides (where you'll see each brand in the US, software, HMIs, drives, networks, addressing, gotchas), instruction reference, glossary, safety rules.
 - XP, streaks, badges, certificates, spaced review, export/import progress. No accounts, no tracking.
 
 ## Who it's for

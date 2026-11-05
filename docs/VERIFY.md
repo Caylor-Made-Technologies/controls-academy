@@ -32,3 +32,30 @@ Confirm each against current manuals before removing the marker.
 
 ## Needs a qualified reviewer
 - All safety text (LOTOTO, NFPA 70E summary, meter use, forcing). Labeled "training, not procedure".
+
+## Hardware library and US brand notes (added 0.4.0)
+All in `src/content/hardware.ts` and `src/content/brands.ts`. The 3D shapes are simplified look-alikes; dimensions are approximate and are not a VERIFY item.
+- GuardLogix safety status LED name per controller.
+- CompactLogix 5380 field-side power terminals per module; 5370 built-in I/O per catalog number.
+- MicroLogix 1100/1400 lifecycle status; port mix per model.
+- PLC-5 octal rack/group addressing.
+- POINT I/O field/potential distributor behavior; FLEX I/O module swap under power.
+- ET 200SP light/dark base unit potential groups.
+- S7-300 projects opening in TIA Portal; MMC per CPU.
+- LOGO! programming languages per version.
+- M221 built-in Ethernet per model; M251 has no built-in I/O.
+- Quantum software (Unity/Concept/ProWORX) and Modbus Plus prevalence.
+- FX3 Ethernet add-on; Q series hex I/O numbering; iQ-R CPU display.
+- BRX port module; DL05/DL06 option slots; DL205 base power supply.
+- Omron CP retentive areas per model.
+- Series 90-30 software history and RX3i migration path.
+- IDEC FC6A display options and I/O numbering; WindO/I-NV4.
+- Unitronics I/O mounting per model, Vision operand names, EtherNet/IP support, U90 Ladder.
+- WAGO tool name (e!COCKPIT vs CODESYS) and BACnet controllers.
+- Phoenix Contact EtherNet/IP support.
+- Eaton easyE4 operands and programming languages; XSOFT-CODESYS; Galileo.
+- Keyence KV unit layout, device names (R, MR, DM), timers/counters, proprietary links.
+- Opto 22 groov EPIC software (PAC Control, CODESYS), Node-RED, OPC UA/MQTT.
+- Delta DVP octal X/Y, software names (ISPSoft/WPLSoft/DIADesigner), EtherNet/IP.
+- B&R Automation Studio version matching.
+- Rockwell HMI product names (PanelView / Optix); Schneider HMI names; Emerson SCADA product ownership; AutomationDirect EtherNet/IP per model.

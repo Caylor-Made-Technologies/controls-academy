@@ -91,7 +91,7 @@ export default function ProfilePage() {
           </div>
         </Row>
         <Row label="PLC platform" hint="Addresses, instruction names, timer units and 3D hardware labels follow this.">
-          <select className="input !w-auto max-w-full" value={prefs.skin} onChange={(e) => prefs.setPrefs({ skin: e.target.value as SkinId })} aria-label="Brand skin">
+          <select className="input !w-auto max-w-full" value={prefs.skin} onChange={(e) => prefs.setPrefs({ skin: e.target.value as SkinId, hwModel: '' })} aria-label="Brand skin">
             {skinsByMaker().map((g) => (
               <optgroup key={g.maker} label={g.maker}>
                 {g.skins.map((s) => <option key={s.id} value={s.id}>{s.family} — {s.style}</option>)}

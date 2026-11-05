@@ -513,6 +513,46 @@ await check('Reference: 8 brand guides, skin button, instructions filter, glossa
   await ctx.close();
 });
 
+await check('Reference: 17 brand guides with US notes; hardware library lists every model with a front view', async () => {
+  const { ctx, page } = await newPage();
+  await go(page, 'reference/brands');
+  expect((await page.locator('a[href*="reference/brand/"]').count()) === 17, 'brand count');
+  for (const id of ['idec', 'unitronics', 'wago', 'phoenix', 'eaton', 'keyence', 'opto22', 'delta', 'bnr']) {
+    await go(page, `reference/brand/${id}`);
+    await page.getByRole('heading', { name: 'Common models in 3D' }).waitFor();
+  }
+  await go(page, 'reference/brand/rockwell');
+  await page.getByRole('heading', { name: 'Networks' }).waitFor();
+  expect((await page.locator('a[href*="reference/hw/"]').count()) >= 8, 'rockwell models');
+  await go(page, 'reference/hardware');
+  const n = await page.locator('a[href*="reference/hw/"]').count();
+  expect(n >= 45, `hardware count ${n}`);
+  expect((await page.locator('a[href*="reference/hw/"] svg').count()) === n, 'every card has a front view');
+  await page.getByRole('button', { name: 'Siemens', exact: true }).click();
+  expect((await page.locator('a[href*="reference/hw/"]').count()) === 6, 'siemens filter');
+  await ctx.close();
+});
+
+await check('Hardware: 3D model renders, tap-free module list explains parts, "Use in the simulator" swaps the 3D panel PLC', async () => {
+  const { ctx, page } = await newPage({ prefs: { onboarded: true, quality: 'low' }, motion: 'no-preference' });
+  await go(page, 'reference/hw/s7-1500');
+  await page.locator('canvas').first().waitFor({ timeout: 30000 });
+  await page.getByRole('button', { name: 'CPU', exact: true }).click();
+  await page.getByRole('heading', { name: /Controller \(CPU\)/ }).waitFor();
+  await page.getByRole('button', { name: 'Show flat front view' }).click();
+  await page.getByRole('img', { name: /Front view of SIMATIC S7-1500/ }).waitFor();
+  await page.getByRole('button', { name: 'Use in the simulator' }).click();
+  await page.getByRole('button', { name: 'Shown in the simulator' }).waitFor();
+  await go(page, 'sim');
+  const sel = page.getByLabel('PLC hardware shown in 3D');
+  await sel.waitFor({ timeout: 30000 });
+  expect((await sel.inputValue()) === 's7-1500', 'sim shows chosen model');
+  await sel.selectOption('generic');
+  await page.waitForTimeout(500);
+  expect((await sel.inputValue()) === 'generic', 'generic rack');
+  await ctx.close();
+});
+
 // ---------- H. Search ----------
 await check('Search: Ctrl+K and phone search button find lessons, terms, instructions, brands', async () => {
   const { ctx, page } = await newPage();

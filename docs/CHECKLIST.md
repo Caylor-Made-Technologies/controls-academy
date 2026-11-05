@@ -22,12 +22,12 @@ From the Caylor Made Technologies standard checklist. Not legal advice; policy t
 | 9 | Dark patterns | None; "Erase everything" has a plain confirm |
 | 10 | Hidden fees | N/A |
 | 11 | Fake reviews | None |
-| 12 | Unsupported claims | Certificates say "practice record, not a qualification"; illustrative values labeled; VERIFY chips |
+| 12 | Unsupported claims | Certificates say "practice record, not a qualification"; illustrative values labeled; VERIFY chips; hardware models labeled "simplified, approximate, not affiliated" |
 | 13 | Alt text | Logo/icon alt text; diagrams have role="img" + aria-label; decorative SVG aria-hidden |
 | 14 | Contrast | axe color-contrast 0 in dark and light (Playwright gate) |
 | 15 | Keyboard | Skip link, visible focus, ladder editor arrow/Delete/Enter/Ctrl+Z, focus-trapped sheets |
 | 16 | Business details | Footer + About: name, Hereford TX, email, website |
 | 17 | Kids' data | "Not directed at children under 13" on About |
 | 18 | Unsubscribe | N/A — no email |
-| 19 | Licensed fonts/images | Inter + Montserrat OFL files shipped; all artwork original |
+| 19 | Licensed fonts/images | Inter + Montserrat OFL files shipped; all artwork original. 3D hardware models are procedural, simplified look-alikes with neutral colors and no logos or copied markings |
 | 20 | Data deletion | Profile → Erase everything; no server copy exists |

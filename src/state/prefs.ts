@@ -15,10 +15,12 @@ export interface Prefs {
   quality: Quality;
   textScale: number;
   name: string;
+  /** Hardware model shown in the 3D panel ('' = match the platform). */
+  hwModel: string;
 }
 
 export const DEFAULT_PREFS: Prefs = {
-  theme: 'dark', skin: 'ab-logix', sound: false, onboarded: false, goal: null, quality: 'auto', textScale: 1, name: '',
+  theme: 'dark', skin: 'ab-logix', sound: false, onboarded: false, goal: null, quality: 'auto', textScale: 1, name: '', hwModel: '',
 };
 
 interface PrefsStore extends Prefs {
@@ -30,8 +32,8 @@ interface PrefsStore extends Prefs {
 const saver = debouncedSaver<Prefs>('prefs');
 
 function pick(s: PrefsStore): Prefs {
-  const { theme, skin, sound, onboarded, goal, quality, textScale, name } = s;
-  return { theme, skin, sound, onboarded, goal, quality, textScale, name };
+  const { theme, skin, sound, onboarded, goal, quality, textScale, name, hwModel } = s;
+  return { theme, skin, sound, onboarded, goal, quality, textScale, name, hwModel };
 }
 
 export const usePrefs = create<PrefsStore>((setState, getState) => ({

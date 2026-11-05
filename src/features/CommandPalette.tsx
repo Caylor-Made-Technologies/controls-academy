@@ -3,6 +3,7 @@ import { Icon, type IconName } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
 import { LESSONS } from '../content';
 import { BRAND_GUIDES } from '../content/brands';
+import { HARDWARE } from '../content/hardware';
 import { GLOSSARY } from '../content/glossary';
 import { OP_LIST } from '../engine/ops';
 import { navigate } from '../lib/router';
@@ -20,7 +21,9 @@ function buildIndex(): Item[] {
     ...LESSONS.map((l) => ({ title: l.title, sub: `Lesson · ${l.summary}`, path: `lesson/${l.id}`, icon: 'learn' as const, hay: `${l.title} ${l.summary}` })),
     ...GLOSSARY.map((g) => ({ title: g.term, sub: `Glossary · ${g.def}`, path: `reference/glossary?t=${g.id}`, icon: 'book' as const, hay: `${g.term} ${(g.aka ?? []).join(' ')} ${g.def}` })),
     ...OP_LIST.map((o) => ({ title: `${o.op} — ${o.title}`, sub: `Instruction · ${o.summary}`, path: `reference/instructions?op=${o.op}`, icon: 'sim' as const, hay: `${o.op} ${o.title} ${o.summary}` })),
-    ...BRAND_GUIDES.map((b) => ({ title: b.name, sub: 'Brand field guide', path: `reference/brand/${b.id}`, icon: 'layers' as const, hay: `${b.name} ${b.software.map((s) => s.name).join(' ')} ${b.tips.join(' ')} ${b.gotchas.join(' ')}` })),
+    ...BRAND_GUIDES.map((b) => ({ title: b.name, sub: 'Brand field guide', path: `reference/brand/${b.id}`, icon: 'layers' as const, hay: `${b.name} ${b.software.map((s) => s.name).join(' ')} ${b.hardware.join(' ')} ${b.us ?? ''} ${b.tips.join(' ')} ${b.gotchas.join(' ')}` })),
+    { title: 'PLC hardware library (3D)', sub: 'Reference', path: 'reference/hardware', icon: 'layers' as const, hay: 'hardware 3d models plc rack chassis brick remote io library' },
+    ...HARDWARE.map((m) => ({ title: m.name, sub: '3D hardware model', path: `reference/hw/${m.id}`, icon: 'layers' as const, hay: `${m.name} ${m.role} ${m.software} ${m.brand}` })),
     { title: 'Simulator', sub: 'PLC workbench with the motor station', path: 'sim', icon: 'sim', hay: 'simulator workbench ladder editor run step' },
     { title: 'Fault Hunt', sub: 'Troubleshooting practice', path: 'troubleshoot', icon: 'wrench', hay: 'fault hunt troubleshoot meter practice' },
     { title: 'Settings & backup', sub: 'Theme, sound, brand, export progress', path: 'profile', icon: 'gear', hay: 'settings profile theme dark light sound export import backup certificate badges' },

@@ -8,9 +8,12 @@ import { OP_LIST, type OpCategory } from '../../engine/ops';
 import { href, queryParam } from '../../lib/router';
 import { SKINS, SKIN_LIST, mnemonic } from '../../skins';
 import { usePrefs } from '../../state/prefs';
+import { HARDWARE } from '../../content/hardware';
+import { HardwareCard, HardwareDetail, HardwareLibrary } from './HardwarePages';
 
 const SECTIONS = [
   { id: 'brands', title: 'Brand field guides', desc: 'Software, hardware, addressing, first-day checklists, tips and gotchas.', icon: 'layers' as const },
+  { id: 'hardware', title: 'PLC hardware library (3D)', desc: `${HARDWARE.length} PLC and I/O families you see in US plants, as 3D models.`, icon: 'layers' as const },
   { id: 'instructions', title: 'Instruction reference', desc: 'Every instruction, with its name on each platform.', icon: 'sim' as const },
   { id: 'glossary', title: 'Glossary', desc: `${GLOSSARY.length} terms in plain English.`, icon: 'book' as const },
   { id: 'safety', title: 'Safety rules', desc: 'The hard stops. Read these before you touch a panel.', icon: 'shield' as const },
@@ -21,6 +24,8 @@ export default function ReferencePage({ section, item }: { section?: string; ite
   const sec = section?.split('?')[0];
   if (sec === 'brand' && item) return <BrandGuide id={item.split('?')[0]} />;
   if (sec === 'brands') return <Brands />;
+  if (sec === 'hardware') return <HardwareLibrary />;
+  if (sec === 'hw' && item) return <HardwareDetail id={item.split('?')[0]} />;
   if (sec === 'instructions') return <Instructions />;
   if (sec === 'glossary') return <Glossary />;
   if (sec === 'safety') return <Safety />;
@@ -57,6 +62,7 @@ function Brands() {
           <a key={b.id} href={href(`reference/brand/${b.id}`)} className="card card-link card-pad">
             <span className="block font-bold text-heading">{b.name}</span>
             <span className="block text-sm text-muted mt-1">{b.software.slice(0, 2).map((s) => s.name).join(' · ')}</span>
+            {HARDWARE.some((m) => m.brand === b.id) && <span className="block text-xs text-glow mt-1">{HARDWARE.filter((m) => m.brand === b.id).length} 3D models</span>}
           </a>
         ))}
       </div>
@@ -78,12 +84,13 @@ function BrandGuide({ id }: { id: string }) {
   const setPrefs = usePrefs((s) => s.setPrefs);
   const skin = usePrefs((s) => s.skin);
   if (!b) return <div><Back to="reference/brands" label="Brands" /><p>Guide not found.</p></div>;
+  const models = HARDWARE.filter((m) => m.brand === b.id);
   return (
     <div>
       <Back to="reference/brands" label="Brands" />
-      <PageHead eyebrow="Brand field guide" title={b.name} />
+      <PageHead eyebrow="Brand field guide" title={b.name}>{b.us && <Rich text={b.us} />}</PageHead>
       <div className="flex flex-wrap gap-2 mb-4">
-        <button type="button" className="btn btn-sm" disabled={skin === b.skin} onClick={() => setPrefs({ skin: b.skin })}>
+        <button type="button" className="btn btn-sm" disabled={skin === b.skin} onClick={() => setPrefs({ skin: b.skin, hwModel: '' })}>
           <Icon name="sim" size={16} /> {skin === b.skin ? `Simulator uses ${SKINS[b.skin].brand}` : `Use ${SKINS[b.skin].brand} skin in the simulator`}
         </button>
       </div>
@@ -104,7 +111,16 @@ function BrandGuide({ id }: { id: string }) {
           <div className="flex flex-wrap gap-1.5">{b.hardware.map((h) => <span key={h} className="chip">{h}</span>)}</div>
           <p className="text-sm text-muted mt-3 mb-0"><Rich text={SKINS[b.skin].notes[0]} /></p>
         </section>
+        {b.hmi && <List title="HMIs and SCADA you'll see with it" items={b.hmi} />}
+        {b.drives && <List title="Drives you'll see with it" items={b.drives} />}
+        {b.networks && <List title="Networks" items={b.networks} />}
       </div>
+      {models.length > 0 && (
+        <section className="mt-4" aria-labelledby="brand-models">
+          <h2 id="brand-models" className="text-base font-bold mb-2">Common models in 3D</h2>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{models.map((m) => <HardwareCard key={m.id} m={m} />)}</div>
+        </section>
+      )}
     </div>
   );
 }

@@ -465,3 +465,11 @@ body {
   font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.55; color: var(--text-heading);
   background: var(--surface-sunk); border: 1px solid var(--border); border-left: 3px solid var(--blue-glow);
 }
+
+/* Hardware picker inside the 3D HUD */
+.hud-select {
+  appearance: none; -webkit-appearance: none; background: transparent; border: 0; color: inherit; font: inherit;
+  max-width: min(58vw, 16rem); text-overflow: ellipsis; cursor: pointer; min-height: 34px; padding-right: 4px;
+}
+.hud-select:focus-visible { outline: 2px solid #6ea6ff; outline-offset: 2px; border-radius: 6px; }
+.hud-select option, .hud-select optgroup { color: #0b0f14; background: #ffffff; }

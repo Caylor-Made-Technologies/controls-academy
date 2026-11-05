@@ -14,6 +14,8 @@ import type { SimRuntime } from '../features/simulator/runtime';
 import { href } from '../lib/router';
 import { usePrefs } from '../state/prefs';
 import { SKINS } from '../skins';
+import { BRAND_GUIDES } from '../content/brands';
+import { DEFAULT_HW, HARDWARE, HARDWARE_BY_ID } from '../content/hardware';
 import { PARTS, TOURS, type PartId } from './info';
 import { PanelScene } from './PanelScene';
 import { disposeTextures } from './textures';
@@ -53,6 +55,10 @@ function CameraRig({ goal, controls, onArrive }: { goal: { pos: Vector3; target:
 export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => void }) {
   const quality = usePrefs((s) => s.quality);
   const skin = SKINS[usePrefs((s) => s.skin)];
+  const hwModel = usePrefs((s) => s.hwModel);
+  const setPrefs = usePrefs((s) => s.setPrefs);
+  const hwId = hwModel || DEFAULT_HW[skin.id];
+  const hw = HARDWARE_BY_ID[hwId] ?? null;
   const [tier, setTier] = useState<Tier>(() => tierFromPref(quality));
   const [dpr, setDpr] = useState(() => Math.min(tierFromPref(quality) === 'high' ? 2 : tierFromPref(quality) === 'medium' ? 1.5 : 1, window.devicePixelRatio || 1));
   const [selected, setSelected] = useState<PartId | null>(null);
@@ -151,7 +157,7 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
               <Lightformer form="rect" intensity={1.0} color="#22d3ee" position={[3, 0.2, 1]} rotation-y={-Math.PI / 2} scale={[2, 1, 1]} />
             </Environment>
           )}
-          <PanelScene rt={rt} skin={skin} selected={selected} onSelect={onSelect} xray={xray} explode={explode} shadows={shadows} />
+          <PanelScene rt={rt} skin={skin} selected={selected} onSelect={onSelect} xray={xray} explode={explode} shadows={shadows} hw={hw} />
           {tier !== 'low' && <ContactShadows position={[0.3, -0.748, 0.4]} opacity={0.55} scale={4} blur={2.4} far={1.2} resolution={tier === 'high' ? 512 : 256} frames={1} />}
           <OrbitControls
             ref={controls}
@@ -180,9 +186,18 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
         <div className="absolute bottom-2 left-2 right-2 flex gap-1.5 flex-wrap items-end">
           <button type="button" className="hud-chip" aria-pressed={xray} onClick={() => setXray(!xray)}><Icon name="bolt" size={14} /> X-ray current</button>
           <button type="button" className="hud-chip" aria-pressed={explode} onClick={() => { setExplode(!explode); if (!explode) fly('contactor'); }}><Icon name="layers" size={14} /> Explode contactor</button>
-          <span role="note" className="hud-chip hud-platform !cursor-default" aria-label={`Hardware labeled in ${skin.brand} style, ${skin.family}`}>
-            <span className="hud-maker">{skin.maker.replace(/\s*\(.*\)$/, '')}</span> {skin.family}
-          </span>
+          <label className="hud-chip hud-platform">
+            <span className="sr-only">PLC hardware shown in 3D</span>
+            <Icon name="sim" size={14} />
+            <select className="hud-select" value={hw ? hw.id : 'generic'} onChange={(e) => setPrefs({ hwModel: e.target.value })} aria-label="PLC hardware shown in 3D">
+              <option value="generic">Generic rack ({skin.family})</option>
+              {BRAND_GUIDES.filter((b) => HARDWARE.some((m) => m.brand === b.id)).map((b) => (
+                <optgroup key={b.id} label={b.name}>
+                  {HARDWARE.filter((m) => m.brand === b.id).map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                </optgroup>
+              ))}
+            </select>
+          </label>
           <span role="note" className="ml-auto hud-chip !cursor-default" aria-label={`3D quality ${tier}`}>{tier.toUpperCase()}</span>
         </div>
         {xray && (
@@ -194,7 +209,7 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
         )}
       </div>
       <p className="text-xs text-muted px-3 py-2 m-0 border-t border-line">
-        Drag to orbit, pinch to zoom. Tap any part to learn about it; tap the buttons on the operator station to run the motor. Generic hardware labeled in the {skin.brand} style ({skin.family}) — change it with the platform bar. Wire colors are examples; they vary by site and code.
+        Drag to orbit, pinch to zoom. Tap any part to learn about it; tap the buttons on the operator station to run the motor. PLC hardware: {hw ? `${hw.name}, a simplified look-alike (no logos)` : 'a generic rack'}, labeled in the {skin.brand} style ({skin.family}). Pick another model with the hardware menu, or browse the <a className="underline" href={href('reference/hardware')}>hardware library</a>. Wire colors are examples; they vary by site and code.
       </p>
 
       <Sheet open={Boolean(part)} onClose={() => setInfo(null)} title={part?.title ?? ''}>
