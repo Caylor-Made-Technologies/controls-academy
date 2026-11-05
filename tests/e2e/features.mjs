@@ -557,9 +557,9 @@ await check('Review: due questions appear, answer, finish', async () => {
   await check('Profile: level, badges, Track 1 certificate saves a PNG', async () => {
     await go(page, 'profile');
     await page.getByText('Panel Rookie').waitFor();
-    const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Save certificate for track 1' }).click()]);
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Save certificate for track 1', exact: true }).click()]);
     expect(dl.suggestedFilename().endsWith('.png'), 'png');
-    expect(await page.getByRole('button', { name: 'Save certificate for track 2' }).isDisabled(), 'track 2 locked');
+    expect(await page.getByRole('button', { name: 'Save certificate for track 2', exact: true }).isDisabled(), 'track 2 locked');
   });
   await check('Profile: theme Light/Dark/System, text size, sound, goal, name, intro again', async () => {
     await page.getByRole('button', { name: 'Light', exact: true }).click();
