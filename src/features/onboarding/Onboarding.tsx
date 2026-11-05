@@ -2,7 +2,7 @@ import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useState } from 'react';
 import { AppMark, Disclaimer, Traces } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
-import { SKIN_LIST, type SkinId } from '../../skins';
+import { skinsByMaker, type SkinId } from '../../skins';
 import { usePrefs, type Goal } from '../../state/prefs';
 import { recommendedLesson } from '../learn/LearnPage';
 
@@ -55,12 +55,19 @@ export function Onboarding({ onDone }: { onDone: (path?: string) => void }) {
     <div key="2">
       <h2 className="text-xl font-bold mb-1">Which brand will you see most?</h2>
       <p className="text-muted mt-0 mb-4">The simulator will speak its dialect — addresses, instruction names, timer units. Not sure? Allen-Bradley Logix is the most common in North American plants.</p>
-      <div className="grid gap-2 sm:grid-cols-2" role="radiogroup" aria-label="Brand skin">
-        {SKIN_LIST.map((s) => (
-          <button key={s.id} type="button" role="radio" aria-checked={skin === s.id} onClick={() => setSkin(s.id)} className="card card-link p-3 text-left cursor-pointer" style={skin === s.id ? { borderColor: 'var(--blue-glow)', boxShadow: 'var(--glow)' } : undefined}>
-            <span className="block font-bold text-heading text-sm">{s.brand}</span>
-            <span className="block text-xs text-muted">{s.family} · {s.style}</span>
-          </button>
+      <div className="space-y-3" role="radiogroup" aria-label="PLC platform">
+        {skinsByMaker().map((g) => (
+          <div key={g.maker}>
+            <p className="text-[0.7rem] font-bold tracking-[0.14em] uppercase text-muted m-0 mb-1.5">{g.maker}</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {g.skins.map((s) => (
+                <button key={s.id} type="button" role="radio" aria-checked={skin === s.id} onClick={() => setSkin(s.id)} className="card card-link p-3 text-left cursor-pointer" style={skin === s.id ? { borderColor: 'var(--blue-glow)', boxShadow: 'var(--glow)' } : undefined}>
+                  <span className="block font-bold text-heading text-sm">{s.family}</span>
+                  <span className="block text-xs text-muted">{s.style}</span>
+                </button>
+              ))}
+            </div>
+          </div>
         ))}
       </div>
     </div>,

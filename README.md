@@ -16,7 +16,7 @@ A phone-first, installable training app that takes someone who has never touched
 
 - **A real PLC engine** — read inputs → solve rungs → write outputs → housekeeping, with single-step scan pointer, slow-mo, prescan, forces and faults. Timers, counters, compare, math, scaling, JSR, MCR and PID, all unit-tested.
 - **Ladder editor** — touch-first, keyboard friendly, undo/redo, branches, Verify (duplicate coils, missing seal-in, zero presets…), cross-reference, share links.
-- **Ten brand dialects** — the same logic shown with Allen-Bradley Logix, SLC 500, Micro800, Siemens TIA and S7 classic, Modicon, Mitsubishi (octal!), AutomationDirect, Omron and IEC conventions.
+- **Ten brand dialects, clearly labeled** — a platform bar always says which PLC you're on (maker, family, software style) with a picker grouped by manufacturer; the same logic is shown with Allen-Bradley Logix, SLC 500, Micro800, Siemens TIA and S7 classic, Modicon, Mitsubishi (octal!), AutomationDirect, Omron and IEC conventions.
 - **3D control panel** — a live, explorable enclosure: PLC LEDs follow the I/O, the contactor pulls in, the overload flag pops, X-ray shows current flowing, camera tours fly you to each part, exploded contactor. Lazy-loaded with a 2D fallback.
 - **A machine to control** — motor start/stop station with hardwired E-stop, overload, aux-contact proof and pilot lights.
 - **Course** — 20 lessons so far across electrical safety, prints, hardwired control, PLC fundamentals, ladder logic, going online, troubleshooting and Modbus, with interactive figures, hands-on tasks and quizzes.
@@ -34,6 +34,7 @@ npm run dev          # local dev server
 npm test             # unit tests (engine, skins, content, editor, progress)
 npm run build && npm run e2e   # browser gate: console errors, axe, overflow, screenshots
 npx vite preview --port 4180 & node tests/e2e/flows.mjs && node tests/e2e/three.mjs   # interaction + 3D gates
+node tests/e2e/features.mjs                                   # every feature (add SITE_URL=https://…/controls-academy/ to test live)
 ```
 Push to `main` deploys to GitHub Pages (Settings → Pages → Source: **GitHub Actions**).
 

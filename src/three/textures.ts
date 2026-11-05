@@ -16,14 +16,21 @@ export function labelTexture(text: string, opts: { fg?: string; bg?: string; siz
   c.width = w;
   c.height = h;
   const g = c.getContext('2d')!;
-  if (opts.bg) {
+  if (opts.bg && opts.bg !== '#00000000') {
     g.fillStyle = opts.bg;
     g.beginPath();
     g.roundRect(2, 2, w - 4, h - 4, 10);
     g.fill();
   }
   g.fillStyle = opts.fg ?? '#1a2230';
-  g.font = `${opts.bold === false ? 500 : 800} ${opts.size ?? 34}px Inter, system-ui, sans-serif`;
+  // Shrink the font until the text fits, so long platform names stay legible.
+  let size = opts.size ?? 34;
+  const weight = opts.bold === false ? 500 : 800;
+  g.font = `${weight} ${size}px Inter, system-ui, sans-serif`;
+  while (size > 8 && g.measureText(text).width > w - 12) {
+    size -= 1;
+    g.font = `${weight} ${size}px Inter, system-ui, sans-serif`;
+  }
   g.textAlign = 'center';
   g.textBaseline = 'middle';
   g.fillText(text, w / 2, h / 2 + 2);
@@ -77,6 +84,32 @@ export function brushedTexture(): Texture {
   t.wrapS = t.wrapT = RepeatWrapping;
   t.colorSpace = SRGBColorSpace;
   cache.set('brushed', t);
+  return t;
+}
+
+/** Sealed-concrete floor: speckle plus faint slab joints. */
+export function floorTexture(): Texture {
+  const hit = cache.get('floor');
+  if (hit) return hit;
+  const c = document.createElement('canvas');
+  c.width = c.height = 512;
+  const g = c.getContext('2d')!;
+  g.fillStyle = '#7d8693';
+  g.fillRect(0, 0, 512, 512);
+  for (let i = 0; i < 9000; i++) {
+    const v = 95 + Math.floor(Math.random() * 60);
+    g.fillStyle = `rgba(${v},${v + 4},${v + 10},${0.12 + Math.random() * 0.2})`;
+    g.fillRect(Math.random() * 512, Math.random() * 512, 1.5, 1.5);
+  }
+  g.strokeStyle = 'rgba(30,36,44,0.55)';
+  g.lineWidth = 2;
+  g.strokeRect(1, 1, 510, 510);
+  const t = new CanvasTexture(c);
+  t.wrapS = t.wrapT = RepeatWrapping;
+  t.repeat.set(4, 3);
+  t.colorSpace = SRGBColorSpace;
+  t.anisotropy = 8;
+  cache.set('floor', t);
   return t;
 }
 

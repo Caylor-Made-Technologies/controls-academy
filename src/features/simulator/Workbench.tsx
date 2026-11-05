@@ -7,7 +7,8 @@ import { walk } from '../../engine/text';
 import type { Elem, Instr, OpCode, Program, TagDecl, TimerValue, CounterValue } from '../../engine/types';
 import { verifyProgram, crossReference, type Issue } from '../../engine/verify';
 import { MOTOR_DEVICES } from '../../plant/motor';
-import { SKINS, SKIN_LIST, addressMap, type SkinId } from '../../skins';
+import { SKINS, addressMap, skinsByMaker, type SkinId } from '../../skins';
+import { PlatformBar, makerShort } from './PlatformBar';
 import { usePrefs } from '../../state/prefs';
 import { useProgress } from '../../state/progress';
 import { buzz } from '../../lib/sound';
@@ -109,9 +110,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
 
   const onKey = (e: KeyboardEvent<HTMLDivElement>) => {
     if (!editable) return;
-    const mod = e.ctrlKey || e.metaKey;
-    if (mod && e.key.toLowerCase() === 'z') { e.preventDefault(); if (e.shiftKey) redo(); else undo(); return; }
-    if (mod && e.key.toLowerCase() === 'y') { e.preventDefault(); redo(); return; }
+    if (e.ctrlKey || e.metaKey) return; // undo/redo handled by the window listener below
     if (!sel) return;
     const flat = selRung ? [...walk(selRung.elems)].filter((x) => x.kind === 'instr') : [];
     const i = flat.findIndex((x) => x.id === sel.elemId);
@@ -127,9 +126,27 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
     else if (e.key === 'ArrowLeft' && i > 0) { e.preventDefault(); focusSel({ rungId: sel.rungId, elemId: flat[i - 1].id }); }
     else if (e.key === 'ArrowDown' && ri < routine.rungs.length - 1) { e.preventDefault(); const r = routine.rungs[ri + 1]; const f = [...walk(r.elems)][0]; focusSel({ rungId: r.id, elemId: f?.id }); }
     else if (e.key === 'ArrowUp' && ri > 0) { e.preventDefault(); const r = routine.rungs[ri - 1]; const f = [...walk(r.elems)][0]; focusSel({ rungId: r.id, elemId: f?.id }); }
-    else if ((e.key === 'Delete' || e.key === 'Backspace') && sel) { e.preventDefault(); apply(remove(program, sel)); setSel(sel.elemId ? { rungId: sel.rungId } : null); }
+    else if ((e.key === 'Delete' || e.key === 'Backspace') && sel) { e.preventDefault(); apply(remove(program, sel)); setSel(sel.elemId ? { rungId: sel.rungId } : null); ladderRef.current?.focus(); }
     else if (e.key === 'Enter' && selInstr) { e.preventDefault(); setEditOpen(true); }
   };
+
+  // Undo/redo work anywhere in the editor (not only while an instruction has focus).
+  const keys = useRef({ undo, redo });
+  keys.current = { undo, redo };
+  useEffect(() => {
+    if (!editable) return;
+    const onWin = (e: globalThis.KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey)) return;
+      const t = e.target as HTMLElement | null;
+      if (t?.closest('input, textarea, select, [contenteditable="true"]') || document.querySelector('[role="dialog"]')) return;
+      const k = e.key.toLowerCase();
+      if (k === 'z') { e.preventDefault(); if (e.shiftKey) keys.current.redo(); else keys.current.undo(); }
+      else if (k === 'y') { e.preventDefault(); keys.current.redo(); }
+    };
+    window.addEventListener('keydown', onWin);
+    return () => window.removeEventListener('keydown', onWin);
+  }, [editable]);
+  const ladderRef = useRef<HTMLDivElement>(null);
 
   const verify = () => {
     const list = verifyProgram(program);
@@ -164,6 +181,9 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
         )}
 
         <section className="card overflow-hidden" aria-label="Controller and ladder logic">
+          <div className="p-2 border-b border-line">
+            <PlatformBar program={program} />
+          </div>
           {/* Controller bar */}
           <div className="flex flex-wrap items-center gap-2 p-3 border-b border-line bg-raised">
             <div className="seg" role="group" aria-label="Scan speed">
@@ -188,8 +208,12 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
               {p.mode}
             </button>
             <label className="sr-only" htmlFor="skin-select">Brand skin</label>
-            <select id="skin-select" className="input !min-h-[36px] !w-auto !py-0 text-sm max-w-[13rem]" value={skinId} onChange={(e) => setPrefs({ skin: e.target.value as SkinId })}>
-              {SKIN_LIST.map((s) => <option key={s.id} value={s.id}>{s.brand}</option>)}
+            <select id="skin-select" className="input !min-h-[36px] !w-auto !py-0 text-sm max-w-[15rem]" value={skinId} onChange={(e) => setPrefs({ skin: e.target.value as SkinId })}>
+              {skinsByMaker().map((g) => (
+                <optgroup key={g.maker} label={g.maker}>
+                  {g.skins.map((s) => <option key={s.id} value={s.id}>{makerShort(s.maker)} — {s.family}</option>)}
+                </optgroup>
+              ))}
             </select>
             <span className="ml-auto text-[0.72rem] text-muted tabular-nums font-mono" aria-live="off">
               scan #{p.scanCount} · {(p.scanTimeUs / 1000).toFixed(2)} ms
@@ -268,7 +292,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
             )}
           </AnimatePresence>
 
-          <div className="p-2 sm:p-3" onClick={() => setSel(null)}>
+          <div className="p-2 sm:p-3 outline-none" ref={ladderRef} tabIndex={-1} onClick={() => setSel(null)}>
             <Ladder program={program} skin={skin} plc={p} version={rt.version} selected={sel} onSelect={(s) => { setSel(s); buzz(4); }} onKey={onKey} pointerRung={pointerRung} />
           </div>
 

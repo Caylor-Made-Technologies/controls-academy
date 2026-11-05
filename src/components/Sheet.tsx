@@ -11,7 +11,7 @@ export function Sheet({ open, onClose, title, children, wide = false }: { open: 
   useEffect(() => {
     if (!open) return;
     const prev = document.activeElement as HTMLElement | null;
-    const t = setTimeout(() => ref.current?.querySelector<HTMLElement>('[data-autofocus], button, input, a, [tabindex]')?.focus(), 30);
+    const t = setTimeout(() => (ref.current?.querySelector<HTMLElement>('[data-autofocus]') ?? ref.current?.querySelector<HTMLElement>('input, button, a, [tabindex]'))?.focus(), 30);
     const onKey = (e: KeyboardEvent) => {
       if (e.key === 'Escape') onClose();
       if (e.key === 'Tab' && ref.current) {

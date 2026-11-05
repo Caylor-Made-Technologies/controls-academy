@@ -63,6 +63,9 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
           value={q}
           onChange={(e) => setQ(e.target.value)}
           placeholder="Lessons, terms, instructions, brands…"
+          role="combobox"
+          aria-expanded="true"
+          aria-autocomplete="list"
           aria-label="Search"
           aria-controls="palette-results"
           aria-activedescendant={results[active] ? `pal-${active}` : undefined}

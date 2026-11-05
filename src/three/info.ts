@@ -34,7 +34,7 @@ export const PARTS: Record<PartId, PartInfo> = {
 /** Guided camera tour stops. */
 export const TOURS: { id: string; label: string; part: PartId; pos: [number, number, number]; target: [number, number, number] }[] = [
   { id: 'overview', label: 'Whole panel', part: 'cpu', pos: [0.95, 0.2, 2.35], target: [0.3, -0.15, 0.1] },
-  { id: 'plc', label: 'PLC rack', part: 'cpu', pos: [0.05, 0.25, 0.72], target: [0.02, 0.14, 0.05] },
+  { id: 'plc', label: 'PLC rack', part: 'cpu', pos: [-0.02, 0.19, 0.42], target: [-0.07, 0.145, 0.05] },
   { id: 'contactor', label: 'Contactor', part: 'contactor', pos: [-0.12, -0.08, 0.6], target: [-0.2, -0.13, 0.05] },
   { id: 'overload', label: 'Overload for M1', part: 'overload', pos: [-0.1, -0.22, 0.55], target: [-0.2, -0.28, 0.05] },
   { id: 'terminals', label: 'Terminal strip', part: 'terminals', pos: [0.1, -0.3, 0.65], target: [0.08, -0.42, 0.04] },

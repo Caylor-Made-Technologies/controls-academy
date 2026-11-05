@@ -1,5 +1,5 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { AnimatePresence, LayoutGroup, motion, useReducedMotion } from 'framer-motion';
+import { AnimatePresence, LayoutGroup, MotionConfig, motion, useReducedMotion } from 'framer-motion';
 import { AppMark, Footer, Wordmark } from './components/Brand';
 import { Icon, type IconName } from './components/Icon';
 import { SkeletonPage } from './components/Skeleton';
@@ -48,7 +48,7 @@ function Page({ route }: { route: string[] }) {
     case 'lesson': return <LessonPage id={b ?? ''} />;
     case 'review': return <ReviewPage />;
     case 'sim': return <SimulatorPage />;
-    case 'troubleshoot': return <TroubleshootPage />;
+    case 'troubleshoot': return <TroubleshootPage huntId={b} />;
     case 'reference': return <ReferencePage section={b} item={route[2]} />;
     case 'profile': return <ProfilePage />;
     case 'about': return <AboutPage />;
@@ -95,7 +95,8 @@ export default function App() {
   useEffect(() => { document.documentElement.style.fontSize = `${prefs.textScale * 100}%`; }, [prefs.textScale]);
 
   useEffect(() => {
-    if (progressReady && routeKey && routeKey !== 'learn') setLastRoute(routeKey);
+    // Remember only places worth resuming (not Profile, About or Review).
+    if (progressReady && /^(lesson|sim|troubleshoot|reference)\b/.test(routeKey)) setLastRoute(routeKey.split('?')[0]);
     window.scrollTo({ top: 0, behavior: 'instant' as ScrollBehavior });
     const main = document.getElementById('main');
     main?.focus({ preventScroll: true });
@@ -126,6 +127,7 @@ export default function App() {
   const darkNow = document.documentElement.dataset.theme !== 'light';
 
   return (
+    <MotionConfig reducedMotion="user">
     <LayoutGroup>
       <PowerOn />
       <a className="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to content</a>
@@ -211,5 +213,6 @@ export default function App() {
       {paletteOpen && <Suspense fallback={null}><CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} /></Suspense>}
       {!prefs.onboarded && <Onboarding onDone={(path) => { prefs.setPrefs({ onboarded: true }); if (path) navigate(path); }} />}
     </LayoutGroup>
+    </MotionConfig>
   );
 }

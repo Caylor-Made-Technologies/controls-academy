@@ -13,6 +13,7 @@ import { Sheet } from '../components/Sheet';
 import type { SimRuntime } from '../features/simulator/runtime';
 import { href } from '../lib/router';
 import { usePrefs } from '../state/prefs';
+import { SKINS } from '../skins';
 import { PARTS, TOURS, type PartId } from './info';
 import { PanelScene } from './PanelScene';
 import { disposeTextures } from './textures';
@@ -51,6 +52,7 @@ function CameraRig({ goal, controls, onArrive }: { goal: { pos: Vector3; target:
 
 export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => void }) {
   const quality = usePrefs((s) => s.quality);
+  const skin = SKINS[usePrefs((s) => s.skin)];
   const [tier, setTier] = useState<Tier>(() => tierFromPref(quality));
   const [dpr, setDpr] = useState(() => Math.min(tierFromPref(quality) === 'high' ? 2 : tierFromPref(quality) === 'medium' ? 1.5 : 1, window.devicePixelRatio || 1));
   const [selected, setSelected] = useState<PartId | null>(null);
@@ -85,7 +87,12 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
   const part = info ? PARTS[info] : null;
   const shadows = tier === 'high';
   const initial = TOURS[0];
-  const camera = useMemo(() => ({ position: initial.pos, fov: 38, near: 0.02, far: 20 }), [initial.pos]);
+  const reduceMotion = useMemo(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches, []);
+  // Fly-in on open: start wide and high, glide to the overview (skipped with reduced motion).
+  const camera = useMemo(() => ({ position: (reduceMotion ? initial.pos : [2.1, 1.25, 3.6]) as [number, number, number], fov: 38, near: 0.02, far: 20 }), [initial.pos, reduceMotion]);
+  useEffect(() => {
+    if (!reduceMotion) setGoal({ pos: new Vector3(...initial.pos), target: new Vector3(...initial.target) });
+  }, [reduceMotion, initial]);
 
   if (lost) {
     return (
@@ -105,6 +112,7 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
           camera={camera}
           gl={{ antialias: tier !== 'low', powerPreference: 'high-performance', preserveDrawingBuffer: false }}
           onCreated={({ gl }) => {
+            gl.toneMappingExposure = 1.08;
             gl.domElement.addEventListener('webglcontextlost', (e) => { e.preventDefault(); setLost(true); });
           }}
           onPointerMissed={() => setSelected(null)}
@@ -122,7 +130,8 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
           <hemisphereLight args={['#cfe3ff', '#1a1f28', 0.55]} />
           <directionalLight
             position={[1.6, 2.2, 2.4]}
-            intensity={1.6}
+            intensity={1.7}
+            color="#fff6ea"
             castShadow={shadows}
             shadow-mapSize={[1024, 1024]}
             shadow-camera-left={-1.5}
@@ -132,6 +141,9 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
             shadow-bias={-0.0004}
           />
           <pointLight position={[0, 0.3, 0.6]} intensity={0.6} distance={2} color="#e8f1ff" />
+          {/* rim light in brand blue, warm fill from the floor side */}
+          <directionalLight position={[-2.2, 1.4, -0.6]} intensity={0.9} color="#3d8bff" />
+          <directionalLight position={[1.5, -0.6, 1.8]} intensity={0.25} color="#ffd9a8" />
           {tier !== 'low' && (
             <Environment resolution={128} frames={1}>
               <Lightformer form="rect" intensity={2.2} color="#dbe8ff" position={[0, 2, 2]} scale={[3, 1, 1]} />
@@ -139,7 +151,7 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
               <Lightformer form="rect" intensity={1.0} color="#22d3ee" position={[3, 0.2, 1]} rotation-y={-Math.PI / 2} scale={[2, 1, 1]} />
             </Environment>
           )}
-          <PanelScene rt={rt} selected={selected} onSelect={onSelect} xray={xray} explode={explode} shadows={shadows} />
+          <PanelScene rt={rt} skin={skin} selected={selected} onSelect={onSelect} xray={xray} explode={explode} shadows={shadows} />
           {tier !== 'low' && <ContactShadows position={[0.3, -0.748, 0.4]} opacity={0.55} scale={4} blur={2.4} far={1.2} resolution={tier === 'high' ? 512 : 256} frames={1} />}
           <OrbitControls
             ref={controls}
@@ -168,6 +180,9 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
         <div className="absolute bottom-2 left-2 right-2 flex gap-1.5 flex-wrap items-end">
           <button type="button" className="hud-chip" aria-pressed={xray} onClick={() => setXray(!xray)}><Icon name="bolt" size={14} /> X-ray current</button>
           <button type="button" className="hud-chip" aria-pressed={explode} onClick={() => { setExplode(!explode); if (!explode) fly('contactor'); }}><Icon name="layers" size={14} /> Explode contactor</button>
+          <span role="note" className="hud-chip hud-platform !cursor-default" aria-label={`Hardware labeled in ${skin.brand} style, ${skin.family}`}>
+            <span className="hud-maker">{skin.maker.replace(/\s*\(.*\)$/, '')}</span> {skin.family}
+          </span>
           <span role="note" className="ml-auto hud-chip !cursor-default" aria-label={`3D quality ${tier}`}>{tier.toUpperCase()}</span>
         </div>
         {xray && (
@@ -179,7 +194,7 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
         )}
       </div>
       <p className="text-xs text-muted px-3 py-2 m-0 border-t border-line">
-        Drag to orbit, pinch to zoom. Tap any part to learn about it; tap the buttons on the operator station to run the motor. Wire colors are examples — they vary by site and code.
+        Drag to orbit, pinch to zoom. Tap any part to learn about it; tap the buttons on the operator station to run the motor. Generic hardware labeled in the {skin.brand} style ({skin.family}) — change it with the platform bar. Wire colors are examples; they vary by site and code.
       </p>
 
       <Sheet open={Boolean(part)} onClose={() => setInfo(null)} title={part?.title ?? ''}>

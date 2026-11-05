@@ -15,6 +15,10 @@ export type AddrClass = 'DI' | 'DO' | 'AI' | 'AO' | 'BIT' | 'WORD' | 'REAL' | 'T
 
 export interface Skin {
   id: SkinId;
+  /** Manufacturer, used descriptively only. */
+  maker: string;
+  /** Short labels printed on the generic 3D hardware, in this platform's addressing style. */
+  hw: { cpu: string; din: string; dout: string };
   /** Short brand label used in pickers. */
   brand: string;
   /** Platform family, descriptive. */
@@ -63,7 +67,7 @@ const GENERIC: Partial<Record<OpCode, string>> = {};
 
 export const SKINS: Record<SkinId, Skin> = {
   iec: {
-    id: 'iec', brand: 'Generic IEC 61131-3', family: 'CODESYS-style / vendor-neutral', style: 'IEC 61131-3 conventions',
+    id: 'iec', maker: 'Vendor-neutral (IEC 61131-3)', hw: { cpu: 'IEC CPU', din: '%IX0.0–0.7', dout: '%QX0.0–0.7' }, brand: 'Generic IEC 61131-3', family: 'CODESYS-style / vendor-neutral', style: 'IEC 61131-3 conventions',
     hue: 200, tagBased: true, mainName: 'PLC_PRG (cyclic task)',
     address: (cls, n, d) => (cls === 'DI' ? `%IX0.${n}` : cls === 'DO' ? `%QX0.${n}` : cls === 'AI' ? `%IW${n * 2}` : cls === 'AO' ? `%QW${n * 2}` : d.name),
     mnemonic: {
@@ -82,7 +86,7 @@ export const SKINS: Record<SkinId, Skin> = {
   },
 
   'ab-logix': {
-    id: 'ab-logix', brand: 'Allen-Bradley Logix', family: 'ControlLogix / CompactLogix', style: 'Studio 5000 Logix Designer style',
+    id: 'ab-logix', maker: 'Allen-Bradley (Rockwell Automation)', hw: { cpu: 'Logix-style CPU', din: 'Local:1:I', dout: 'Local:2:O' }, brand: 'Allen-Bradley Logix', family: 'ControlLogix / CompactLogix', style: 'Studio 5000 Logix Designer style',
     hue: 0, tagBased: true, mainName: 'MainTask → MainProgram → MainRoutine',
     address: (cls, n, d) =>
       cls === 'DI' ? `Local:1:I.Data.${n}` : cls === 'DO' ? `Local:2:O.Data.${n}` : cls === 'AI' ? `Local:3:I.Ch${n}Data` : cls === 'AO' ? `Local:4:O.Ch${n}Data` : d.name,
@@ -98,7 +102,7 @@ export const SKINS: Record<SkinId, Skin> = {
   },
 
   'ab-slc': {
-    id: 'ab-slc', brand: 'Allen-Bradley legacy', family: 'SLC 500 / MicroLogix', style: 'RSLogix 500 style',
+    id: 'ab-slc', maker: 'Allen-Bradley (Rockwell Automation)', hw: { cpu: 'SLC/MicroLogix-style', din: 'I:1/0–7', dout: 'O:2/0–7' }, brand: 'Allen-Bradley legacy', family: 'SLC 500 / MicroLogix', style: 'RSLogix 500 style',
     hue: 15, tagBased: false, mainName: 'LAD 2 (main program file)',
     address: (cls, n) => {
       switch (cls) {
@@ -128,7 +132,7 @@ export const SKINS: Record<SkinId, Skin> = {
   },
 
   'ab-micro800': {
-    id: 'ab-micro800', brand: 'Allen-Bradley Micro800', family: 'Micro810 / 820 / 850 / 870', style: 'Connected Components Workbench style',
+    id: 'ab-micro800', maker: 'Allen-Bradley (Rockwell Automation)', hw: { cpu: 'Micro800-style', din: '_IO_EM_DI', dout: '_IO_EM_DO' }, brand: 'Allen-Bradley Micro800', family: 'Micro810 / 820 / 850 / 870', style: 'Connected Components Workbench style',
     hue: 30, tagBased: true, mainName: 'Prog1 (POU)',
     address: (cls, n, d) =>
       cls === 'DI' ? `_IO_EM_DI_${pad(n, 2)}` : cls === 'DO' ? `_IO_EM_DO_${pad(n, 2)}` : cls === 'AI' ? `_IO_EM_AI_${pad(n, 2)}` : cls === 'AO' ? `_IO_EM_AO_${pad(n, 2)}` : d.name,
@@ -147,7 +151,7 @@ export const SKINS: Record<SkinId, Skin> = {
   },
 
   'siemens-tia': {
-    id: 'siemens-tia', brand: 'Siemens S7-1200/1500', family: 'S7-1200 / S7-1500', style: 'TIA Portal style',
+    id: 'siemens-tia', maker: 'Siemens', hw: { cpu: 'S7-1200/1500-style', din: '%I0.0–0.7', dout: '%Q0.0–0.7' }, brand: 'Siemens S7-1200/1500', family: 'S7-1200 / S7-1500', style: 'TIA Portal style',
     hue: 180, tagBased: true, mainName: 'OB1 "Main" (Program cycle)',
     address: (cls, n, d) => {
       switch (cls) {
@@ -181,7 +185,7 @@ export const SKINS: Record<SkinId, Skin> = {
   },
 
   'siemens-classic': {
-    id: 'siemens-classic', brand: 'Siemens S7-300/400', family: 'S7-300 / S7-400', style: 'STEP 7 Classic style',
+    id: 'siemens-classic', maker: 'Siemens', hw: { cpu: 'S7-300/400-style', din: 'I 0.0–0.7', dout: 'Q 4.0–4.7' }, brand: 'Siemens S7-300/400', family: 'S7-300 / S7-400', style: 'STEP 7 Classic style',
     hue: 170, tagBased: false, mainName: 'OB1',
     address: (cls, n) => {
       switch (cls) {
@@ -214,7 +218,7 @@ export const SKINS: Record<SkinId, Skin> = {
   },
 
   modicon: {
-    id: 'modicon', brand: 'Schneider Modicon', family: 'M340 / M580 / M221 / M241', style: 'Control Expert / Machine Expert style',
+    id: 'modicon', maker: 'Schneider Electric', hw: { cpu: 'Modicon-style', din: '%I0.1.0–7', dout: '%Q0.2.0–7' }, brand: 'Schneider Modicon', family: 'M340 / M580 / M221 / M241', style: 'Control Expert / Machine Expert style',
     hue: 140, tagBased: true, mainName: 'MAST task → main section',
     address: (cls, n, d) => {
       switch (cls) {
@@ -243,7 +247,7 @@ export const SKINS: Record<SkinId, Skin> = {
   },
 
   mitsubishi: {
-    id: 'mitsubishi', brand: 'Mitsubishi', family: 'FX / iQ-F', style: 'GX Works style',
+    id: 'mitsubishi', maker: 'Mitsubishi Electric', hw: { cpu: 'FX-style', din: 'X0–X7', dout: 'Y0–Y7' }, brand: 'Mitsubishi', family: 'FX / iQ-F', style: 'GX Works style',
     hue: 350, tagBased: false, mainName: 'MAIN (scan program)',
     address: (cls, n) => {
       switch (cls) {
@@ -275,7 +279,7 @@ export const SKINS: Record<SkinId, Skin> = {
   },
 
   automationdirect: {
-    id: 'automationdirect', brand: 'AutomationDirect', family: 'CLICK / Productivity / Do-more / DirectLOGIC', style: 'CLICK programming software style',
+    id: 'automationdirect', maker: 'AutomationDirect', hw: { cpu: 'CLICK-style', din: 'X001–X008', dout: 'Y001–Y008' }, brand: 'AutomationDirect', family: 'CLICK / Productivity / Do-more / DirectLOGIC', style: 'CLICK programming software style',
     hue: 45, tagBased: false, mainName: 'Main Program',
     address: (cls, n) => {
       switch (cls) {
@@ -308,7 +312,7 @@ export const SKINS: Record<SkinId, Skin> = {
   },
 
   omron: {
-    id: 'omron', brand: 'Omron', family: 'CP / CJ (and NX/NJ)', style: 'CX-Programmer style',
+    id: 'omron', maker: 'Omron', hw: { cpu: 'CP/CJ-style', din: 'CIO 0.00–07', dout: 'CIO 100.00–07' }, brand: 'Omron', family: 'CP / CJ (and NX/NJ)', style: 'CX-Programmer style',
     hue: 220, tagBased: false, mainName: 'Cyclic task 00',
     address: (cls, n) => {
       switch (cls) {
@@ -338,6 +342,17 @@ export const SKINS: Record<SkinId, Skin> = {
     ],
   },
 };
+
+/** Skins grouped by manufacturer, for pickers. */
+export function skinsByMaker(): { maker: string; skins: Skin[] }[] {
+  const out: { maker: string; skins: Skin[] }[] = [];
+  for (const sk of SKIN_LIST) {
+    let g = out.find((x) => x.maker === sk.maker);
+    if (!g) out.push((g = { maker: sk.maker, skins: [] }));
+    g.skins.push(sk);
+  }
+  return out;
+}
 
 export const SKIN_LIST: Skin[] = [
   SKINS['ab-logix'], SKINS['siemens-tia'], SKINS['ab-slc'], SKINS['ab-micro800'], SKINS['siemens-classic'],

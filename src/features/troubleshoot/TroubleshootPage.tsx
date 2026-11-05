@@ -5,7 +5,7 @@ import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
 import { MOTOR_DEVICES, MOTOR_FAULTS, motorProgram } from '../../plant/motor';
 import type { FaultDef } from '../../plant/types';
-import { href } from '../../lib/router';
+import { href, navigate } from '../../lib/router';
 import { buzz, sfx } from '../../lib/sound';
 import { useProgress } from '../../state/progress';
 import type { SimRuntime } from '../simulator/runtime';
@@ -18,23 +18,24 @@ function fmtTime(ms: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
-export default function TroubleshootPage() {
+export default function TroubleshootPage({ huntId }: { huntId?: string }) {
   const hunts = useProgress((s) => s.hunts);
-  const [fault, setFault] = useState<FaultDef | null>(null);
+  const fault = huntId ? MOTOR_FAULTS.find((f) => f.id === huntId) ?? null : null;
   const [round, setRound] = useState(0);
 
+  // Each hunt has its own URL, so the Back button and the Troubleshoot tab return to the list.
   const start = (f: FaultDef) => {
-    setFault(f);
     setRound((r) => r + 1);
     buzz(15);
+    navigate(`troubleshoot/${f.id}`);
   };
   const surprise = () => {
-    const unsolved = MOTOR_FAULTS.filter((f) => !hunts[f.id]);
-    const pool = unsolved.length ? unsolved : MOTOR_FAULTS;
+    const unsolved = MOTOR_FAULTS.filter((f) => !hunts[f.id] && f.id !== huntId);
+    const pool = unsolved.length ? unsolved : MOTOR_FAULTS.filter((f) => f.id !== huntId);
     start(pool[Math.floor(Math.random() * pool.length)]);
   };
 
-  if (fault) return <Hunt key={round} fault={fault} onExit={() => setFault(null)} onNext={surprise} />;
+  if (fault) return <Hunt key={`${fault.id}-${round}`} fault={fault} onExit={() => navigate('troubleshoot')} onNext={surprise} />;
 
   return (
     <div>

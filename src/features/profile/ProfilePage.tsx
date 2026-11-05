@@ -7,7 +7,7 @@ import { Sheet } from '../../components/Sheet';
 import { TRACKS } from '../../content';
 import { href } from '../../lib/router';
 import { sfx } from '../../lib/sound';
-import { SKIN_LIST, type SkinId } from '../../skins';
+import { skinsByMaker, type SkinId } from '../../skins';
 import { usePrefs, type Goal, type Quality, type ThemePref } from '../../state/prefs';
 import { badges, level, streak, today, trackProgress, useProgress } from '../../state/progress';
 import { saveCertificate } from './certificate';
@@ -90,9 +90,13 @@ export default function ProfilePage() {
             {(['dark', 'light', 'system'] as ThemePref[]).map((t) => <button key={t} type="button" aria-pressed={prefs.theme === t} onClick={() => prefs.setPrefs({ theme: t })}>{t[0].toUpperCase() + t.slice(1)}</button>)}
           </div>
         </Row>
-        <Row label="Brand skin" hint="Addresses, instruction names and timer units in the simulator.">
+        <Row label="PLC platform" hint="Addresses, instruction names, timer units and 3D hardware labels follow this.">
           <select className="input !w-auto max-w-full" value={prefs.skin} onChange={(e) => prefs.setPrefs({ skin: e.target.value as SkinId })} aria-label="Brand skin">
-            {SKIN_LIST.map((s) => <option key={s.id} value={s.id}>{s.brand}</option>)}
+            {skinsByMaker().map((g) => (
+              <optgroup key={g.maker} label={g.maker}>
+                {g.skins.map((s) => <option key={s.id} value={s.id}>{s.family} — {s.style}</option>)}
+              </optgroup>
+            ))}
           </select>
         </Row>
         <Row label="Goal" hint="Orders your recommended path.">

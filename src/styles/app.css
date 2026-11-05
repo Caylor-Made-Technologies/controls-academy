@@ -423,3 +423,31 @@ body {
 @keyframes energize { to { stroke: #3ddc97; filter: drop-shadow(0 0 8px #3ddc97); } }
 .power-on-mark { display: flex; flex-direction: column; align-items: center; opacity: 0; transform: translateY(8px); animation: rise 0.45s var(--ease) 0.55s forwards; }
 @keyframes rise { to { opacity: 1; transform: none; } }
+
+/* ---------- PLC platform bar ---------- */
+.platform-bar {
+  display: flex; align-items: center; gap: 12px; padding: 10px 12px; border-radius: 14px; cursor: pointer;
+  background: linear-gradient(100deg, color-mix(in srgb, var(--blue) 14%, var(--surface-raised)), var(--surface-raised));
+  border: 1px solid color-mix(in srgb, var(--blue-glow) 35%, var(--border));
+  transition: border-color 0.2s, transform 0.15s var(--ease);
+}
+.platform-bar:hover { border-color: var(--blue-glow); }
+.platform-bar:active { transform: scale(0.99); }
+.platform-maker {
+  flex: none; align-self: stretch; display: flex; align-items: center; justify-content: center; text-align: center;
+  min-width: 86px; max-width: 110px; padding: 6px 8px; border-radius: 10px;
+  font-family: var(--font-head); font-weight: 800; font-size: 0.74rem; line-height: 1.15; letter-spacing: 0.02em;
+  color: #fff; background: var(--grad); box-shadow: 0 4px 14px rgba(30, 111, 255, 0.3);
+}
+:root[data-theme='light'] .platform-maker { color: #fff; }
+.platform-ex {
+  display: inline-flex; align-items: center; gap: 4px; flex: none; max-width: 100%;
+  padding: 1px 7px; border-radius: 7px; font-size: 0.68rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+  background: var(--surface-sunk); border: 1px solid var(--border);
+}
+.hud-platform { max-width: 60%; overflow: hidden; text-overflow: ellipsis; }
+.hud-maker { padding: 1px 7px; border-radius: 999px; background: var(--grad); color: #fff; font-weight: 800; font-size: 0.7rem; }
+@media (max-width: 480px) {
+  .platform-bar { gap: 10px; padding: 9px 10px; align-items: flex-start; }
+  .platform-maker { min-width: 72px; max-width: 84px; font-size: 0.68rem; }
+}

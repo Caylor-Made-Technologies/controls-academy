@@ -12,14 +12,18 @@ mkdirSync('test-results', { recursive: true });
 let pass = 0;
 let fail = 0;
 const errors = [];
+const ONLY = process.env.ONLY ? new RegExp(process.env.ONLY, 'i') : null;
+let lastPage = null;
 async function check(name, fn) {
+  if (ONLY && !ONLY.test(name)) return;
   try {
     await fn();
     pass++;
     console.log('✓', name);
   } catch (e) {
     fail++;
-    console.log('✗', name, '—', String(e.message ?? e).split('\n')[0].slice(0, 220));
+    try { await lastPage?.screenshot({ path: `test-results/fail-${fail}.png` }); } catch { /* page gone */ }
+    console.log('✗', name, `[test-results/fail-${fail}.png]`, '—', process.env.VERBOSE ? String(e.message ?? e).slice(0, 1500) : String(e.message ?? e).split('\n')[0].slice(0, 220));
   }
 }
 const expect = (c, msg) => { if (!c) throw new Error(msg); };
@@ -34,15 +38,24 @@ async function newPage({ prefs = { onboarded: true }, progress, w = 1280, h = 90
     if (pg) localStorage.setItem('ca:progress', JSON.stringify(pg));
   }, [prefs, progress]);
   const page = await ctx.newPage();
+  lastPage = page;
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`${page.url().split('#')[1] ?? ''}: ${m.text()}`); });
   page.on('pageerror', (e) => errors.push(`${page.url().split('#')[1] ?? ''}: pageerror ${e.message}`));
   return { ctx, page };
 }
 const go = async (page, route) => {
   await page.goto(`${URL0}#/${route}`);
+  await page.waitForTimeout(350); // let the previous page's exit transition finish
   await page.waitForSelector('main#main h1', { timeout: 15000 });
 };
+const clean = async (page) => {
+  for (let i = 0; i < 3 && (await page.locator('[role=dialog]').count()); i++) {
+    await page.keyboard.press('Escape');
+    await page.waitForTimeout(250);
+  }
+};
 async function axe(page, label) {
+  await page.waitForTimeout(700); // let entrance animations finish
   await page.addScriptTag({ content: axeSrc });
   const v = await page.evaluate(async () => (await window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map((x) => `${x.id}: ${x.nodes.slice(0, 2).map((n) => n.target.join(' ')).join(' | ')}`));
   expect(v.length === 0, `${label} axe: ${v.join('; ')}`);
@@ -64,7 +77,7 @@ await check('Onboarding: 4 screens, choices, axe on each, lands on first lesson'
   await page.getByRole('radio', { name: /Building automation/ }).click();
   await axe(page, 'onboarding 2');
   await page.getByRole('button', { name: 'Next' }).click();
-  await page.getByRole('radio', { name: /Mitsubishi/ }).click();
+  await page.getByRole('radio', { name: /FX \/ iQ-F/ }).click();
   await axe(page, 'onboarding 3');
   await page.getByRole('button', { name: 'Next' }).click();
   await page.getByLabel(/What should we call you/).fill('Test Tech');
@@ -120,10 +133,10 @@ await check('Figures: Ohm\'s law slider, sinking/sourcing, scaling, number bases
   await page.getByText(/Works: card sources/).waitFor();
   await go(page, 'lesson/analog-420');
   await page.getByRole('slider').first().fill('2');
-  await page.getByText('FAULT').waitFor();
+  await page.locator('figure').getByText('FAULT', { exact: true }).waitFor();
   await go(page, 'lesson/numbers');
   await page.locator('input[inputmode=numeric]').fill('8');
-  await page.getByText('X10', { exact: true }).waitFor();
+  await page.locator('figure').getByText('X10', { exact: true }).waitFor();
   await go(page, 'lesson/what-is-a-plc');
   await page.getByRole('button', { name: /Write outputs/ }).click();
   await page.getByText(/output image is copied/).waitFor();
@@ -206,13 +219,15 @@ await check('Task latch-unlatch: alarm latches after 2 s, Reset clears it', asyn
 {
   const { ctx, page } = await newPage();
   await go(page, 'sim');
-  await check('Sim: motor starts, seals in, stops; lights follow', async () => {
+  const _check = check;
+  const check2 = async (name, fn) => _check(name, async () => { await clean(page); await fn(); });
+  await check2('Sim: motor starts, seals in, stops; lights follow', async () => {
     await press(page, 'Start');
     await page.getByRole('img', { name: 'Running light on' }).waitFor({ timeout: 6000 });
     await press(page, 'Stop');
     await page.getByRole('img', { name: 'Running light off' }).waitFor({ timeout: 6000 });
   });
-  await check('Sim: E-stop drops the motor and it does not restart on release', async () => {
+  await check2('Sim: E-stop drops the motor and it does not restart on release', async () => {
     await press(page, 'Start');
     await page.getByRole('img', { name: 'Running light on' }).waitFor({ timeout: 6000 });
     await page.getByRole('button', { name: /^Emergency stop/ }).click();
@@ -221,7 +236,7 @@ await check('Task latch-unlatch: alarm latches after 2 s, Reset clears it', asyn
     await page.waitForTimeout(800);
     expect(await page.getByRole('img', { name: 'Running light off' }).isVisible(), 'restarted on E-stop release!');
   });
-  await check('Sim: jam the load → overload trips → reset overload', async () => {
+  await check2('Sim: jam the load → overload trips → reset overload', async () => {
     await press(page, 'Start');
     await page.getByRole('button', { name: 'Jam the load' }).click();
     await page.getByText('OL tripped').waitFor({ timeout: 20000 });
@@ -230,7 +245,7 @@ await check('Task latch-unlatch: alarm latches after 2 s, Reset clears it', asyn
     await page.getByRole('button', { name: 'Reset overload' }).click();
     await page.getByText('OL tripped').waitFor({ state: 'detached' });
   });
-  await check('Sim: Slow-mo and Step modes, scan pointer', async () => {
+  await check2('Sim: Slow-mo and Step modes, scan pointer', async () => {
     await page.getByRole('button', { name: 'Slow-mo' }).click();
     await page.waitForTimeout(800);
     await page.getByRole('button', { name: 'Step', exact: true }).first().click();
@@ -240,13 +255,26 @@ await check('Task latch-unlatch: alarm latches after 2 s, Reset clears it', asyn
     await page.getByText(/about to SOLVE rung 0/).waitFor();
     await page.getByRole('button', { name: 'Run', exact: true }).click();
   });
-  await check('Sim: PROG/RUN mode toggle', async () => {
+  await check2('Sim: PROG/RUN mode toggle', async () => {
     await page.getByRole('button', { name: /Controller mode RUN/ }).click();
     await page.getByRole('button', { name: /Controller mode PROG/ }).waitFor();
     await page.getByRole('button', { name: /Controller mode PROG/ }).click();
     await page.getByRole('button', { name: /Controller mode RUN/ }).waitFor();
   });
-  await check('Sim: all 10 brand skins render the ladder', async () => {
+  await check2('Sim: platform bar names the PLC; grouped picker switches maker, family and addresses', async () => {
+    const bar = page.locator('.platform-bar');
+    expect((await bar.textContent()).includes('Allen-Bradley'), 'bar shows maker');
+    await bar.click();
+    const dlg = page.getByRole('dialog', { name: 'Which PLC are you working on?' });
+    for (const h of ['Allen-Bradley (Rockwell Automation)', 'Siemens', 'Mitsubishi Electric', 'Schneider Electric', 'AutomationDirect', 'Omron']) await dlg.getByRole('heading', { name: h }).waitFor();
+    await dlg.getByRole('radio', { name: /S7-1200 \/ S7-1500/ }).click();
+    await page.locator('.platform-bar', { hasText: 'Siemens' }).waitFor();
+    await page.locator('.platform-bar', { hasText: '%I0.0' }).waitFor();
+    expect((await page.locator('.instr .tagname').first().textContent()) === '"Start_PB"', 'ladder relabeled');
+    await page.locator('#skin-select').selectOption('ab-logix');
+    await page.locator('.platform-bar', { hasText: 'ControlLogix' }).waitFor();
+  });
+  await check2('Sim: all 10 brand skins render the ladder', async () => {
     const sel = page.locator('#skin-select');
     const values = await sel.locator('option').evaluateAll((o) => o.map((x) => x.value));
     expect(values.length === 10, `found ${values.length} skins`);
@@ -259,7 +287,7 @@ await check('Task latch-unlatch: alarm latches after 2 s, Reset clears it', asyn
     expect(seen.includes('X0') && seen.includes('I:1/0') && seen.includes('"Start_PB"'), `labels ${seen.join(',')}`);
     await sel.selectOption('ab-logix');
   });
-  await check('Sim editor: add rung, add contact with operand, branch, comment, dup, move, undo/redo, delete', async () => {
+  await check2('Sim editor: add rung, add contact with operand, branch, comment, dup, move, undo/redo, delete', async () => {
     const rungs = async () => page.locator('.rung').count();
     const n0 = await rungs();
     await page.getByRole('button', { name: 'Rung', exact: true }).click();
@@ -285,7 +313,7 @@ await check('Task latch-unlatch: alarm latches after 2 s, Reset clears it', asyn
     await page.getByRole('button', { name: 'Delete' }).click();
     expect((await rungs()) === n0 + 1, 'rung deleted');
   });
-  await check('Sim editor: keyboard — arrows, Enter edits, Delete, Ctrl+Z', async () => {
+  await check2('Sim editor: keyboard — arrows, Enter edits, Delete, Ctrl+Z', async () => {
     const first = page.locator('.instr').first();
     await first.click();
     await page.keyboard.press('ArrowRight');
@@ -299,7 +327,7 @@ await check('Task latch-unlatch: alarm latches after 2 s, Reset clears it', asyn
     await page.keyboard.press('Control+z');
     expect((await page.locator('.instr').count()) === before, 'undo by key');
   });
-  await check('Sim: Verify panel + cross-reference', async () => {
+  await check2('Sim: Verify panel + cross-reference', async () => {
     await page.getByRole('button', { name: 'Verify' }).click();
     await page.getByText(/^Verify:/).waitFor();
     await page.getByRole('button', { name: 'Close', exact: true }).first().click();
@@ -308,18 +336,18 @@ await check('Task latch-unlatch: alarm latches after 2 s, Reset clears it', asyn
     await page.getByRole('dialog', { name: /Cross-reference/ }).getByText(/reads|writes/).first().waitFor();
     await page.keyboard.press('Escape');
   });
-  await check('Sim: "More…" sheet adds any instruction (TON)', async () => {
+  await check2('Sim: "More…" sheet adds any instruction (TON)', async () => {
     await page.getByRole('button', { name: 'More…' }).click();
     await page.getByRole('dialog', { name: 'All instructions' }).getByRole('button', { name: /^TON/ }).click();
     const dlg = page.getByRole('dialog', { name: 'Edit instruction' });
     await dlg.locator('details summary').click();
     await dlg.getByPlaceholder('Pump1_Run').fill('Test_Tmr');
-    await dlg.getByRole('combobox').nth(1).selectOption('TIMER');
+    await dlg.locator('details select').selectOption('TIMER');
     await dlg.getByRole('button', { name: 'Add tag' }).click();
     await dlg.getByRole('button', { name: 'Save' }).click();
     await page.locator('.box-title', { hasText: 'TON' }).last().waitFor();
   });
-  await check('Sim: tag monitor opens and toggles an internal bit', async () => {
+  await check2('Sim: tag monitor opens and toggles an internal bit', async () => {
     await page.getByText(/Tag monitor/).click();
     const row = page.locator('tr', { hasText: 'Fail_Alarm' });
     await row.getByRole('button').click();
@@ -327,26 +355,26 @@ await check('Task latch-unlatch: alarm latches after 2 s, Reset clears it', asyn
     await row.getByRole('button').click();
     await page.getByText(/Tag monitor/).click();
   });
-  await check('Sim: force an input with confirmation, FORCE shown, remove force', async () => {
+  await check2('Sim: force an input with confirmation, FORCE shown, remove force', async () => {
     await page.getByRole('button', { name: /^Input 4, Reset/ }).click();
     await page.getByRole('button', { name: 'Force ON' }).click();
     await page.getByRole('button', { name: 'Yes, force ON' }).click();
     await page.keyboard.press('Escape');
     await page.getByText('FORCE', { exact: true }).waitFor();
-    await page.getByRole('button', { name: /^Input 4, Reset: ON, forced/ }).click();
+    await page.getByRole('button', { name: /^Input 4, Reset: .*forced/ }).click();
     await page.getByRole('button', { name: 'Remove force' }).click();
     await page.keyboard.press('Escape');
     await page.getByText('FORCE', { exact: true }).waitFor({ state: 'detached' });
   });
   let exported = '';
-  await check('Sim: export program JSON', async () => {
+  await check2('Sim: export program JSON', async () => {
     const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export' }).click()]);
     exported = 'test-results/exported-program.json';
     await dl.saveAs(exported);
     const j = JSON.parse(readFileSync(exported, 'utf8'));
     expect(j.routines?.[0]?.rungs?.length > 0, 'program has rungs');
   });
-  await check('Sim: restore Original, then import the exported program', async () => {
+  await check2('Sim: restore Original, then import the exported program', async () => {
     await page.getByRole('button', { name: 'Original' }).click();
     await page.getByText('Restored the original motor program.').waitFor();
     await page.locator('input[type=file]').setInputFiles(exported);
@@ -357,7 +385,7 @@ await check('Task latch-unlatch: alarm latches after 2 s, Reset clears it', asyn
     await page.getByText("That file isn't a Controls Academy program.").waitFor();
   });
   let shareUrl = '';
-  await check('Sim: share link copies, and opening it loads the program', async () => {
+  await check2('Sim: share link copies, and opening it loads the program', async () => {
     await page.getByRole('button', { name: 'Share' }).click();
     await page.getByText(/Link copied/).waitFor();
     shareUrl = await page.evaluate(() => navigator.clipboard.readText());
@@ -367,7 +395,7 @@ await check('Task latch-unlatch: alarm latches after 2 s, Reset clears it', asyn
     await p2.getByText('Loaded a shared program from the link.').waitFor();
     await p2.close();
   });
-  await check('Sim: program autosaves across reload', async () => {
+  await check2('Sim: program autosaves across reload', async () => {
     await page.getByRole('button', { name: 'Rung', exact: true }).click();
     const n = await page.locator('.rung').count();
     await page.waitForTimeout(700);
@@ -376,11 +404,11 @@ await check('Task latch-unlatch: alarm latches after 2 s, Reset clears it', asyn
     expect((await page.locator('.rung').count()) === n, 'rung count persisted');
     await page.getByRole('button', { name: 'Original' }).click();
   });
-  await check('Sim: "Same logic, ten dialects" table', async () => {
+  await check2('Sim: "Same logic, ten dialects" table', async () => {
     await page.getByRole('heading', { name: 'Same logic, ten dialects' }).scrollIntoViewIfNeeded();
     await page.getByRole('region', { name: 'Addresses in every brand dialect' }).getByText('%I0.0').first().waitFor();
   });
-  await check('Sim page axe (2D)', async () => axe(page, 'sim'));
+  await check2('Sim page axe (2D)', async () => axe(page, 'sim'));
   await ctx.close();
 }
 
@@ -416,7 +444,7 @@ const HUNTS = [
     await page.getByRole('button', { name: /Nothing works/ }).click();
     await page.getByRole('button', { name: 'The program is wrong' }).click();
     await page.getByRole('alert').getByText('Teaching moment').waitFor();
-    await page.getByRole('button', { name: 'OK' }).click();
+    await page.getByRole('alert').getByRole('button', { name: 'OK', exact: true }).click();
     await page.getByRole('button', { name: /^Input 4, Reset/ }).click();
     await page.getByRole('button', { name: 'Force ON' }).click();
     await page.getByRole('button', { name: 'Yes, force ON' }).click();

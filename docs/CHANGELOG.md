@@ -1,5 +1,20 @@
 # Changelog
 
+## 0.3.0 — 2026-11-05
+- **Site moved** with the repo rename: https://caylor-made-technologies.github.io/controls-academy/ (Vite base updated; the old base left a blank page at the new URL for a short time).
+- **Bugs found by the new every-feature test and fixed:**
+  - Tapping a rung number didn't select the rung (the tap bubbled to the ladder background and cleared it), so rung Delete/Dup/Comment/Move never enabled.
+  - Ctrl/⌘+Z stopped working after deleting with the keyboard (focus was lost); undo/redo now work anywhere in the editor.
+  - Search opened with focus on the close button instead of the search box.
+  - Search box now announced as a combobox; loading skeletons, the hunt timer, meter readout, onboarding steps and 3D legend got proper roles (axe flagged prohibited aria-label use).
+  - Each Fault Hunt now has its own URL, so Back and the Troubleshoot tab return to the list.
+  - All Framer Motion animations now follow the device's reduced-motion setting.
+- **3D upgrade:** rounded hardware, PLC cards with vents, hinged terminal covers and label strips, terminal screws and field wires into the duct, chrome-bezel domed pushbuttons and a mushroom E-stop, rebuilt motor (cooling fins, fan cover grille, terminal box, nameplate, feet, keyed shaft and coupling), door gasket and hinges, conduit, concrete floor with a painted working-clearance box, hover outlines and floating name tags, camera fly-in, warmer key + blue rim lighting.
+- **Clear PLC platform labels:** a platform bar on every workbench names the maker, family and software style (e.g. "Allen-Bradley — ControlLogix / CompactLogix — Studio 5000 style") with live examples of this program's addresses and a 5 s timer preset; tap it for a picker grouped by manufacturer (Allen-Bradley, Siemens, Schneider, Mitsubishi, AutomationDirect, Omron, vendor-neutral). The quick select, onboarding and Profile use the same grouping. The 3D rack is labeled in the chosen dialect (CPU shows maker + family; cards show `Local:1:I` / `%I0.0–0.7` / `X0–X7`…; operator station shows the Start button's address) with a HUD platform tag. Labels auto-shrink to fit.
+- Resume ("Jump back in") only remembers lessons, the simulator, hunts and reference pages, so visiting Profile no longer loses your place.
+- 3D draw calls cut ~20% (instanced PLC trim, one texture for all terminal numbers); ~50k triangles per frame on the default tier.
+- **New test:** `tests/e2e/features.mjs` checks every feature (all lessons, tasks, editor tools, skins, forces, import/export/share, all 8 hunts, reference, search, review, profile, certificates, erase/restore, 3D tap, offline PWA). Runs against local or live (`SITE_URL=`).
+
 ## 0.2.0 — 2026-11-04
 - 3D control panel (Phase 8b start): procedural enclosure, disconnect, fuses, transformer, 24 VDC supply, PLC rack with live LEDs (RUN/FORCE/FAULT, every I/O point), Ethernet switch, contactor whose armature pulls in, overload whose trip flag pops, terminal strip with wire numbers, slotted wire duct, operator station you can press, motor with a turning shaft.
 - Tap any part for what it is, how to test it with a meter, safety notes and its lesson. Guided camera tours. X-ray mode shows current flowing in the coil, motor-power and input circuits. Exploded contactor view.

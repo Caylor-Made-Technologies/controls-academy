@@ -53,7 +53,7 @@ const RungView = memo(function RungView({ rung, index, ctx, pointer, compact }: 
         type="button"
         className="rung-num !border-0 bg-transparent cursor-pointer"
         style={{ borderRight: `3px solid ${live ? 'var(--live)' : 'var(--dead)'}` }}
-        onClick={() => ctx.onSelect?.({ rungId: rung.id })}
+        onClick={(e) => { e.stopPropagation(); ctx.onSelect?.({ rungId: rung.id }); }}
         aria-label={`Select rung ${index}`}
         aria-pressed={selected}
       >

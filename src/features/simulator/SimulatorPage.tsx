@@ -133,7 +133,12 @@ function Dialects({ program }: { program: Program }) {
           <thead>
             <tr>
               <th className="text-left p-1.5 sticky left-0 bg-surface">Tag</th>
-              {maps.map(({ s }) => <th key={s.id} className={`text-left p-1.5 whitespace-nowrap ${s.id === skin ? 'text-glow' : 'text-muted'}`}>{s.brand}</th>)}
+              {maps.map(({ s }) => (
+                <th key={s.id} className={`text-left p-1.5 whitespace-nowrap align-bottom ${s.id === skin ? 'text-glow' : 'text-muted'}`}>
+                  <span className="block text-[0.62rem] uppercase tracking-wider">{s.maker.replace(/\s*\(.*\)$/, '')}</span>
+                  <span className="block">{s.family.split(' / ')[0]}</span>
+                </th>
+              ))}
             </tr>
           </thead>
           <tbody>

@@ -2,6 +2,10 @@
 
 Reasonable choices made where the build prompt was open. Newest first.
 
+- **2026-11-05 Platform labels name the maker and family in text, never as a logo or trade dress.** The 3D hardware stays generic; its labels say "Logix-style CPU", "S7-1200/1500-style", "FX-style" and show addresses in that dialect, and the HUD says it's generic hardware labeled in that style. Reason: Jonathon wants it obvious which PLC you're looking at; the trademark rule allows descriptive use only.
+- **2026-11-05 Pickers group by manufacturer** (Allen-Bradley has three families, Siemens two). Reason: techs think "it's an AB, which kind?" — not in a flat list of ten.
+- **2026-11-05 Every-feature test runs against live too** (`SITE_URL=`). Reason: "double and triple check" — the live run caught the repo-rename breakage within minutes.
+
 - **2026-11-04 3D is procedural, not downloaded models.** Every part is built from three.js primitives with canvas-drawn labels and a code-built light environment. Reason: offline + strict CSP, zero licensing risk, tiny download, generic (unbranded) hardware by construction.
 - **2026-11-04 Fake bloom instead of post-processing.** Emissive LEDs + additive halo sprites. Reason: real bloom costs a full-screen pass every frame on phones; halos look the same at this scale.
 - **2026-11-04 The 3D view reads the engine inside the render loop**, not through React state. Reason: the scan runs ~100×/s; re-rendering React that often would stutter on phones.

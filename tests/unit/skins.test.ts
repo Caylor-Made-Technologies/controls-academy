@@ -81,3 +81,22 @@ describe('brand skins', () => {
     }
   });
 });
+
+describe('platform labels', () => {
+  it('every skin names its maker and labels its hardware', async () => {
+    const { skinsByMaker } = await import('../../src/skins');
+    for (const s of SKIN_LIST) {
+      expect(s.maker.length).toBeGreaterThan(3);
+      expect(s.hw.cpu && s.hw.din && s.hw.dout).toBeTruthy();
+    }
+    const groups = skinsByMaker();
+    expect(groups.find((g) => g.maker.startsWith('Allen-Bradley'))!.skins.map((s) => s.id)).toEqual(['ab-logix', 'ab-slc', 'ab-micro800']);
+    expect(groups.find((g) => g.maker === 'Siemens')!.skins.length).toBe(2);
+    expect(groups.reduce((n, g) => n + g.skins.length, 0)).toBe(10);
+  });
+  it('hardware labels match the addressing style', () => {
+    expect(SKINS.mitsubishi.hw.din).toBe('X0–X7');
+    expect(SKINS['ab-slc'].hw.din.startsWith('I:1')).toBe(true);
+    expect(SKINS['siemens-tia'].hw.dout.startsWith('%Q')).toBe(true);
+  });
+});
