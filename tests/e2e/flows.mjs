@@ -17,7 +17,7 @@ await page.getByRole('button', { name: 'Get started' }).click();
 await page.screenshot({ path: 'test-results/flow-onboarding-goal.png' });
 await page.getByRole('radio', { name: /Maintenance tech/ }).click();
 await page.getByRole('button', { name: 'Next' }).click();
-await page.getByRole('radio', { name: /Siemens S7-1200/ }).click();
+await page.getByRole('radio', { name: /S7-1200 \/ S7-1500/ }).click();
 await page.getByRole('button', { name: 'Next' }).click();
 await page.getByRole('button', { name: 'Start my first lesson' }).click();
 await page.waitForSelector('h1:has-text("Volts, amps and ohms")');
