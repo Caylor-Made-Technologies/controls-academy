@@ -530,6 +530,12 @@ await check('Reference: 17 brand guides with US notes; hardware library lists ev
   expect((await page.locator('a[href*="reference/hw/"] svg').count()) === n, 'every card has a front view');
   await page.getByRole('button', { name: 'Siemens', exact: true }).click();
   expect((await page.locator('a[href*="reference/hw/"]').count()) === 6, 'siemens filter');
+  await page.getByRole('button', { name: 'All brands' }).click();
+  await page.getByRole('button', { name: 'Legacy', exact: true }).click();
+  expect((await page.locator('a[href*="reference/hw/"]').count()) === 7, 'legacy filter');
+  await page.getByRole('button', { name: 'All', exact: true }).click();
+  await page.getByLabel('Search hardware').fill('1756');
+  expect((await page.locator('a[href*="reference/hw/"]').count()) === 2, 'search 1756');
   await ctx.close();
 });
 
@@ -537,6 +543,11 @@ await check('Hardware: 3D model renders, tap-free module list explains parts, "U
   const { ctx, page } = await newPage({ prefs: { onboarded: true, quality: 'low' }, motion: 'no-preference' });
   await go(page, 'reference/hw/s7-1500');
   await page.locator('canvas').first().waitFor({ timeout: 30000 });
+  await page.getByRole('button', { name: 'Spread modules' }).click();
+  expect((await page.getByRole('button', { name: 'Spread modules' }).getAttribute('aria-pressed')) === 'true', 'spread on');
+  await page.getByRole('button', { name: 'Front', exact: true }).click();
+  await page.getByRole('button', { name: 'Reset', exact: true }).click();
+  await page.getByLabel('At a glance').getByText('DIN rail').waitFor();
   await page.getByRole('button', { name: 'CPU', exact: true }).click();
   await page.getByRole('heading', { name: /Controller \(CPU\)/ }).waitFor();
   await page.getByRole('button', { name: 'Show flat front view' }).click();

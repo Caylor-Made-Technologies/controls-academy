@@ -1,5 +1,12 @@
 # Changelog
 
+## 0.4.1 — 2026-11-05
+- **3D hardware graphics:** molded front face plates, vent slots on every module, Ethernet jacks with blinking link/activity lights, a real top-hat DIN rail profile, printed wire-label cards on module doors, floating name tags on hover/selection.
+- **3D viewer:** 3/4, Front, Side and Top camera views with a smooth glide, Reset, "Spread modules" (slices slide apart; chassis modules slide half out of their slots), a turn-in animation when a model opens (off with reduced motion), auto-framing on every screen shape.
+- **Library UI:** search (e.g. "1756", "S7-1200", "slice I/O"), Current / Mature / Legacy filter, result count, lifted cards with lit thumbnails, front view shown instantly while 3D loads, "At a glance" tiles, previous/next model.
+- Reference home leads with a featured hardware-library card. Page titles stay crisp over the circuit-trace decoration on phones.
+- Fix: the old generic rack trim (covers, vents) was drawn over library models in the simulator's 3D panel.
+
 ## 0.4.0 — 2026-11-05
 - **Course expansion:** 29 new lessons (49 total) in 4 levels (Beginner → Intermediate → Advanced → Expert), new Track 11 "Expert Practice", 2 capstones (build start/stop from a blank rung; design the flour batch mixer), Structured Text code blocks, the "Controls Pro" badge and the `build-start-stop` task check.
 - **PLC hardware library (3D):** 48 PLC, remote I/O and logic-module families you commonly see in US plants, from 17 brands (Allen-Bradley/Rockwell, Siemens, Schneider/Modicon, Mitsubishi, AutomationDirect, Omron, Emerson/GE, Beckhoff, IDEC, Unitronics, WAGO, Phoenix Contact, Eaton, Keyence, Opto 22, Delta, B&R). Each one has a procedural 3D model (orbit, pinch, tap a module), a flat front view (thumbnails, no-WebGL and "2D only"), where you'll see it in the US, software, what to look at, and its status (current / mature / legacy). Simplified look-alikes: approximate proportions, neutral colors, no logos.

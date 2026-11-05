@@ -2,10 +2,12 @@
  * Flat front view of a hardware-library model, drawn as SVG from the same parametric shape as the
  * 3D model. Used for list thumbnails and as the no-WebGL / "2D only" view.
  */
+import { useId } from 'react';
 import { BODY_COLORS, type HwModel } from '../content/hardware';
 
 export function HwFront({ model, selected, onSelect, className, title }: { model: HwModel; selected?: number | null; onSelect?: (i: number) => void; className?: string; title?: string }) {
   const { shape } = model;
+  const gid = useId().replace(/:/g, '');
   const col = BODY_COLORS[shape.body];
   const pad = shape.mount === 'chassis' ? 8 : 6;
   let x = pad;
@@ -17,7 +19,14 @@ export function HwFront({ model, selected, onSelect, className, title }: { model
   const W = x + pad;
   const H = shape.h + pad * 2 + (shape.mount === 'panel' ? 0 : 0);
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className={className} role="img" aria-label={title ?? `Front view of ${model.name}`} preserveAspectRatio="xMidYMid meet">
+    <svg viewBox={`0 0 ${W} ${H}`} className={className} {...(title === '' ? { 'aria-hidden': true } : { role: 'img', 'aria-label': title ?? `Front view of ${model.name}` })} preserveAspectRatio="xMidYMid meet">
+      <defs>
+        <linearGradient id={`b${gid}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0" stopColor="#ffffff" stopOpacity="0.16" />
+          <stop offset="0.5" stopColor="#ffffff" stopOpacity="0" />
+          <stop offset="1" stopColor="#000000" stopOpacity="0.22" />
+        </linearGradient>
+      </defs>
       {shape.mount === 'din' && <rect x={2} y={H / 2 - 17.5} width={W - 4} height={35} rx={2} fill="#8b949e" opacity={0.7} />}
       {shape.mount === 'chassis' && <rect x={2} y={2} width={W - 4} height={H - 4} rx={3} fill="#3b414b" />}
       {units.map(({ u, i, x: ux, w, h }) => {
@@ -27,6 +36,7 @@ export function HwFront({ model, selected, onSelect, className, title }: { model
         return (
           <g key={i} onClick={onSelect ? () => onSelect(i) : undefined} style={onSelect ? { cursor: 'pointer' } : undefined}>
             <rect x={ux} y={y} width={w} height={h} rx={u.kind === 'hmi' ? 4 : 1.5} fill={u.kind === 'blank' ? col.face : col.body} stroke={sel ? '#3d8bff' : '#00000055'} strokeWidth={sel ? 2 : 0.6} />
+            <rect x={ux} y={y} width={w} height={h} rx={u.kind === 'hmi' ? 4 : 1.5} fill={`url(#b${gid})`} pointerEvents="none" />
             {u.kind === 'hmi' && <rect x={ux + w * 0.07} y={y + h * 0.12} width={w * 0.86} height={h * 0.76} rx={2} fill="#0f2236" />}
             {u.label && u.kind !== 'hmi' && w >= 12 && (
               <text x={ux + w / 2} y={y + (u.term === 'top-bottom' ? 19 : 9)} fontSize={Math.min(6, w / 4)} textAnchor="middle" fill={u.kind === 'safety' ? '#ff8a8a' : col.text} fontWeight={700} fontFamily="Inter, system-ui, sans-serif">{w < 20 ? u.label.split(' ')[0] : u.label}</text>

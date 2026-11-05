@@ -1,4 +1,4 @@
-import { lazy, Suspense, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState } from 'react';
 import { PageHead } from '../../components/Brand';
 import { HwFront } from '../../components/HwFront';
 import { Icon } from '../../components/Icon';
@@ -23,11 +23,16 @@ function StatusChip({ m }: { m: HwModel }) {
   return <span className="chip !text-[0.68rem]" style={{ borderColor: color, color }}>{m.status === 'current' ? 'Current' : m.status === 'mature' ? 'Mature' : 'Legacy'}</span>;
 }
 
+const ioPoints = (u: HwModel['shape']['units'][number]) => {
+  const n = Number(/\d+/.exec(u.label)?.[0] ?? 0);
+  return u.kind === 'brick' || u.kind === 'logic' ? (u.inputs ?? 0) + (u.outputs ?? 0) : ['di', 'do', 'ai', 'ao'].includes(u.kind) ? n : 0;
+};
+
 export function HardwareCard({ m }: { m: HwModel }) {
   return (
-    <a href={href(`reference/hw/${m.id}`)} className="card card-link card-pad flex flex-col gap-2">
-      <span className="block rounded-lg overflow-hidden" style={{ background: 'var(--surface-sunk)' }}>
-        <HwFront model={m} className="block w-full h-24" title={`${m.name} front view`} />
+    <a href={href(`reference/hw/${m.id}`)} className="card card-link card-pad flex flex-col gap-2 hw-card">
+      <span className="block rounded-lg overflow-hidden hw-thumb">
+        <HwFront model={m} className="block w-full h-24 hw-thumb-svg" title={`${m.name} front view`} />
       </span>
       <span className="flex items-start justify-between gap-2">
         <span>
@@ -42,27 +47,45 @@ export function HardwareCard({ m }: { m: HwModel }) {
 
 export function HardwareLibrary() {
   const [brand, setBrand] = useState<string>('all');
+  const [status, setStatus] = useState<'all' | HwModel['status']>('all');
+  const [q, setQ] = useState('');
   const brands = useMemo(() => BRAND_GUIDES.filter((b) => HARDWARE.some((m) => m.brand === b.id)), []);
-  const list = HARDWARE.filter((m) => brand === 'all' || m.brand === brand);
-  const groups = brands.filter((b) => brand === 'all' || b.id === brand);
+  const needle = q.trim().toLowerCase();
+  const list = HARDWARE.filter((m) => (brand === 'all' || m.brand === brand) && (status === 'all' || m.status === status)
+    && (!needle || `${m.name} ${m.role} ${m.software} ${brandName(m.brand)} ${m.where}`.toLowerCase().includes(needle)));
+  const groups = brands.filter((b) => list.some((m) => m.brand === b.id));
   return (
     <div>
       <Back to="reference" label="Reference" />
       <PageHead eyebrow="Reference" title="PLC hardware library">
         {HARDWARE.length} PLC, remote I/O and logic-module families you commonly see in US plants, in 3D. Tap one to turn it around and learn what each module does.
       </PageHead>
-      <div className="flex gap-1.5 overflow-x-auto pb-2 mb-3" role="group" aria-label="Filter by brand">
+      <div className="flex flex-wrap gap-2 items-center mb-2">
+        <label className="relative flex-1 min-w-[12rem]">
+          <span className="sr-only">Search hardware</span>
+          <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
+          <input className="input !pl-9" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search: 1756, S7-1200, CLICK, slice I/O…" aria-label="Search hardware" />
+        </label>
+        <div className="seg" role="group" aria-label="Filter by status">
+          {(['all', 'current', 'mature', 'legacy'] as const).map((st) => (
+            <button key={st} type="button" aria-pressed={status === st} onClick={() => setStatus(st)}>{st === 'all' ? 'All' : st[0].toUpperCase() + st.slice(1)}</button>
+          ))}
+        </div>
+      </div>
+      <div className="flex gap-1.5 overflow-x-auto pb-2 mb-1 chip-scroll" role="group" aria-label="Filter by brand">
         {[{ id: 'all', name: 'All brands' }, ...brands].map((b) => (
           <button key={b.id} type="button" className="chip cursor-pointer !min-h-[44px] whitespace-nowrap" aria-pressed={brand === b.id} style={brand === b.id ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined} onClick={() => setBrand(b.id)}>
             {b.name.split(' (')[0].split(' / ')[0]}
           </button>
         ))}
       </div>
+      <p className="text-sm text-muted mb-3" aria-live="polite">{list.length === HARDWARE.length ? `All ${list.length} models` : `${list.length} of ${HARDWARE.length} models`}</p>
+      {list.length === 0 && <div className="card card-pad text-sm">No models match. Try a family name like "CompactLogix" or clear the filters.</div>}
       {groups.map((b) => (
         <section key={b.id} className="mb-5" aria-labelledby={`hwb-${b.id}`}>
           <h2 id={`hwb-${b.id}`} className="text-base font-bold mb-2 flex items-center justify-between gap-2">
             <span>{b.name}</span>
-            <a className="text-sm font-semibold text-glow" href={href(`reference/brand/${b.id}`)}>Field guide</a>
+            <a className="text-sm font-semibold text-glow whitespace-nowrap" href={href(`reference/brand/${b.id}`)}>Field guide</a>
           </h2>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">{list.filter((m) => m.brand === b.id).map((m) => <HardwareCard key={m.id} m={m} />)}</div>
         </section>
@@ -80,10 +103,14 @@ export function HardwareDetail({ id }: { id: string }) {
   const setPrefs = usePrefs((s) => s.setPrefs);
   const [want3d, setWant3d] = useState(() => prefer3D(quality));
   const [sel, setSel] = useState<number | null>(null);
+  useEffect(() => { setSel(null); window.scrollTo?.(0, 0); }, [id]);
   if (!m) return <div><Back to="reference/hardware" label="Hardware library" /><p>Model not found.</p></div>;
   const unit = sel !== null ? m.shape.units[sel] : null;
   const inSim = hwModel === m.id && skin === m.skin;
   const kinds = [...new Set(m.shape.units.map((u) => u.kind))];
+  const idx = HARDWARE.indexOf(m);
+  const prev = HARDWARE[idx - 1];
+  const next = HARDWARE[idx + 1];
   return (
     <div>
       <Back to="reference/hardware" label="Hardware library" />
@@ -95,7 +122,12 @@ export function HardwareDetail({ id }: { id: string }) {
 
       <section className="card overflow-hidden mb-3" aria-label={`${m.name} model`}>
         {want3d ? (
-          <Suspense fallback={<div className="h-[clamp(300px,52svh,460px)] flex items-center justify-center text-muted text-sm" role="status">Loading 3D…</div>}>
+          <Suspense fallback={(
+            <div className="h-[clamp(300px,52svh,460px)] relative panel3d-bg flex items-center justify-center p-4" role="status" aria-label="Loading 3D model">
+              <HwFront model={m} className="block w-full max-h-full opacity-80" title={`${m.name} front view`} />
+              <span className="absolute bottom-3 left-1/2 -translate-x-1/2 hud-chip !cursor-default"><span className="spinner" aria-hidden="true" /> Loading 3D…</span>
+            </div>
+          )}>
             <Hardware3D model={m} selected={sel} onSelect={setSel} />
           </Suspense>
         ) : (
@@ -112,6 +144,20 @@ export function HardwareDetail({ id }: { id: string }) {
         </div>
         <p className="text-xs text-muted px-3 pb-2 m-0">Drag to turn, pinch to zoom, tap a module. Simplified generic look-alike: proportions are approximate, no logos. Simulator dialect: {SKINS[m.skin].brand}.</p>
       </section>
+
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3" aria-label="At a glance">
+        {[
+          ['Mounting', m.shape.mount === 'din' ? 'DIN rail' : m.shape.mount === 'chassis' ? 'Chassis / rack' : 'Panel cut-out'],
+          ['Modules shown', String(m.shape.units.filter((u) => u.kind !== 'blank' && u.kind !== 'end').length)],
+          ['I/O points shown', String(m.shape.units.reduce((n, u) => n + ioPoints(u), 0))],
+          ['Height × depth', `≈ ${m.shape.h} × ${m.shape.d} mm`],
+        ].map(([k, v]) => (
+          <div key={k} className="card card-pad !py-2.5 stat-tile">
+            <span className="block text-[0.7rem] uppercase tracking-wider text-muted font-bold">{k}</span>
+            <span className="block font-bold text-heading text-lg leading-tight mt-0.5">{v}</span>
+          </div>
+        ))}
+      </div>
 
       {unit && (
         <section className="card card-pad mb-3" aria-live="polite" style={{ borderColor: 'var(--blue-glow)' }}>
@@ -145,7 +191,11 @@ export function HardwareDetail({ id }: { id: string }) {
           <p className="text-xs text-muted mt-3 mb-0">Real systems vary: module count, widths and options depend on the catalog number. Read the nameplate.</p>
         </section>
       </div>
-      <p className="mt-4"><a className="btn btn-sm btn-ghost" href={href(`reference/brand/${m.brand}`)}>{brandName(m.brand)} field guide <Icon name="chevron" size={16} /></a></p>
+      <nav className="mt-4 grid grid-cols-2 gap-2" aria-label="More models">
+        {prev ? <a className="card card-link card-pad !py-3 text-sm" href={href(`reference/hw/${prev.id}`)}><span className="flex items-center gap-1 text-muted text-xs"><Icon name="left" size={14} /> Previous</span><span className="block font-bold text-heading">{prev.name}</span></a> : <span />}
+        {next ? <a className="card card-link card-pad !py-3 text-sm text-right" href={href(`reference/hw/${next.id}`)}><span className="flex items-center justify-end gap-1 text-muted text-xs">Next <Icon name="right" size={14} /></span><span className="block font-bold text-heading">{next.name}</span></a> : <span />}
+      </nav>
+      <p className="mt-3"><a className="btn btn-sm btn-ghost" href={href(`reference/brand/${m.brand}`)}>{brandName(m.brand)} field guide <Icon name="chevron" size={16} /></a></p>
     </div>
   );
 }

@@ -117,3 +117,32 @@ export function disposeTextures() {
   for (const t of cache.values()) t.dispose();
   cache.clear();
 }
+
+/** Wire-label card for module doors: ruled lines with terminal numbers, like a printed I/O label. */
+export function doorLabelTexture(): Texture {
+  const hit = cache.get('doorlabel');
+  if (hit) return hit;
+  const c = document.createElement('canvas');
+  c.width = 64;
+  c.height = 160;
+  const g = c.getContext('2d')!;
+  g.fillStyle = '#ffffff';
+  g.fillRect(0, 0, 64, 160);
+  g.strokeStyle = 'rgba(30, 40, 55, 0.35)';
+  g.lineWidth = 1;
+  g.fillStyle = 'rgba(30, 40, 55, 0.7)';
+  g.font = '600 9px Inter, system-ui, sans-serif';
+  for (let i = 0; i < 16; i++) {
+    const y = 6 + i * 9.5;
+    g.beginPath();
+    g.moveTo(4, y + 4);
+    g.lineTo(60, y + 4);
+    g.stroke();
+    g.fillText(String(i), 5, y + 2);
+    g.fillRect(20, y - 1, 10 + ((i * 7) % 24), 2);
+  }
+  const t = new CanvasTexture(c);
+  t.colorSpace = SRGBColorSpace;
+  cache.set('doorlabel', t);
+  return t;
+}

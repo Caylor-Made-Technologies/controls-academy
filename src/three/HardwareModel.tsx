@@ -3,12 +3,13 @@
  * src/content/hardware.ts. Generic, simplified hardware: neutral colors, no logos.
  * LEDs read a `live` source every frame (the engine in the simulator, a demo pattern in the library).
  */
-import { Edges, Instance, Instances } from '@react-three/drei';
-import type { ThreeEvent } from '@react-three/fiber';
-import { useMemo, useState } from 'react';
+import { Billboard, Edges, Instance, Instances } from '@react-three/drei';
+import { useFrame, type ThreeEvent } from '@react-three/fiber';
+import { useMemo, useRef, useState } from 'react';
+import { MathUtils, type Group } from 'three';
 import { BODY_COLORS, UNIT_INFO, type HwShape, type HwUnit } from '../content/hardware';
 import { Box, Led } from './kit';
-import { labelTexture } from './textures';
+import { doorLabelTexture, labelTexture } from './textures';
 
 export interface HwLive {
   di(i: number): boolean;
@@ -47,7 +48,7 @@ export function layoutShape(shape: HwShape): { items: Layout[]; width: number; h
   return { items, width: x, height: shape.h * MM, depth: shape.d * MM };
 }
 
-export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale = Infinity, labelText }: {
+export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale = Infinity, labelText, spread = false, tags = false }: {
   shape: HwShape;
   live: HwLive;
   selected?: number | null;
@@ -56,24 +57,32 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
   fit?: [number, number];
   /** Never scale above this (keeps small PLCs life-size in the panel). */
   maxScale?: number;
+  /** Slide the modules apart so each one stands alone. */
+  spread?: boolean;
+  /** Floating name tag over the hovered / selected module. */
+  tags?: boolean;
   /** Optional override for the CPU label (e.g. the platform name in the simulator). */
   labelText?: string;
 }) {
   const col = BODY_COLORS[shape.body];
   const { items, width, height, depth } = useMemo(() => layoutShape(shape), [shape]);
   const [hover, setHover] = useState<number | null>(null);
+  const doorTex = useMemo(() => doorLabelTexture(), []);
   const chassis = shape.mount === 'chassis';
   const zFront = (d: number) => (chassis ? 0.006 : 0) + d;
   const scale = fit ? Math.min(maxScale, fit[0] / (width + (chassis ? 0.012 : 0.02)), fit[1] / (height + (chassis ? 0.024 : 0))) : 1;
 
   // Collect screws and I/O LED indices for the whole model.
   const { screws, ioIndex } = useMemo(() => {
-    const s: [number, number, number][] = [];
+    const all: [number, number, number][][] = [];
+    let s: [number, number, number][] = [];
     const idx: { di: number[]; do: number[] }[] = [];
     let nIn = 0;
     let nOut = 0;
     for (const it of items) {
       const { u, x, w, h, d } = it;
+      s = [];
+      all.push(s);
       const z = zFront(d) + 0.001;
       const nI = u.inputs ?? 0;
       const nO = u.outputs ?? 0;
@@ -90,9 +99,35 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
         for (let r = 0; r < rows; r++) for (let c = 0; c < cols; c++) s.push([x + (cols === 2 ? (c - 0.5) * w * 0.42 : 0), -h * 0.06 - r * 0.0065, z + 0.006]);
       }
     }
-    return { screws: s, ioIndex: idx };
+    return { screws: all, ioIndex: idx };
     // zFront depends only on chassis, which is part of shape
     // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [items, chassis]);
+
+  // Spread: each module eases to its own offset (module i moves i × gap, then the whole row re-centers).
+  const unitRefs = useRef<(Group | null)[]>([]);
+  const gap = 0.012;
+  useFrame((_, dt) => {
+    const k = Math.min(1, dt * 7);
+    const n = items.length;
+    unitRefs.current.forEach((g, i) => {
+      if (!g) return;
+      g.position.x = MathUtils.lerp(g.position.x, spread ? i * gap - ((n - 1) * gap) / 2 : 0, k);
+      // In a chassis the modules also slide forward, as if pulled half out of their slots.
+      if (chassis) g.position.z = MathUtils.lerp(g.position.z, spread ? 0.045 : 0, k);
+    });
+  });
+
+  // Vent slots on the top of every module (one instanced mesh for the whole model).
+  const vents = useMemo(() => {
+    return items.map((it) => {
+      const v: [number, number, number][] = [];
+      if (it.u.kind === 'blank' || it.u.kind === 'end' || it.u.kind === 'hmi') return v;
+      const n = Math.max(1, Math.floor((it.w - 0.004) / 0.0042));
+      const z0 = (chassis ? 0.006 : 0);
+      for (let r = 0; r < 2; r++) for (let k = 0; k < n; k++) v.push([it.x - ((n - 1) * 0.0042) / 2 + k * 0.0042, it.h / 2 + 0.0002, z0 + it.d * (0.35 + r * 0.28)]);
+      return v;
+    });
   }, [items, chassis]);
 
   const click = (i: number) => (e: ThreeEvent<MouseEvent>) => { e.stopPropagation(); onSelect?.(i); };
@@ -101,7 +136,10 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
     <group scale={scale} position={[-(width / 2) * scale, 0, 0]}>
       {/* mounting: DIN rail or chassis */}
       {shape.mount === 'din' && (
-        <Box size={[width + 0.03, 0.035, 0.0075]} pos={[width / 2, 0, -0.004]} color={C.rail} metal={0.85} rough={0.3} round={0} />
+        <group>
+          <Box size={[width + 0.03, 0.027, 0.0012]} pos={[width / 2, 0, -0.0075]} color={C.rail} metal={0.85} rough={0.32} round={0} />
+          {[1, -1].map((sg) => <Box key={sg} size={[width + 0.03, 0.005, 0.0075]} pos={[width / 2, sg * 0.0155, -0.004]} color={C.rail} metal={0.85} rough={0.28} round={0} />)}
+        </group>
       )}
       {chassis && (
         <group>
@@ -123,6 +161,7 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
         return (
           <group
             key={i}
+            ref={(g) => { unitRefs.current[i] = g; }}
             onClick={onSelect ? click(i) : undefined}
             onPointerOver={onSelect ? (e) => { e.stopPropagation(); setHover(i); document.body.style.cursor = 'pointer'; } : undefined}
             onPointerOut={onSelect ? () => { setHover(null); document.body.style.cursor = ''; } : undefined}
@@ -139,7 +178,13 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
                 <HLabel text="START     STOP     RESET" pos={[x, -h * 0.18, d + 0.0065]} w={w * 0.6} h={0.009} fg="#dbe8ff" bg="#173253" />
               </>
             ) : (
-              <Box size={[w - 0.0004, h, u.kind === 'blank' ? d * 0.96 : d]} pos={[x, 0, zc]} color={u.kind === 'blank' ? col.face : col.body} />
+              <>
+                <Box size={[w - 0.0004, h, u.kind === 'blank' ? d * 0.96 : d]} pos={[x, 0, zc]} color={u.kind === 'blank' ? col.face : col.body} />
+                {/* molded front face plate, slightly proud, catches the key light */}
+                {u.kind !== 'blank' && u.kind !== 'end' && (
+                  <Box size={[w - 0.0026, h - 0.004, 0.0012]} pos={[x, 0, z - 0.0004]} color={col.face} rough={0.45} round={Math.min(0.0006, w * 0.03)} />
+                )}
+              </>
             )}
 
             {/* top label */}
@@ -189,9 +234,18 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
               </mesh>
             )}
             {u.sd && <Box size={[Math.min(w * 0.5, 0.016), 0.0018, 0.002]} pos={[x, h * 0.12 - 0.008, z + 0.0008]} color={C.port} round={0} />}
-            {(u.ports ?? 0) > 0 && Array.from({ length: u.ports ?? 0 }, (_, k) => (
-              <Box key={k} size={[0.009, 0.0075, 0.004]} pos={[x + (k - ((u.ports ?? 1) - 1) / 2) * 0.011 * (slim ? 0 : 1), -h / 2 + (u.term === 'top-bottom' ? 0.024 : 0.012) + (slim ? k * 0.011 : 0), z + 0.0012]} color={C.port} round={0} />
-            ))}
+            {(u.ports ?? 0) > 0 && Array.from({ length: u.ports ?? 0 }, (_, k) => {
+              const px = x + (k - ((u.ports ?? 1) - 1) / 2) * 0.011 * (slim ? 0 : 1);
+              const py = -h / 2 + (u.term === 'top-bottom' ? 0.024 : 0.012) + (slim ? k * 0.011 : 0);
+              return (
+                <group key={k}>
+                  <Box size={[0.0095, 0.008, 0.0035]} pos={[px, py, z + 0.0012]} color="#9aa3ad" metal={0.8} rough={0.3} round={0} />
+                  <Box size={[0.0075, 0.0058, 0.0012]} pos={[px, py - 0.0003, z + 0.0031]} color={C.port} round={0} />
+                  <Led pos={[px - 0.0034, py + 0.0047, z + 0.0031]} color="#3ddc97" read={live.run} size={0.0014} halo={0.006} />
+                  <Led pos={[px + 0.0034, py + 0.0047, z + 0.0031]} color="#ffb547" read={() => live.run() && Math.floor(performance.now() / (90 + k * 37)) % 3 === 0} size={0.0014} halo={0.006} />
+                </group>
+              );
+            })}
 
             {/* I/O LEDs */}
             {io.di.length + io.do.length > 0 && (() => {
@@ -229,11 +283,30 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
                 <Box size={[w * 0.9, h * 0.62, 0.006]} pos={[x, -h * 0.13, z + 0.003]} color={col.face} round={0.001} />
                 <mesh position={[x, -h * 0.13, z + 0.0062]} raycast={() => null}>
                   <planeGeometry args={[w * 0.6, h * 0.42]} />
-                  <meshStandardMaterial color="#aab3bd" roughness={0.85} />
+                  <meshStandardMaterial map={doorTex} color="#c3cad2" roughness={0.85} />
                 </mesh>
               </group>
             )}
 
+            {vents[i].length > 0 && (
+              <Instances limit={vents[i].length}>
+                <boxGeometry args={[0.0022, 0.0006, 0.009]} />
+                <meshStandardMaterial color="#0b0e12" roughness={0.9} />
+                {vents[i].map((p, k) => <Instance key={k} position={p} />)}
+              </Instances>
+            )}
+            {screws[i].length > 0 && (
+              <Instances limit={screws[i].length} castShadow>
+                <cylinderGeometry args={[0.0018, 0.0018, 0.0015, 10]} />
+                <meshStandardMaterial color={C.screw} metalness={0.9} roughness={0.3} />
+                {screws[i].map((p, k) => <Instance key={k} position={p} rotation={[Math.PI / 2, 0, 0]} />)}
+              </Instances>
+            )}
+            {tags && isSel && (
+              <Billboard position={[x, h / 2 + 0.014, (chassis ? 0.006 : 0) + d]}>
+                <HLabel text={UNIT_INFO[u.kind].title} pos={[0, 0, 0]} w={Math.max(0.05, UNIT_INFO[u.kind].title.length * 0.0042)} h={0.011} fg="#ffffff" bg={selected === i ? '#1b63eb' : '#1a2230'} />
+              </Billboard>
+            )}
             {/* hover / selection outline */}
             {isSel && (
               <mesh position={[x, 0, (chassis ? 0.006 : 0) + d / 2 + 0.002]} raycast={() => null}>
@@ -246,13 +319,6 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
         );
       })}
 
-      {screws.length > 0 && (
-        <Instances limit={screws.length} castShadow>
-          <cylinderGeometry args={[0.0018, 0.0018, 0.0015, 10]} />
-          <meshStandardMaterial color={C.screw} metalness={0.9} roughness={0.3} />
-          {screws.map((p, k) => <Instance key={k} position={p} rotation={[Math.PI / 2, 0, 0]} />)}
-        </Instances>
-      )}
     </group>
   );
 }

@@ -473,3 +473,27 @@ body {
 }
 .hud-select:focus-visible { outline: 2px solid #6ea6ff; outline-offset: 2px; border-radius: 6px; }
 .hud-select option, .hud-select optgroup { color: #0b0f14; background: #ffffff; }
+
+/* Hardware library */
+.hw-thumb {
+  background: radial-gradient(120% 120% at 50% 0%, #1a2534 0%, #0f151d 70%);
+  box-shadow: inset 0 0 0 1px rgba(110, 166, 255, 0.12), inset 0 -18px 28px rgba(0, 0, 0, 0.35);
+}
+.hw-thumb-svg { filter: drop-shadow(0 6px 8px rgba(0, 0, 0, 0.45)); transform-origin: 50% 60%; }
+@media (prefers-reduced-motion: no-preference) {
+  .hw-card { transition: transform 0.22s var(--ease), border-color 0.18s, box-shadow 0.22s; }
+  .hw-card:hover { transform: translateY(-2px); box-shadow: var(--shadow), 0 0 0 1px rgba(61, 139, 255, 0.25); }
+  .hw-thumb-svg { transition: transform 0.35s var(--ease); }
+  .hw-card:hover .hw-thumb-svg { transform: scale(1.04); }
+  .spinner { animation: spin 0.9s linear infinite; }
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.spinner { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 2px solid rgba(232, 241, 255, 0.3); border-top-color: #e8f1ff; }
+.chip-scroll { scrollbar-width: none; -webkit-mask-image: linear-gradient(90deg, #000 88%, transparent); mask-image: linear-gradient(90deg, #000 88%, transparent); }
+.chip-scroll::-webkit-scrollbar { display: none; }
+.stat-tile { background: linear-gradient(180deg, var(--surface-raised), var(--surface)); }
+
+/* Keep page titles crisp above the circuit-trace decoration */
+.page-head > :not(svg) { position: relative; z-index: 1; }
+.page-head h1 { text-shadow: 0 0 10px var(--bg); }
+@media (max-width: 640px) { .page-head svg.traces { opacity: 0.3; width: 170px; } }

@@ -10,10 +10,10 @@ import { SKINS, SKIN_LIST, mnemonic } from '../../skins';
 import { usePrefs } from '../../state/prefs';
 import { HARDWARE } from '../../content/hardware';
 import { HardwareCard, HardwareDetail, HardwareLibrary } from './HardwarePages';
+import { HwFront } from '../../components/HwFront';
 
 const SECTIONS = [
   { id: 'brands', title: 'Brand field guides', desc: 'Software, hardware, addressing, first-day checklists, tips and gotchas.', icon: 'layers' as const },
-  { id: 'hardware', title: 'PLC hardware library (3D)', desc: `${HARDWARE.length} PLC and I/O families you see in US plants, as 3D models.`, icon: 'layers' as const },
   { id: 'instructions', title: 'Instruction reference', desc: 'Every instruction, with its name on each platform.', icon: 'sim' as const },
   { id: 'glossary', title: 'Glossary', desc: `${GLOSSARY.length} terms in plain English.`, icon: 'book' as const },
   { id: 'safety', title: 'Safety rules', desc: 'The hard stops. Read these before you touch a panel.', icon: 'shield' as const },
@@ -33,6 +33,22 @@ export default function ReferencePage({ section, item }: { section?: string; ite
   return (
     <div>
       <PageHead eyebrow="Reference" title="Field reference">Quick answers for the plant floor. Everything works offline.</PageHead>
+      <a href={href('reference/hardware')} className="card card-link hw-card mb-3 block overflow-hidden" aria-label={`PLC hardware library: ${HARDWARE.length} PLC and I/O families you see in US plants, as 3D models`}>
+        <span className="grid grid-cols-3 gap-1.5 p-2 hw-thumb">
+          {['controllogix', 's7-1200', 'click'].map((id) => {
+            const m = HARDWARE.find((x) => x.id === id);
+            return m ? <HwFront key={id} model={m} className="block w-full h-16 sm:h-24 hw-thumb-svg" title="" /> : null;
+          })}
+        </span>
+        <span className="flex items-center gap-3 card-pad">
+          <span className="flex-1">
+            <span className="block eyebrow">New · 3D</span>
+            <span className="block font-bold text-heading text-lg">PLC hardware library</span>
+            <span className="block text-sm text-muted">{HARDWARE.length} PLC, remote I/O and logic-module families from {new Set(HARDWARE.map((m) => m.brand)).size} brands you see in US plants. Turn them, spread the modules, use any of them in the simulator.</span>
+          </span>
+          <Icon name="chevron" className="text-glow flex-none" />
+        </span>
+      </a>
       <div className="grid gap-3 sm:grid-cols-2">
         {SECTIONS.map((s) => (
           <a key={s.id} href={href(`reference/${s.id}`)} className="card card-link card-pad flex gap-3 items-start">

@@ -356,7 +356,7 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw }: 
 
       {/* ---------- PLC rack on DIN rail ---------- */}
       <Box size={[0.66, 0.035, 0.008]} pos={[0.02, 0.14, 0.0]} color={C.din} metal={0.8} rough={0.3} />
-      <RackTrim />
+      {!hw && <RackTrim />}
       {hw ? (
         <group position={[-0.08, 0.14, 0.0]}>
           <HardwareModel
