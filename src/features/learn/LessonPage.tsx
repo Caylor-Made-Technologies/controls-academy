@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
 import { LESSONS, LESSON_BY_ID, TRACK_BY_ID } from '../../content';
-import type { Block } from '../../content/types';
+import type { Block, Lesson, Site } from '../../content/types';
 import { program as buildProgram } from '../../engine/text';
 import { href } from '../../lib/router';
 import { sfx } from '../../lib/sound';
@@ -13,6 +13,7 @@ import { useProgress } from '../../state/progress';
 import { Ladder } from '../simulator/Ladder';
 import type { SimRuntime } from '../simulator/runtime';
 import { Workbench } from '../simulator/Workbench';
+import { OrderDrill, SortDrill } from './Drills';
 import { Figure } from './Figures';
 import { QuestionCard } from './Quiz';
 import { createChecker, taskProgram, taskSetup } from './tasks';
@@ -76,6 +77,10 @@ function BlockView({ b }: { b: Block }) {
           {b.caption && <figcaption className="text-sm text-muted mt-1.5">{b.caption}</figcaption>}
         </figure>
       );
+    case 'order':
+      return <OrderDrill prompt={b.prompt} steps={b.steps} why={b.why} />;
+    case 'sort':
+      return <SortDrill prompt={b.prompt} bins={b.bins} items={b.items} />;
     case 'brands':
       return (
         <div className="my-4 rounded-xl border border-line overflow-hidden">
@@ -88,6 +93,52 @@ function BlockView({ b }: { b: Block }) {
         </div>
       );
   }
+}
+
+export const SITE_LABEL: Record<Site, string> = { mill: 'Flour mill', datacenter: 'Data center', water: 'Water / wastewater plant' };
+
+/** Prerequisite links shown under the lesson title. */
+function Prereqs({ ids }: { ids: string[] }) {
+  const done = useProgress((s) => s.lessons);
+  if (!ids.length) return <p className="text-sm text-muted m-0 mt-3"><strong className="text-heading">Before this:</strong> nothing — this lesson starts from zero.</p>;
+  return (
+    <div className="mt-3">
+      <p className="text-sm m-0 mb-1.5"><strong className="text-heading">Before this:</strong></p>
+      <ul className="flex flex-wrap gap-2 p-0 m-0 list-none">
+        {ids.map((pid) => {
+          const l = LESSON_BY_ID.get(pid);
+          if (!l) return null;
+          return <li key={pid}><a className={`chip ${done[pid] ? 'chip-live' : ''}`} href={href(`lesson/${pid}`)}>{done[pid] && <Icon name="check" size={12} />} {l.title}</a></li>;
+        })}
+      </ul>
+    </div>
+  );
+}
+
+/** Quality-bar sections that sit after the explainer, in the same order on every lesson. */
+function OnTheJob({ lesson }: { lesson: Lesson }) {
+  return (
+    <>
+      {lesson.realWorld && (
+        <section className="card card-pad my-5 real-world" aria-label="Real-world example">
+          <p className="eyebrow m-0">On the job · {SITE_LABEL[lesson.realWorld.site]}</p>
+          <p className="m-0 mt-1.5"><Rich text={lesson.realWorld.text} /></p>
+        </section>
+      )}
+      {lesson.mistakes && lesson.mistakes.length > 0 && (
+        <div className="callout callout-gotcha my-4">
+          <p className="m-0 mb-1 font-bold text-heading flex items-center gap-2"><Icon name="warn" size={18} /> Common mistakes</p>
+          <ul className="pl-5 list-disc space-y-1 m-0">{lesson.mistakes.map((m, i) => <li key={i}><Rich text={m} /></li>)}</ul>
+        </div>
+      )}
+      {lesson.safety && 'note' in lesson.safety && (
+        <div className="callout callout-safety my-4" role="note">
+          <p className="m-0 mb-1 font-bold text-heading flex items-center gap-2"><Icon name="shield" size={18} /> Safety first</p>
+          <p className="m-0"><Rich text={lesson.safety.note} /></p>
+        </div>
+      )}
+    </>
+  );
 }
 
 export default function LessonPage({ id }: { id: string }) {
@@ -153,6 +204,8 @@ export default function LessonPage({ id }: { id: string }) {
         <span className={`level-pill level-${track.level.toLowerCase()} mt-2`}>{track.level}</span>
         <h1 className="text-[1.5rem] sm:text-[1.9rem] font-extrabold mt-1">{lesson.title}</h1>
         <p className="text-muted m-0 mt-1">{lesson.summary}</p>
+        {lesson.why && <p className="why-line m-0 mt-3"><strong>Why this matters on the job:</strong> <Rich text={lesson.why} /></p>}
+        {lesson.prereqs && <Prereqs ids={lesson.prereqs} />}
         <div className="flex gap-2 mt-3 flex-wrap">
           <span className="chip">{lesson.minutes} min</span>
           {lesson.task && <span className={`chip ${taskDone ? 'chip-live' : ''}`}>{taskDone ? <Icon name="check" size={14} /> : <Icon name="sim" size={14} />} Hands-on</span>}
@@ -162,6 +215,7 @@ export default function LessonPage({ id }: { id: string }) {
 
       <div className="max-w-[68ch]">
         {lesson.blocks.map((b, i) => <BlockView key={i} b={b} />)}
+        <OnTheJob lesson={lesson} />
       </div>
 
       {lesson.task && initial && (

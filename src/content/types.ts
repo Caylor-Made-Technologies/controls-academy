@@ -16,7 +16,22 @@ export type Block =
   | { t: 'table'; head: string[]; rows: string[][] }
   | { t: 'rung'; text: string; tags: TagDecl[]; caption?: string }
   | { t: 'brands'; rows: { skin: SkinId; text: string }[] }
-  | { t: 'code'; lang: 'st' | 'text'; text: string; caption?: string };
+  | { t: 'code'; lang: 'st' | 'text'; text: string; caption?: string }
+  /** Interactive: put the steps in the right order (shown shuffled). */
+  | { t: 'order'; prompt: string; steps: string[]; why?: string }
+  /** Interactive: tap each item into the right bin. */
+  | { t: 'sort'; prompt: string; bins: string[]; items: { text: string; bin: number; why?: string }[] };
+
+/** The three plants every example rotates through. */
+export type Site = 'mill' | 'datacenter' | 'water';
+
+export interface RealWorld {
+  site: Site;
+  text: string;
+}
+
+/** Either a safety note, or the reason the topic never touches energized work. */
+export type SafetyNote = { note: string } | { na: string };
 
 export interface Question {
   id: string;
@@ -53,6 +68,16 @@ export interface Lesson {
   blocks: Block[];
   task?: SimTask;
   quiz: Question[];
+  /** Quality bar 1: one line, "Why this matters on the job". */
+  why?: string;
+  /** Quality bar 8: lesson ids that should come first. Empty array = starts from zero. */
+  prereqs?: string[];
+  /** Quality bar 4: a flour mill, data center or water plant example. */
+  realWorld?: RealWorld;
+  /** Quality bar 5: common mistakes (2–4). */
+  mistakes?: string[];
+  /** Quality bar 6: safety note where energized work is involved. */
+  safety?: SafetyNote;
 }
 
 export interface Track {

@@ -189,6 +189,9 @@
   /* ---------- Callouts ---------- */
   .callout { border-radius: 12px; padding: 12px 14px; border: 1px solid var(--border); background: var(--surface-raised); }
   .callout-safety { border-color: var(--alarm); background: var(--alarm-soft); }
+  .why-line { font-size: 0.95rem; padding: 10px 12px; border-radius: 10px; border-left: 3px solid var(--live); background: var(--live-soft); color: var(--text-body); }
+  .why-line strong { color: var(--text-heading); }
+  .real-world { border-left: 3px solid var(--blue-glow); }
   .callout-tip { border-color: var(--blue-glow); background: var(--blue-soft); }
   .callout-brand { border-color: var(--border-strong); background: var(--surface-sunk); }
   .callout-gotcha { border-color: var(--warn); background: var(--warn-soft); }
