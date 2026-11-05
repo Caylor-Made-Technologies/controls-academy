@@ -15,7 +15,9 @@ const GOAL_ORDER: Record<Goal, string[]> = {
 };
 
 export function recommendedLesson(goal: Goal | null, done: Record<string, unknown>): string | null {
-  for (const tid of GOAL_ORDER[goal ?? 'maintenance']) {
+  // The goal's preferred tracks first, then every other track in course order — so no track is ever skipped (B-004).
+  const preferred = GOAL_ORDER[goal ?? 'maintenance'];
+  for (const tid of [...preferred, ...TRACKS.map((t) => t.id).filter((id) => !preferred.includes(id))]) {
     const t = TRACKS.find((x) => x.id === tid)!;
     const next = t.lessons.find((id) => !done[id]);
     if (next) return next;

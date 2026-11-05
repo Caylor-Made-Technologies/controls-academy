@@ -7,9 +7,6 @@ import type { Lesson, Track, TrackId } from './types';
 
 const raw = [...FOUNDATION_LESSONS, ...PLC_LESSONS, ...FIELD_LESSONS, ...CORE2_LESSONS, ...PRO_LESSONS];
 
-/** Lessons with globally unique question ids (`lessonId.q1`). */
-export const LESSONS: Lesson[] = raw.map((l) => ({ ...l, quiz: l.quiz.map((q) => ({ ...q, id: `${l.id}.${q.id}` })) }));
-export const LESSON_BY_ID = new Map(LESSONS.map((l) => [l.id, l]));
 
 /** Lesson order inside each track: basics first, building to the hard parts. */
 const ORDER: Record<TrackId, string[]> = {
@@ -42,5 +39,14 @@ export const TRACKS: Track[] = [
 ];
 
 export const TRACK_BY_ID = new Map(TRACKS.map((t) => [t.id, t]));
+
+/** Every lesson id in course order (track by track). "Next lesson", prerequisites and the skill map follow this. */
+export const COURSE_ORDER: string[] = TRACKS.flatMap((t) => t.lessons);
+
+/** Lessons in course order, with globally unique question ids (`lessonId.q1`). */
+export const LESSONS: Lesson[] = raw
+  .map((l) => ({ ...l, quiz: l.quiz.map((q) => ({ ...q, id: `${l.id}.${q.id}` })) }))
+  .sort((a, b) => COURSE_ORDER.indexOf(a.id) - COURSE_ORDER.indexOf(b.id));
+export const LESSON_BY_ID = new Map(LESSONS.map((l) => [l.id, l]));
 
 export * from './types';
