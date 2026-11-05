@@ -69,6 +69,13 @@ function BlockView({ b }: { b: Block }) {
         </figure>
       );
     }
+    case 'code':
+      return (
+        <figure className="my-4 mx-0">
+          <pre className="code-block" tabIndex={0} aria-label={b.caption ?? 'Code example'}><code>{b.text}</code></pre>
+          {b.caption && <figcaption className="text-sm text-muted mt-1.5">{b.caption}</figcaption>}
+        </figure>
+      );
     case 'brands':
       return (
         <div className="my-4 rounded-xl border border-line overflow-hidden">
@@ -143,6 +150,7 @@ export default function LessonPage({ id }: { id: string }) {
       <a href={href('learn')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Learn</a>
       <motion.header layoutId={reduce ? undefined : `lesson-${lesson.id}`} className="card card-pad mb-5 relative overflow-hidden">
         <p className="eyebrow m-0">Track {track.n} · {track.title}</p>
+        <span className={`level-pill level-${track.level.toLowerCase()} mt-2`}>{track.level}</span>
         <h1 className="text-[1.5rem] sm:text-[1.9rem] font-extrabold mt-1">{lesson.title}</h1>
         <p className="text-muted m-0 mt-1">{lesson.summary}</p>
         <div className="flex gap-2 mt-3 flex-wrap">

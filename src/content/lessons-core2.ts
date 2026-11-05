@@ -1,0 +1,294 @@
+/**
+ * Filling the gaps in tracks 1–5: the remaining beginner and intermediate lessons.
+ */
+import type { Lesson } from './types';
+
+const motorTags = {
+  start: { name: 'Start_PB', type: 'BOOL' as const, io: { kind: 'DI' as const, point: 0 } },
+  stop: { name: 'Stop_PB', type: 'BOOL' as const, io: { kind: 'DI' as const, point: 1 } },
+};
+
+export const CORE2_LESSONS: Lesson[] = [
+  // ---------------- Track 1 ----------------
+  {
+    id: 'boundaries-ppe',
+    track: 't1',
+    title: 'Approach boundaries and PPE',
+    minutes: 7,
+    summary: 'How close you can get to exposed live parts, and what you must wear.',
+    blocks: [
+      { t: 'callout', tone: 'safety', title: 'Awareness, not qualification', text: 'NFPA 70E training from a qualified provider and your site\'s electrical safety program decide what you may do. This lesson explains the words on the label.' },
+      { t: 'p', text: '[[nfpa70e]] draws invisible lines around exposed energized parts. These are the [[approach-boundary|approach boundaries]]:' },
+      { t: 'table', head: ['Boundary', 'Who may cross', 'Typical at 480 V (example)'], rows: [
+        ['Arc flash boundary', 'Only people wearing the arc-rated PPE on the label', 'From the label or study — varies widely'],
+        ['Limited approach', 'Qualified persons; unqualified only if escorted', '3 ft 6 in (fixed parts)'],
+        ['Restricted approach', 'Qualified persons with shock PPE and a plan', '1 ft'],
+      ] },
+      { t: 'p', text: 'Shock boundaries come from the voltage. The **arc flash boundary** comes from how much energy the equipment can release — so read the label every time. Two 480 V panels can be completely different.' },
+      { t: 'h', text: 'PPE categories' },
+      { t: 'table', head: ['Category', 'Minimum arc rating'], rows: [['1', '4 cal/cm²'], ['2', '8 cal/cm²'], ['3', '25 cal/cm²'], ['4', '40 cal/cm²']] },
+      { t: 'p', text: 'Arc-rated clothing, face shield or hood, voltage-rated gloves with leather protectors, safety glasses and hearing protection — exact items depend on the category. Everyday cotton or synthetics can melt or burn; they are not PPE.' },
+      { t: 'callout', tone: 'tip', title: 'Best PPE: de-energize', text: 'Energized work needs a justification and usually a permit. Most troubleshooting that needs your hands in the panel should be done under LOTOTO instead.' },
+    ],
+    quiz: [
+      { id: 'q1', q: 'Where does the arc flash boundary for a specific panel come from?', choices: ['Always 4 ft', 'The equipment label or arc-flash study', 'The voltage alone', 'The breaker size'], answer: 1, why: 'Incident energy depends on available fault current and clearing time, not just voltage. The label tells you.' },
+      { id: 'q2', q: 'PPE category 2 requires a minimum arc rating of…', choices: ['4 cal/cm²', '8 cal/cm²', '25 cal/cm²', '40 cal/cm²'], answer: 1, why: 'CAT 1 = 4, CAT 2 = 8, CAT 3 = 25, CAT 4 = 40 cal/cm².' },
+      { id: 'q3', q: 'An unqualified helper wants to watch you measure inside a live 480 V panel. They should…', choices: ['Stand right behind you', 'Stay outside the limited approach boundary (or be escorted per your program)', 'Hold the flashlight in the panel', 'Wear safety glasses and come in'], answer: 1, why: 'Unqualified people stay outside the limited approach boundary unless continuously escorted by a qualified person per site rules.' },
+    ],
+  },
+  {
+    id: 'protection-devices',
+    track: 't1',
+    title: 'Fuses, breakers and control transformers',
+    minutes: 6,
+    summary: 'What protects what, and how to read the label before you replace one.',
+    blocks: [
+      { t: 'p', text: 'Overcurrent devices protect **wire and equipment** from too much current. They come in two families:' },
+      { t: 'table', head: ['Device', 'How it opens', 'After it trips'], rows: [
+        ['Fuse', 'A metal link melts', 'Replace with the SAME type, voltage, amp rating and class'],
+        ['Circuit breaker', 'Thermal (overload) and magnetic (short circuit) trip', 'Find the cause, then reset'],
+      ] },
+      { t: 'p', text: 'Every device has a **voltage rating** (must be at least the circuit voltage), an **ampere rating**, and an **interrupting rating** — the biggest fault current it can safely break. Putting a fuse with a low interrupting rating on a big service can make it explode instead of clearing.' },
+      { t: 'p', text: 'Time-delay fuses ride through motor inrush; fast-acting fuses protect electronics like drives and power supplies. The class letter (CC, J, RK5…) tells you which holders and ratings fit.' },
+      { t: 'h', text: 'Control power transformer' },
+      { t: 'p', text: 'A [[control-transformer]] steps 480 V down to 120 V. It normally has fuses on the primary (H1–H4) and secondary (X1). X2 is usually the grounded side of the 120 V control circuit, so a short to ground blows the X1 fuse instead of going unnoticed. // VERIFY per drawing' },
+      { t: 'callout', tone: 'gotcha', title: '"Just put a bigger one in"', text: 'Never. Upsizing a fuse or breaker removes the protection the wire depends on. If it keeps opening, something is wrong — find it.' },
+    ],
+    quiz: [
+      { id: 'q1', q: 'A 10 A fuse blew. You only have a 15 A of the same class. You should…', choices: ['Install the 15 A temporarily', 'Get the correct 10 A replacement', 'Jumper it', 'Use a breaker from another panel'], answer: 1, why: 'Upsizing removes protection. Replace like for like after finding the cause.' },
+      { id: 'q2', q: 'Interrupting rating means…', choices: ['How many times it can trip', 'The largest fault current it can safely clear', 'The normal running current', 'Its response time'], answer: 1, why: 'Too low an interrupting rating and the device can fail violently during a fault.' },
+      { id: 'q3', q: 'Which fuse type usually protects a motor circuit through starting inrush?', choices: ['Fast-acting', 'Time-delay', 'Glass fuse', 'Any'], answer: 1, why: 'Time-delay fuses tolerate the brief inrush when a motor starts.' },
+    ],
+  },
+  // ---------------- Track 2 ----------------
+  {
+    id: 'panel-layouts',
+    track: 't2',
+    title: 'Panel layouts and terminal strips',
+    minutes: 6,
+    summary: 'Find any device and any wire in a cabinet you\'ve never opened.',
+    blocks: [
+      { t: 'p', text: 'A drawing set usually has: **cover sheet**, **one-line** (power), **schematic/ladder pages**, **panel layout** (where devices physically sit), **terminal plan**, **I/O pages** and a **bill of materials**.' },
+      { t: 'list', items: [
+        'The **panel layout** is drawn to scale: back plate, DIN rails, duct, every device with its tag (CR3, FU12, TB1).',
+        'The **terminal plan** lists each terminal block: number, wire number, where it goes inside, where it goes in the field.',
+        '**I/O pages** show each card point: address, tag, description, field device, wire numbers.',
+        'Device tags often include the drawing page and line: `CR3` coil on page 12 line 7 might be written 12-7 or 1207. // VERIFY drafting standard',
+      ] },
+      { t: 'p', text: 'In the 3D panel, the terminal strip shows wire numbers L1–L3, T1–T3, 1–8, +24 and 0V — the same numbers you\'d trace on the print.' },
+      { t: 'callout', tone: 'tip', title: 'Read it like a map', text: 'Start at the I/O page for the point you care about, follow the wire number to the terminal plan, then use the layout to find the terminal strip in the cabinet. Ten minutes on the prints saves an hour of guessing.' },
+    ],
+    quiz: [
+      { id: 'q1', q: 'Which drawing shows where a relay physically sits in the cabinet?', choices: ['One-line', 'Panel layout', 'I/O page', 'Cover sheet'], answer: 1, why: 'The panel layout is the physical map.' },
+      { id: 'q2', q: 'You need to know which field device lands on input 7. Start with…', choices: ['The bill of materials', 'The I/O page for that card', 'The one-line', 'The enclosure label'], answer: 1, why: 'I/O pages list each point, tag, description and field wiring.' },
+      { id: 'q3', q: 'The terminal plan tells you…', choices: ['Motor horsepower', 'Each terminal, its wire number and both ends\' destinations', 'Program logic', 'Arc flash energy'], answer: 1, why: 'It\'s the cross-reference between inside wiring and field wiring.' },
+    ],
+  },
+  {
+    id: 'print-drills',
+    track: 't2',
+    title: '"Find it on the print" drills',
+    minutes: 8,
+    summary: 'Practice tracing a real circuit from symptom to wire number.',
+    blocks: [
+      { t: 'figure', fig: 'hardwired-3wire', caption: 'Use this print for the drills below.' },
+      { t: 'list', ordered: true, items: [
+        '**The motor won\'t start.** Which devices are in series with coil M? Answer: Stop (NC), Start (NO) or the M seal-in, and the OL contact.',
+        '**Where would you measure to see if Stop is open?** Across the Stop contact (wires 1 to 2). Full voltage across it = open.',
+        '**The run light never comes on, but the motor runs.** Line 3: the M aux contact or the lamp. Measure across the lamp: voltage present = bad lamp.',
+        '**Which line numbers use M\'s contacts?** Lines 1 (seal-in) and 3 (run light) — that\'s the "3, 1" cross-reference under the coil.',
+      ] },
+      { t: 'callout', tone: 'tip', title: 'Voltage across an open contact', text: 'In a series circuit, the open device "drops" the whole supply voltage. Closed contacts read ~0 V across them. That\'s how you find the open spot with one probe moving.' },
+    ],
+    quiz: [
+      { id: 'q1', q: 'Across which device will you read about 120 V when the motor won\'t run because Stop is stuck open?', choices: ['The coil', 'The Stop contact', 'The OL contact', 'The run light'], answer: 1, why: 'The open device drops the full supply voltage.' },
+      { id: 'q2', q: 'Motor runs, run light is dark. First check?', choices: ['Replace the motor', 'Voltage across the lamp (and lamp itself)', 'The Stop button', 'The PLC program'], answer: 1, why: 'The motor proves M is in; the problem is on line 3.' },
+      { id: 'q3', q: 'The cross-reference "3, 1" under coil M means…', choices: ['It\'s on page 3', 'M has contacts on lines 3 and 1', 'There are 3 coils', 'Wire 31'], answer: 1, why: 'It lists the lines where that coil\'s contacts appear.' },
+    ],
+  },
+  // ---------------- Track 3 ----------------
+  {
+    id: 'jog-fwd-rev',
+    track: 't3',
+    title: 'Jog, forward/reverse and interlocks',
+    minutes: 8,
+    summary: 'Two contactors that must never close together — and how three layers stop it.',
+    blocks: [
+      { t: 'p', text: 'Swap any two of the three motor leads and a 3-phase motor runs backward. A reversing starter uses two contactors: F connects L1-L2-L3 straight through, R swaps two phases.' },
+      { t: 'callout', tone: 'safety', title: 'Never both at once', text: 'If F and R close together, two phases are shorted together — a dead short with a big flash. Reversing starters use three layers of [[interlock|interlocks]].' },
+      { t: 'list', ordered: true, items: [
+        '**Mechanical interlock:** a lever between the two contactors physically blocks one from closing while the other is in.',
+        '**Electrical interlock:** an NC aux contact of R in series with F\'s coil, and an NC aux of F in series with R\'s coil.',
+        '**Logic interlock:** the PLC program also refuses to call one while the other is on — but logic is the last layer, never the only one.',
+      ] },
+      { t: 'rung', text: 'XIC(Fwd_PB)XIO(Rev_Run)XIO(Rev_Aux)OTE(Fwd_Run)', tags: [{ name: 'Fwd_PB', type: 'BOOL', io: { kind: 'DI', point: 0 } }, { name: 'Rev_Run', type: 'BOOL', io: { kind: 'DO', point: 1 } }, { name: 'Rev_Aux', type: 'BOOL', io: { kind: 'DI', point: 3 } }, { name: 'Fwd_Run', type: 'BOOL', io: { kind: 'DO', point: 0 } }], caption: 'Logic interlock: forward only if reverse is neither called nor proven in.' },
+      { t: 'h', text: 'Jog' },
+      { t: 'p', text: '[[jog|Jogging]] runs the motor only while you hold the button — no seal-in. A Run/Jog selector usually opens the seal-in path in Jog. Many machines add a short delay between directions so the motor slows before reversing ("plugging" a running motor stresses everything).' },
+    ],
+    quiz: [
+      { id: 'q1', q: 'What reverses a 3-phase induction motor?', choices: ['Reversing all three leads', 'Swapping any two of the three leads', 'Reversing the control voltage', 'A second motor'], answer: 1, why: 'Swapping two phases reverses the rotating field.' },
+      { id: 'q2', q: 'Which interlock still works if the PLC program has a bug?', choices: ['Only the logic interlock', 'The mechanical and electrical interlocks', 'None', 'The HMI'], answer: 1, why: 'Hardware interlocks don\'t depend on software.' },
+      { id: 'q3', q: 'A jog circuit is different from run because…', choices: ['It runs faster', 'It has no seal-in; it stops when you let go', 'It needs a VFD', 'It ignores the overload'], answer: 1, why: 'Jog is momentary by design. The overload still protects it.' },
+    ],
+  },
+  {
+    id: 'reduced-voltage',
+    track: 't3',
+    title: 'Reduced-voltage starting',
+    minutes: 6,
+    summary: 'Why big motors don\'t just slam on — soft starters, VFDs and older methods.',
+    blocks: [
+      { t: 'p', text: 'Starting a motor "across the line" (full voltage) draws roughly **6–8× its running current** for a few seconds and slams the load. That can dip the plant\'s voltage, trip upstream breakers and break couplings or belts.' },
+      { t: 'table', head: ['Method', 'How it works', 'Notes'], rows: [
+        ['[[soft-starter|Soft starter]]', 'Thyristors ramp voltage up', 'Smooth start and stop; no speed control while running; often bypassed by a contactor once at speed'],
+        ['[[vfd|VFD]]', 'Ramps frequency and voltage', 'Lowest inrush, full speed control, adds harmonics and heat'],
+        ['Wye-delta', 'Starts in wye (lower voltage per winding), switches to delta', 'Older; needs 6 motor leads; a "transition" current spike'],
+        ['Autotransformer', 'Taps (e.g. 65%, 80%) for reduced voltage', 'Big, older; high starting torque per amp'],
+      ] },
+      { t: 'callout', tone: 'gotcha', title: 'Torque drops with voltage', text: 'Starting torque falls roughly with the square of voltage. Start a heavily loaded conveyor too softly and it may not break away — and the motor overheats trying.' },
+    ],
+    quiz: [
+      { id: 'q1', q: 'Across-the-line starting draws about…', choices: ['Running current', '2× running', '6–8× running current briefly', '20× running'], answer: 2, why: 'Locked-rotor current is typically several times full-load current.' },
+      { id: 'q2', q: 'Which method also gives speed control while running?', choices: ['Soft starter', 'Wye-delta', 'VFD', 'Autotransformer'], answer: 2, why: 'A VFD changes frequency, so it controls running speed.' },
+      { id: 'q3', q: 'A soft-started conveyor hums but won\'t move. Likely cause?', choices: ['Too much torque', 'Starting voltage set too low for the load', 'Wrong rotation', 'PLC fault'], answer: 1, why: 'Reduced voltage reduces torque; raise the initial voltage or ramp per the manual.' },
+    ],
+  },
+  // ---------------- Track 4 ----------------
+  {
+    id: 'data-types',
+    track: 't4',
+    title: 'Data types, arrays and UDTs',
+    minutes: 8,
+    summary: 'Choosing the right container for every value.',
+    blocks: [
+      { t: 'table', head: ['Type', 'Holds', 'Range / note'], rows: [
+        ['BOOL', 'One bit', '0 / 1'],
+        ['SINT', '8-bit integer', '−128 … 127'],
+        ['[[int|INT]]', '16-bit integer', '−32,768 … 32,767'],
+        ['[[dint|DINT]]', '32-bit integer', '±2.1 billion'],
+        ['[[real|REAL]]', '32-bit floating point', '~7 significant digits'],
+        ['STRING', 'Text', 'Fixed maximum length'],
+      ] },
+      { t: 'p', text: 'In Logix controllers DINT is the native size, so counters, indexes and math are usually DINT. Siemens and others use INT more often, especially for analog raw values. // VERIFY per platform guidance' },
+      { t: 'h', text: 'Arrays' },
+      { t: 'p', text: 'An [[array]] is a numbered list: `Temps[0]`…`Temps[9]`. Use a tag as the index (`Temps[Zone]`) to write one rung that handles every zone. An index outside the array is a **major fault** on most controllers — the sim does this too.' },
+      { t: 'h', text: 'UDTs / structures' },
+      { t: 'p', text: 'A [[udt|UDT]] groups related data. Build a `Motor` type once (`.Run`, `.Running`, `.Fault`, `.Hours`, `.Amps`), then make `Pump1`, `Pump2`, `Fan3` from it. Every motor looks the same in logic, HMI and alarms.' },
+      { t: 'callout', tone: 'gotcha', title: 'REAL equality', text: 'Never test two REALs with EQU. 0.1 + 0.2 isn\'t exactly 0.3 in floating point. Use LIM, GEQ/LEQ or a small tolerance.' },
+    ],
+    quiz: [
+      { id: 'q1', q: 'Which type would you use for a tank level in gallons with decimals?', choices: ['BOOL', 'INT', 'REAL', 'STRING'], answer: 2, why: 'Decimal engineering values belong in REAL.' },
+      { id: 'q2', q: 'Writing to Temps[12] when Temps has 10 elements usually causes…', choices: ['Nothing', 'A major fault', 'It wraps to Temps[2]', 'A warning only'], answer: 1, why: 'Out-of-range index is a major fault on most controllers.' },
+      { id: 'q3', q: 'Why use a UDT for motors?', choices: ['It runs faster', 'Every motor gets the same organized members — consistent logic, HMI and alarms', 'It\'s required by law', 'It saves wiring'], answer: 1, why: 'Structure makes code consistent and reusable.' },
+    ],
+  },
+  // ---------------- Track 5 ----------------
+  {
+    id: 'compare-math',
+    track: 't5',
+    title: 'Compare and math in real logic',
+    minutes: 8,
+    summary: 'Turn numbers into decisions: high level alarms, run hours, batch totals.',
+    blocks: [
+      { t: 'p', text: 'Compare instructions are **inputs** — they condition a rung. Math and move instructions are **outputs** — they act when the rung is true.' },
+      { t: 'rung', text: 'GEQ(Level,90.0)OTE(High_Alarm)', tags: [{ name: 'Level', type: 'REAL' }, { name: 'High_Alarm', type: 'BOOL' }], caption: 'High level alarm at 90 %.' },
+      { t: 'rung', text: 'LIM(40.0,Level,60.0)OTE(Level_OK)', tags: [{ name: 'Level', type: 'REAL' }, { name: 'Level_OK', type: 'BOOL' }], caption: 'LIM: true while 40 ≤ Level ≤ 60.' },
+      { t: 'rung', text: 'XIC(Motor_Running)XIC(One_Sec_Pulse)ADD(Run_Secs,1,Run_Secs)', tags: [{ name: 'Motor_Running', type: 'BOOL' }, { name: 'One_Sec_Pulse', type: 'BOOL' }, { name: 'Run_Secs', type: 'DINT' }], caption: 'Run-hour counting: add 1 on a one-scan pulse every second (not every scan!).' },
+      { t: 'p', text: '**CPT** lets you write a whole expression: `CPT(Gallons, (Raw - 4000) * 0.0125)`. Order of operations works like a calculator: × and ÷ before + and −, parentheses first.' },
+      { t: 'callout', tone: 'gotcha', title: 'Integer division', text: 'Divide two integers and many controllers drop the remainder: 7 ÷ 2 = 3. Use REALs when you need the decimal.' },
+    ],
+    quiz: [
+      { id: 'q1', q: 'ADD on a rung that stays true for 1 second with a 10 ms scan adds…', choices: ['1', 'About 100 times', '10', '0'], answer: 1, why: 'Math runs every scan the rung is true. Pulse it with a one-shot or timer.' },
+      { id: 'q2', q: 'LIM(40, Level, 60) is true when Level is…', choices: ['39', '50', '61', '100'], answer: 1, why: 'Inside the band 40–60.' },
+      { id: 'q3', q: 'DINT 7 ÷ DINT 2 into a DINT on many PLCs gives…', choices: ['3.5', '3', '4', 'Fault'], answer: 1, why: 'Integer division truncates; use REAL for decimals.' },
+    ],
+  },
+  {
+    id: 'alarm-ack',
+    track: 't5',
+    title: 'Alarm with acknowledge',
+    minutes: 8,
+    summary: 'The alarm pattern every operator expects: flash, silence, acknowledge, clear.',
+    blocks: [
+      { t: 'p', text: 'A good alarm tells the operator three things: something happened, whether anyone has seen it, and whether it\'s still active. The classic [[alarm-ack]] sequence:' },
+      { t: 'table', head: ['State', 'Light', 'Horn'], rows: [
+        ['Normal', 'Off', 'Off'],
+        ['New alarm (unacknowledged)', 'Flashing', 'On'],
+        ['Acknowledged, still active', 'Steady', 'Off'],
+        ['Cleared but never acknowledged', 'Flashing (slow) — or stays latched until ack', 'Off'],
+      ] },
+      { t: 'rung', text: 'XIC(Fault_Cond)OTL(Alarm)', tags: [{ name: 'Fault_Cond', type: 'BOOL' }, { name: 'Alarm', type: 'BOOL' }], caption: '1 — latch the alarm when the condition appears.' },
+      { t: 'rung', text: 'XIC(Fault_Cond)ONS(New_OS)OTL(Unacked)', tags: [{ name: 'Fault_Cond', type: 'BOOL' }, { name: 'New_OS', type: 'BOOL' }, { name: 'Unacked', type: 'BOOL' }], caption: '2 — mark it unacknowledged once, on the rising edge.' },
+      { t: 'rung', text: 'XIC(Ack_PB)OTU(Unacked)', tags: [{ name: 'Ack_PB', type: 'BOOL' }, { name: 'Unacked', type: 'BOOL' }], caption: '3 — acknowledge.' },
+      { t: 'rung', text: 'XIO(Fault_Cond)XIO(Unacked)OTU(Alarm)', tags: [{ name: 'Fault_Cond', type: 'BOOL' }, { name: 'Unacked', type: 'BOOL' }, { name: 'Alarm', type: 'BOOL' }], caption: '4 — clear only when gone AND acknowledged.' },
+      { t: 'rung', text: '[XIC(Unacked)XIC(Flasher),XIO(Unacked)XIC(Alarm)]OTE(Alarm_Light)', tags: [{ name: 'Unacked', type: 'BOOL' }, { name: 'Flasher', type: 'BOOL' }, { name: 'Alarm', type: 'BOOL' }, { name: 'Alarm_Light', type: 'BOOL' }], caption: '5 — flash while unacked, steady once acked.' },
+      { t: 'callout', tone: 'tip', title: 'Fewer, better alarms', text: 'An alarm should need an operator action. Nuisance alarms train people to ignore the horn — that\'s how real alarms get missed.' },
+    ],
+    task: {
+      goal: 'Trigger the motor\'s fail-to-start alarm, then acknowledge (reset) it.',
+      steps: ['A "coil open" fault is injected. Press Start.', 'After 2 s the amber light latches on.', 'Press Reset to acknowledge and clear it.'],
+      check: 'latch-reset',
+    },
+    quiz: [
+      { id: 'q1', q: 'An acknowledged alarm whose condition is still active should show…', choices: ['Off', 'Flashing', 'Steady', 'Random'], answer: 2, why: 'Steady = seen, still active.' },
+      { id: 'q2', q: 'Why use a one-shot when setting "Unacked"?', choices: ['Speed', 'So it\'s set once when the alarm appears, not re-set every scan after ack', 'Required by law', 'To flash'], answer: 1, why: 'Otherwise the condition re-sets Unacked every scan and ack never sticks.' },
+      { id: 'q3', q: 'The alarm should clear when…', choices: ['The horn is silenced', 'The condition is gone AND it has been acknowledged', 'After 10 minutes', 'On power cycle'], answer: 1, why: 'Both — so a brief fault isn\'t missed.' },
+    ],
+  },
+  {
+    id: 'sequencers',
+    track: 't5',
+    title: 'Sequencers and state machines',
+    minutes: 10,
+    summary: 'Stepping a machine through fill → mix → drain without spaghetti logic.',
+    blocks: [
+      { t: 'p', text: 'A batch mixer runs in steps. The cleanest pattern is a [[state-machine]]: one DINT `Step` holds the current state; each state turns on its outputs; one transition rung per state moves to the next.' },
+      { t: 'rung', text: 'EQU(Step,10)OTE(Fill_Valve)', tags: [{ name: 'Step', type: 'DINT' }, { name: 'Fill_Valve', type: 'BOOL' }], caption: 'State 10 = Filling.' },
+      { t: 'rung', text: 'EQU(Step,10)XIC(High_Level)MOV(20,Step)', tags: [{ name: 'Step', type: 'DINT' }, { name: 'High_Level', type: 'BOOL' }], caption: 'Transition: full → go to 20 (Mixing).' },
+      { t: 'rung', text: 'EQU(Step,20)TON(Mix_Tmr)', tags: [{ name: 'Step', type: 'DINT' }, { name: 'Mix_Tmr', type: 'TIMER', initial: 60000 }], caption: 'State 20 = Mixing for 60 s.' },
+      { t: 'rung', text: 'EQU(Step,20)XIC(Mix_Tmr.DN)MOV(30,Step)', tags: [{ name: 'Step', type: 'DINT' }, { name: 'Mix_Tmr', type: 'TIMER', initial: 60000 }], caption: 'Transition: mixed → 30 (Draining).' },
+      { t: 'list', items: [
+        'Number states in tens (10, 20, 30) so you can insert 15 later.',
+        'Outputs depend on the state; transitions depend on state **and** a condition. Never both in one tangled rung.',
+        'Add a **timeout** per state ("filling took more than 5 min → fault state 900").',
+        'A **0 = idle** and **900+ = fault** convention makes HMIs easy.',
+        'Show the step number on the HMI. Operators and techs instantly know where it\'s stuck.',
+      ] },
+      { t: 'callout', tone: 'brand', title: 'Other ways to write it', text: 'IEC has Sequential Function Charts (SFC); Siemens has GRAPH; Logix has SFC routines. A CASE statement in Structured Text is the text version of the same idea.' },
+    ],
+    quiz: [
+      { id: 'q1', q: 'A mixer is stuck. The HMI shows Step = 10. What is it waiting for?', choices: ['The mix timer', 'The condition that leaves state 10 — e.g. High_Level', 'Drain valve', 'Nothing'], answer: 1, why: 'The transition out of 10 is the high level switch. Check that input.' },
+      { id: 'q2', q: 'Why number states 10, 20, 30?', choices: ['Faster', 'Room to insert new states later', 'Required', 'Looks nicer'], answer: 1, why: 'You can add 15 without renumbering everything.' },
+      { id: 'q3', q: 'A state timeout is used to…', choices: ['Slow the machine', 'Detect a step that never finishes and go to a fault state', 'Reset the PLC', 'Count batches'], answer: 1, why: 'Stuck steps become clear alarms instead of silent hangs.' },
+    ],
+  },
+  {
+    id: 'program-organization',
+    track: 't5',
+    title: 'Organizing a program',
+    minutes: 7,
+    summary: 'Tasks, routines, blocks and naming that make code readable at 3 AM.',
+    blocks: [
+      { t: 'table', head: ['Idea', 'Logix-style', 'Siemens-style'], rows: [
+        ['When code runs', '[[task|Tasks]]: continuous, periodic, event', 'OBs: OB1 cyclic, cyclic-interrupt OBs (e.g. OB30-series), OB100 startup // VERIFY exact OB numbers per CPU family'],
+        ['Containers', 'Programs → Routines (MainRoutine calls others with JSR)', 'FCs (no memory) and FBs (with instance DB)'],
+        ['Data', 'Controller tags and program tags', 'Global DBs, instance DBs, PLC tags'],
+        ['Reusable logic', 'Add-On Instructions', 'Function blocks'],
+      ] },
+      { t: 'list', items: [
+        '**One routine per machine area** (Infeed, Mixer, Discharge) plus Alarms, HMI, Comms.',
+        '**Name tags like the print:** `M101_Run`, `LT101_Level`, `XV202_Open`. Prefix by device tag, suffix by meaning.',
+        '**PID and analog in a periodic task** so the timing (Δt) is steady.',
+        '**Comment why,** not what: "Delay so the screw clears before the gate closes" beats "Timer 5".',
+      ] },
+      { t: 'callout', tone: 'gotcha', title: 'Unscheduled code doesn\'t run', text: 'A routine that isn\'t called (no JSR) or a program not in a task is never scanned. If logic "looks right but nothing happens," check that it\'s actually called.' },
+    ],
+    quiz: [
+      { id: 'q1', q: 'Where should a PID loop usually run?', choices: ['Continuous task', 'Periodic task at a fixed interval', 'Startup only', 'Event task on button press'], answer: 1, why: 'PID math assumes a steady update interval.' },
+      { id: 'q2', q: 'Your new routine isn\'t doing anything. First check?', choices: ['Replace the CPU', 'That something calls it (JSR) / it\'s scheduled', 'Firmware', 'The HMI'], answer: 1, why: 'Uncalled routines aren\'t scanned.' },
+      { id: 'q3', q: 'Best tag name for the level transmitter LT-101 value?', choices: ['Tag1', 'LT101_Level', 'Analog_In_3', 'X'], answer: 1, why: 'Matches the print and says what it is.' },
+    ],
+  },
+];
+
+void motorTags;

@@ -19,6 +19,8 @@ export function taskSetup(task: SimTask, rt: SimRuntime) {
 /** Stateful checker: call every update; returns true once the goal is met. */
 export function createChecker(task: SimTask): (rt: SimRuntime) => boolean {
   let sawAlarm = false;
+  let sealed = false;
+  let stopSeen = false;
   return (rt) => {
     const s = rt.scene.state;
     const plc = rt.plc;
@@ -38,6 +40,11 @@ export function createChecker(task: SimTask): (rt: SimRuntime) => boolean {
         return s.contactor && s.rpm > 300 && !verifyProgram(plc.program).some((i) => i.code === 'duplicate-coil');
       case 'counter-five':
         return read('Part_Ctr.DN') && Boolean(plc.fieldDO[1]);
+      case 'build-start-stop':
+        // Pass only after the learner's own rung seals in, then Stop drops it out.
+        if (s.contactor && !s.startPressed && s.rpm > 500 && read('Motor_Run')) sealed = true;
+        if (sealed && s.stopPressed) stopSeen = true;
+        return sealed && stopSeen && !s.contactor && !read('Motor_Run');
       case 'latch-reset':
         if (read('Fail_Alarm')) sawAlarm = true;
         return sawAlarm && !read('Fail_Alarm');

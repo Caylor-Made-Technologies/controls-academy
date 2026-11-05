@@ -451,3 +451,17 @@ body {
   .platform-bar { gap: 10px; padding: 9px 10px; align-items: flex-start; }
   .platform-maker { min-width: 72px; max-width: 84px; font-size: 0.68rem; }
 }
+
+/* ---------- Levels and code ---------- */
+.level-pill { display: inline-flex; align-items: center; min-height: 22px; padding: 0 9px; border-radius: 999px; font-size: 0.68rem; font-weight: 800; letter-spacing: 0.06em; text-transform: uppercase; border: 1px solid currentColor; }
+.level-heading { margin: 18px 0 8px; font-family: var(--font-head); font-size: 0.78rem; font-weight: 800; letter-spacing: 0.18em; text-transform: uppercase; }
+.level-beginner { color: var(--live); }
+.level-intermediate { color: var(--blue-glow); }
+.level-advanced { color: var(--warn); }
+.level-expert { color: #c084fc; }
+:root[data-theme='light'] .level-expert { color: #7e22ce; }
+.code-block {
+  margin: 0; padding: 14px 16px; border-radius: 12px; overflow-x: auto; white-space: pre;
+  font-family: var(--font-mono); font-size: 0.82rem; line-height: 1.55; color: var(--text-heading);
+  background: var(--surface-sunk); border: 1px solid var(--border); border-left: 3px solid var(--blue-glow);
+}

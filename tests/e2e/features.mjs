@@ -90,7 +90,7 @@ await check('Onboarding: 4 screens, choices, axe on each, lands on first lesson'
 });
 
 // ---------- B. Every lesson + quiz + glossary popover ----------
-const LESSON_IDS = ['volts-amps-ohms', 'meter', 'lototo', 'relays-contactors', 'reading-ladder-prints', 'three-wire', 'hardwired-safety', 'what-is-a-plc', 'sinking-sourcing', 'analog-420', 'numbers', 'contacts-coils', 'timers', 'counters', 'duplicate-coils', 'latch-unlatch', 'upload-download', 'forcing', 'troubleshooting-method', 'modbus'];
+const LESSON_IDS = ['volts-amps-ohms', 'meter', 'relays-contactors', 'protection-devices', 'lototo', 'boundaries-ppe', 'reading-ladder-prints', 'panel-layouts', 'print-drills', 'three-wire', 'hardwired-safety', 'jog-fwd-rev', 'reduced-voltage', 'what-is-a-plc', 'sinking-sourcing', 'analog-420', 'numbers', 'data-types', 'contacts-coils', 'timers', 'counters', 'latch-unlatch', 'duplicate-coils', 'compare-math', 'alarm-ack', 'sequencers', 'program-organization', 'upload-download', 'forcing', 'compare-online', 'troubleshooting-method', 'fault-codes', 'ip-basics', 'profinet-names', 'modbus', 'legacy-networks', 'vfd-basics', 'hmi-basics', 'bacnet-bms', 'capstone-build', 'capstone-mixer', 'pid-tuning', 'analog-alarming', 'structured-text', 'reusable-logic', 'network-troubleshooting', 'commissioning', 'safety-systems', 'change-management'];
 {
   const { ctx, page } = await newPage({ w: 390, h: 844 });
   for (const id of LESSON_IDS) {
@@ -109,9 +109,9 @@ const LESSON_IDS = ['volts-amps-ohms', 'meter', 'lototo', 'relays-contactors', '
       await page.getByText(/Lesson complete/).waitFor();
     });
   }
-  await check('Learn: all 20 lessons show completed, XP awarded', async () => {
+  await check('Learn: all 49 lessons show completed, XP awarded', async () => {
     await go(page, 'learn');
-    await page.getByText('20/20 lessons').waitFor();
+    await page.getByText('49/49 lessons').waitFor();
   });
   await check('Review: missed questions are scheduled (not due until tomorrow)', async () => {
     await go(page, 'review');
@@ -190,7 +190,7 @@ await check('Task timers: hold Start 3 s', async () => {
 await check('Task counters: five presses', async () => {
   const { ctx, page } = await newPage();
   await go(page, 'lesson/counters');
-  for (let i = 0; i < 5; i++) { await press(page, 'Start', 150); await page.waitForTimeout(150); }
+  for (let i = 0; i < 5; i++) { await press(page, 'Start', 250); await page.waitForTimeout(350); }
   await taskDone(page);
   await ctx.close();
 });
@@ -211,6 +211,32 @@ await check('Task latch-unlatch: alarm latches after 2 s, Reset clears it', asyn
   await press(page, 'Start');
   await page.getByRole('img', { name: 'Fault light on' }).waitFor({ timeout: 6000 });
   await press(page, 'Reset');
+  await taskDone(page);
+  await ctx.close();
+});
+
+await check('Task capstone-build: write start/stop from a blank rung in the editor', async () => {
+  const { ctx, page } = await newPage();
+  await go(page, 'lesson/capstone-build');
+  const add = async (tag) => {
+    await page.getByRole('button', { name: 'Select rung 0' }).click();
+    await page.getByRole('button', { name: 'Add Normally-open contact' }).click();
+    const dlg = page.getByRole('dialog', { name: 'Edit instruction' });
+    await dlg.getByRole('button', { name: tag, exact: true }).first().click();
+    await dlg.getByRole('button', { name: 'Save' }).click();
+    await dlg.waitFor({ state: 'detached' });
+  };
+  await add('Start_PB');
+  await page.getByRole('button', { name: /Normally-open contact .*Start_PB/ }).click();
+  await page.getByRole('button', { name: 'Branch' }).click();
+  let dlg = page.getByRole('dialog', { name: 'Edit instruction' });
+  await dlg.getByRole('button', { name: 'Motor_Run', exact: true }).first().click();
+  await dlg.getByRole('button', { name: 'Save' }).click();
+  await dlg.waitFor({ state: 'detached' });
+  for (const t of ['Stop_PB', 'EStop_OK', 'OL_OK']) await add(t);
+  await press(page, 'Start');
+  await page.getByRole('img', { name: 'Running light on' }).waitFor({ timeout: 6000 });
+  await press(page, 'Stop');
   await taskDone(page);
   await ctx.close();
 });
@@ -526,7 +552,7 @@ await check('Review: due questions appear, answer, finish', async () => {
 
 // ---------- J. Profile ----------
 {
-  const t1done = { version: 1, xp: 250, lessons: Object.fromEntries(['volts-amps-ohms', 'meter', 'lototo', 'relays-contactors'].map((k) => [k, { score: 3, total: 3, taskDone: false, at: '2026-11-04' }])), review: {}, hunts: {}, days: [], skinsSeen: [], stepped: false, perfectQuizzes: 4, lastRoute: 'lesson/meter' };
+  const t1done = { version: 1, xp: 250, lessons: Object.fromEntries(['volts-amps-ohms', 'meter', 'relays-contactors', 'protection-devices', 'lototo', 'boundaries-ppe'].map((k) => [k, { score: 3, total: 3, taskDone: false, at: '2026-11-04' }])), review: {}, hunts: {}, days: [], skinsSeen: [], stepped: false, perfectQuizzes: 4, lastRoute: 'lesson/meter' };
   const { ctx, page } = await newPage({ progress: t1done });
   await check('Profile: level, badges, Track 1 certificate saves a PNG', async () => {
     await go(page, 'profile');

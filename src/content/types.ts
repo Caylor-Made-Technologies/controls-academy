@@ -15,7 +15,8 @@ export type Block =
   | { t: 'figure'; fig: FigureId; caption?: string }
   | { t: 'table'; head: string[]; rows: string[][] }
   | { t: 'rung'; text: string; tags: TagDecl[]; caption?: string }
-  | { t: 'brands'; rows: { skin: SkinId; text: string }[] };
+  | { t: 'brands'; rows: { skin: SkinId; text: string }[] }
+  | { t: 'code'; lang: 'st' | 'text'; text: string; caption?: string };
 
 export interface Question {
   id: string;
@@ -26,7 +27,7 @@ export interface Question {
 }
 
 /** What the sim task checks for. Implemented in features/learn/tasks.ts. */
-export type TaskCheck = 'motor-sealed' | 'scan-stepped' | 'stop-fixed' | 'timer-done' | 'dup-fixed' | 'counter-five' | 'latch-reset';
+export type TaskCheck = 'motor-sealed' | 'scan-stepped' | 'stop-fixed' | 'timer-done' | 'dup-fixed' | 'counter-five' | 'latch-reset' | 'build-start-stop';
 
 export interface SimTask {
   goal: string;
@@ -39,7 +40,9 @@ export interface SimTask {
   edit?: boolean;
 }
 
-export type TrackId = 't1' | 't2' | 't3' | 't4' | 't5' | 't6' | 't7' | 't8' | 't9' | 't10';
+export type TrackId = 't1' | 't2' | 't3' | 't4' | 't5' | 't6' | 't7' | 't8' | 't9' | 't10' | 't11';
+
+export type Level = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
 
 export interface Lesson {
   id: string;
@@ -55,6 +58,7 @@ export interface Lesson {
 export interface Track {
   id: TrackId;
   n: number;
+  level: Level;
   title: string;
   blurb: string;
   lessons: string[];

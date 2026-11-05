@@ -49,7 +49,7 @@ export default function LearnPage() {
   return (
     <div>
       <PageHead eyebrow={name ? `Welcome back, ${name}` : 'Controls Academy'} title="From zero to panel-ready">
-        Electrical basics to ladder logic to troubleshooting a live machine — one short lesson at a time.
+        From "what's a volt?" to tuning PID loops and commissioning a machine — {TRACKS.reduce((n, t) => n + t.lessons.length, 0)} lessons in 4 levels: Beginner, Intermediate, Advanced, Expert.
       </PageHead>
 
       {/* Stats strip */}
@@ -117,10 +117,14 @@ export default function LearnPage() {
                   {tp.complete ? <Icon name="check" size={20} className="text-live" /> : t.n}
                 </ProgressRing>
               </div>
+              {(i === 0 || TRACKS[i - 1].level !== t.level) && (
+                <p className={`level-heading level-${t.level.toLowerCase()}`}>{t.level}</p>
+              )}
               <div className="card card-pad">
                 <div className="flex items-start justify-between gap-2">
                   <div>
-                    <h3 className="text-base font-bold">{t.title}</h3>
+                    <span className={`level-pill level-${t.level.toLowerCase()}`}>{t.level}</span>
+                    <h3 className="text-base font-bold mt-1">{t.title}</h3>
                     <p className="text-sm text-muted m-0">{t.blurb}</p>
                   </div>
                   {t.lessons.length > 0 && <span className="chip flex-none tabular-nums">{tp.done}/{tp.total}</span>}
