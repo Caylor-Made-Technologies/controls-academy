@@ -2,16 +2,16 @@ import { motion, useReducedMotion } from 'framer-motion';
 import { PageHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { ProgressRing } from '../../components/ProgressRing';
-import { LESSON_BY_ID, TRACKS } from '../../content';
+import { LESSON_META_BY_ID as LESSON_BY_ID, TRACKS } from '../../content/catalog';
 import { href } from '../../lib/router';
 import { usePrefs, type Goal } from '../../state/prefs';
 import { dueReviews, level, streak, trackProgress, useProgress } from '../../state/progress';
 
 const GOAL_ORDER: Record<Goal, string[]> = {
-  maintenance: ['t1', 't2', 't3', 't4', 't5', 't7', 't6', 't8', 't9', 't10'],
-  'new-tech': ['t4', 't5', 't1', 't6', 't7', 't3', 't2', 't8', 't9', 't10'],
-  bas: ['t1', 't4', 't8', 't9', 't5', 't7', 't2', 't3', 't6', 't10'],
-  curious: ['t4', 't1', 't5', 't3', 't2', 't6', 't7', 't8', 't9', 't10'],
+  maintenance: ['t0', 't1', 't2', 't3', 't4', 't5', 't7', 't6', 't8', 't9', 't10'],
+  'new-tech': ['t0', 't4', 't5', 't1', 't6', 't7', 't3', 't2', 't8', 't9', 't10'],
+  bas: ['t0', 't1', 't4', 't8', 't9', 't5', 't7', 't2', 't3', 't6', 't10'],
+  curious: ['t0', 't4', 't1', 't5', 't3', 't2', 't6', 't7', 't8', 't9', 't10'],
 };
 
 export function recommendedLesson(goal: Goal | null, done: Record<string, unknown>): string | null {

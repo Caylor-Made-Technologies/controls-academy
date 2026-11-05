@@ -4,7 +4,7 @@ import { PageHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { ProgressRing } from '../../components/ProgressRing';
 import { Sheet } from '../../components/Sheet';
-import { TRACKS } from '../../content';
+import { TRACKS } from '../../content/catalog';
 import { href } from '../../lib/router';
 import { sfx } from '../../lib/sound';
 import { skinsByMaker, type SkinId } from '../../skins';

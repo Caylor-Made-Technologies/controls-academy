@@ -1,5 +1,5 @@
 import { create } from 'zustand';
-import { LESSONS, TRACKS } from '../content';
+import { LESSON_META as LESSONS, TRACKS } from '../content/catalog';
 import type { SkinId } from '../skins';
 import { debouncedSaver, load, remove } from './persist';
 
@@ -117,7 +117,7 @@ export function badges(p: ProgressData): Badge[] {
     { id: 'streak3', title: 'On a Roll', desc: 'Learn 3 days in a row.', earned: streak(p.days) >= 3 },
     { id: 'streak7', title: 'Shift Regular', desc: 'Learn 7 days in a row.', earned: streak(p.days) >= 7 },
     { id: 'track', title: 'Track Complete', desc: 'Finish every lesson in a track.', earned: tracksDone > 0 },
-    { id: 'expert', title: 'Controls Pro', desc: 'Finish every lesson in all 11 tracks — beginner to expert.', earned: tracksDone === TRACKS.filter((t) => t.lessons.length).length },
+    { id: 'expert', title: 'Controls Pro', desc: `Finish every lesson in all ${TRACKS.length} tracks — from zero to expert.`, earned: tracksDone === TRACKS.filter((t) => t.lessons.length).length },
   ];
 }
 
