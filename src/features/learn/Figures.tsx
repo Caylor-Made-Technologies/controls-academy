@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useReducedMotion } from 'framer-motion';
 import type { FigureId } from '../../content/types';
+import { twoLoads } from '../../lib/circuits';
 
 const box = 'card card-pad';
 
@@ -257,6 +258,68 @@ function Meter() {
   );
 }
 
+const fmt = (x: number, d = 2) => (Number.isFinite(x) ? Number(x.toFixed(d)).toString() : '∞');
+
+/** Two 120 V lamps in series or parallel. Pull one out and see what the other does. */
+function SeriesParallel() {
+  const [mode, setMode] = useState<'series' | 'parallel'>('series');
+  const [r2, setR2] = useState(60);
+  const [open2, setOpen2] = useState(false);
+  const V = 120, r1 = 60;
+  const x = twoLoads(V, r1, r2, mode, open2);
+  const glow = (p: number) => Math.min(1, p / 240);
+  const lamp = (cx: number, cy: number, p: number, label: string, out = false) => (
+    <g>
+      <circle cx={cx} cy={cy} r="15" fill={out ? 'var(--surface-sunk)' : `rgba(255, 210, 120, ${0.12 + glow(p) * 0.88})`} stroke="var(--border-strong)" strokeWidth="2" strokeDasharray={out ? '4 4' : undefined} style={!out && p > 1 ? { filter: `drop-shadow(0 0 ${glow(p) * 12}px #ffb547)` } : undefined} />
+      <text x={cx} y={cy + 30} textAnchor="middle" fontSize="10" fill="var(--text-muted)">{label}</text>
+    </g>
+  );
+  return (
+    <div className={box}>
+      <div className="flex flex-wrap gap-2 mb-3">
+        <div className="seg" role="group" aria-label="Wiring">
+          {(['series', 'parallel'] as const).map((m) => <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)}>{m === 'series' ? 'Series' : 'Parallel'}</button>)}
+        </div>
+        <button type="button" className="btn btn-sm" aria-pressed={open2} onClick={() => setOpen2(!open2)}>{open2 ? 'Put lamp 2 back' : 'Pull lamp 2 out'}</button>
+      </div>
+      <svg viewBox="0 0 300 140" className="w-full max-w-md mx-auto block" role="img"
+        aria-label={`${mode} circuit, 120 volts: lamp 1 ${fmt(x.p[0], 0)} watts, lamp 2 ${open2 ? 'removed' : fmt(x.p[1], 0) + ' watts'}, total current ${fmt(x.iTotal)} amps`}>
+        <rect x="8" y="50" width="30" height="40" rx="5" fill="var(--surface-raised)" stroke="var(--blue-glow)" strokeWidth="2" />
+        <text x="23" y="74" textAnchor="middle" fontSize="10" fontWeight="800" fill="var(--text-heading)">120V</text>
+        {mode === 'series' ? (
+          <>
+            <path d="M23 50 V20 H280 V120 H23 V90" fill="none" stroke="var(--border-strong)" strokeWidth="3" />
+            {lamp(120, 20, x.p[0], 'Lamp 1')}
+            {lamp(210, 20, x.p[1], 'Lamp 2', open2)}
+          </>
+        ) : (
+          <>
+            <path d="M23 50 V20 H260 M23 90 V120 H260 M150 20 V120 M260 20 V120" fill="none" stroke="var(--border-strong)" strokeWidth="3" />
+            {lamp(150, 70, x.p[0], 'Lamp 1')}
+            {lamp(260, 70, x.p[1], 'Lamp 2', open2)}
+          </>
+        )}
+      </svg>
+      {!open2 && <Slider label="Lamp 2 resistance" value={r2} min={20} max={240} step={10} unit="Ω" onChange={setR2} />}
+      <div className="overflow-x-auto rounded-xl border border-line mt-2">
+        <table className="w-full text-sm tabular-nums">
+          <thead className="bg-raised"><tr><th className="text-left p-2">Lamp 1 (60 Ω)</th><th className="text-left p-2">Lamp 2 ({open2 ? 'out' : `${r2} Ω`})</th><th className="text-left p-2">Total</th></tr></thead>
+          <tbody><tr className="border-t border-line">
+            <td className="p-2">{fmt(x.v[0], 1)} V · {fmt(x.i[0])} A · {fmt(x.p[0], 0)} W</td>
+            <td className="p-2">{fmt(x.v[1], 1)} V · {fmt(x.i[1])} A · {fmt(x.p[1], 0)} W</td>
+            <td className="p-2">{fmt(x.rTotal, 1)} Ω · <strong className="text-heading">{fmt(x.iTotal)} A</strong></td>
+          </tr></tbody>
+        </table>
+      </div>
+      <p className="text-sm text-muted m-0 mt-2" role="status">
+        {mode === 'series'
+          ? open2 ? 'One path, now broken: no current anywhere, and the full 120 V shows across the gap.' : 'One path: the same current through both lamps; their voltages add up to 120 V.'
+          : open2 ? 'Lamp 1 still has its own path and the full 120 V — it doesn\'t care.' : 'Each lamp sits across the full 120 V; the currents add up at the supply.'}
+      </p>
+    </div>
+  );
+}
+
 export function Figure({ id }: { id: FigureId }) {
   switch (id) {
     case 'ohms': return <Ohms />;
@@ -266,5 +329,6 @@ export function Figure({ id }: { id: FigureId }) {
     case 'scan': return <Scan />;
     case 'hardwired-3wire': return <Hardwired />;
     case 'meter': return <Meter />;
+    case 'seriesparallel': return <SeriesParallel />;
   }
 }
