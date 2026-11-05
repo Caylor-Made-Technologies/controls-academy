@@ -58,4 +58,6 @@ export interface PlantScene<S = unknown> {
   setFault(id: string | null): void;
   meterPoints(io: FieldIO): MeterPoint[];
   reset(): void;
+  /** Manual reset of an overload relay; false while it is still too hot to reset. */
+  resetOverload?(): boolean;
 }

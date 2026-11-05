@@ -9,7 +9,7 @@ import { useMemo, useRef, useState } from 'react';
 import { MathUtils, type Group } from 'three';
 import { BODY_COLORS, UNIT_INFO, type HwShape, type HwUnit } from '../content/hardware';
 import { Box, Led } from './kit';
-import { doorLabelTexture, labelTexture } from './textures';
+import { doorLabelTexture, hmiTexture, labelTexture } from './textures';
 
 export interface HwLive {
   di(i: number): boolean;
@@ -135,6 +135,12 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
   return (
     <group scale={scale} position={[-(width / 2) * scale, 0, 0]}>
       {/* mounting: DIN rail or chassis */}
+      {shape.mount === 'plate' && (
+        <Box size={[width + 0.12, height + 0.08, 0.002]} pos={[width / 2, 0, -0.002]} color="#c9cfd5" metal={0.55} rough={0.45} round={0} />
+      )}
+      {shape.mount === 'panel' && (
+        <Box size={[width + 0.07, height + 0.07, 0.002]} pos={[width / 2, 0, depth - 0.007]} color="#b9c0c7" metal={0.2} rough={0.55} round={0} />
+      )}
       {shape.mount === 'din' && (
         <group>
           <Box size={[width + 0.03, 0.027, 0.0012]} pos={[width / 2, 0, -0.0075]} color={C.rail} metal={0.85} rough={0.32} round={0} />
@@ -157,7 +163,7 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
         const slim = w < 0.02;
         const text = u.kind === 'cpu' && labelText ? labelText : u.label;
         const io = ioIndex[i];
-        const status = ['cpu', 'safety', 'psu', 'comm', 'coupler', 'pc', 'brick', 'logic'].includes(u.kind);
+        const status = ['cpu', 'safety', 'psu', 'comm', 'coupler', 'pc', 'brick', 'logic', 'bas'].includes(u.kind);
         return (
           <group
             key={i}
@@ -170,18 +176,20 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
               <>
                 <Box size={[w, h, 0.012]} pos={[x, 0, d]} color={col.body} />
                 <Box size={[w * 0.82, h * 0.66, d * 0.7]} pos={[x, 0, d * 0.4]} color={col.face} />
-                <mesh position={[x, 0.004, d + 0.0062]} raycast={() => null}>
-                  <planeGeometry args={[w * 0.86, h * 0.76]} />
-                  <meshStandardMaterial color="#0c1a2a" emissive="#12325c" emissiveIntensity={0.6} roughness={0.25} />
+                <HmiScreen w={w * 0.86} h={h * 0.76} pos={[x, 0.004, d + 0.0062]} />
+                {/* glass reflection strip */}
+                <mesh position={[x - w * 0.18, h * 0.1, d + 0.0066]} rotation={[0, 0, -0.5]} raycast={() => null}>
+                  <planeGeometry args={[w * 0.08, h * 1.1]} />
+                  <meshBasicMaterial color="#ffffff" transparent opacity={0.04} depthWrite={false} />
                 </mesh>
-                <HLabel text="MOTOR 1   RUNNING" pos={[x, h * 0.2, d + 0.0065]} w={w * 0.6} h={0.009} fg="#3ddc97" bg="#0f2236" />
-                <HLabel text="START     STOP     RESET" pos={[x, -h * 0.18, d + 0.0065]} w={w * 0.6} h={0.009} fg="#dbe8ff" bg="#173253" />
               </>
             ) : (
               <>
                 <Box size={[w - 0.0004, h, u.kind === 'blank' ? d * 0.96 : d]} pos={[x, 0, zc]} color={u.kind === 'blank' ? col.face : col.body} />
                 {/* molded front face plate, slightly proud, catches the key light */}
-                {u.kind !== 'blank' && u.kind !== 'end' && (
+                {u.kind === 'drive' && <DriveFace x={x} w={w} h={h} d={d} z={z} live={live} />}
+                {u.kind === 'relay' && <RelayFace x={x} w={w} h={h} z={z} live={live} />}
+                {u.kind !== 'blank' && u.kind !== 'end' && u.kind !== 'drive' && (
                   <Box size={[w - 0.0026, h - 0.004, 0.0012]} pos={[x, 0, z - 0.0004]} color={col.face} rough={0.45} round={Math.min(0.0006, w * 0.03)} />
                 )}
               </>
@@ -205,7 +213,7 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
             {u.screen === 'status' && (
               <HLabel text="RUN  OK" pos={[x, h / 2 - 0.028, z + 0.0009]} w={Math.min(w * 0.7, 0.03)} h={0.0065} fg="#3ddc97" bg="#071018" />
             )}
-            {u.screen === 'lcd' && (
+            {u.screen === 'lcd' && u.kind !== 'drive' && (
               <group>
                 <mesh position={[x - (u.kind === 'brick' ? w * 0.22 : 0), h * 0.05, z + 0.0009]} raycast={() => null}>
                   <planeGeometry args={[Math.min(w * 0.42, 0.04), 0.016]} />
@@ -234,7 +242,7 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
               </mesh>
             )}
             {u.sd && <Box size={[Math.min(w * 0.5, 0.016), 0.0018, 0.002]} pos={[x, h * 0.12 - 0.008, z + 0.0008]} color={C.port} round={0} />}
-            {(u.ports ?? 0) > 0 && Array.from({ length: u.ports ?? 0 }, (_, k) => {
+            {u.kind !== 'drive' && (u.ports ?? 0) > 0 && Array.from({ length: u.ports ?? 0 }, (_, k) => {
               const px = x + (k - ((u.ports ?? 1) - 1) / 2) * 0.011 * (slim ? 0 : 1);
               const py = -h / 2 + (u.term === 'top-bottom' ? 0.024 : 0.012) + (slim ? k * 0.011 : 0);
               return (
@@ -249,7 +257,7 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
 
             {/* I/O LEDs */}
             {io.di.length + io.do.length > 0 && (() => {
-              const brick = u.kind === 'brick' || u.kind === 'logic';
+              const brick = u.kind === 'brick' || u.kind === 'logic' || u.kind === 'bas';
               const pts = [...io.di.map((n) => ({ n, out: false })), ...io.do.map((n) => ({ n, out: true }))];
               if (brick) {
                 return pts.map((p, k) => {
@@ -319,6 +327,77 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
         );
       })}
 
+    </group>
+  );
+}
+
+function HmiScreen({ w, h, pos }: { w: number; h: number; pos: [number, number, number] }) {
+  const tex = useMemo(() => hmiTexture(w / h), [w, h]);
+  return (
+    <mesh position={pos} raycast={() => null}>
+      <planeGeometry args={[w, h]} />
+      <meshBasicMaterial map={tex} toneMapped={false} />
+    </mesh>
+  );
+}
+
+/** Drive front: keypad with an LCD that alternates speed and current, run/stop keys, terminal cover, side heatsink fins. */
+function DriveFace({ x, w, h, d, z, live }: { x: number; w: number; h: number; d: number; z: number; live: HwLive }) {
+  const hz = useRef<Group>(null);
+  const amps = useRef<Group>(null);
+  useFrame(() => {
+    const a = Math.floor(performance.now() / 2200) % 2 === 1;
+    if (hz.current) hz.current.visible = !a;
+    if (amps.current) amps.current.visible = a;
+  });
+  const kw = Math.min(w * 0.62, 0.075);
+  const ky = h * 0.24;
+  const fins = Math.max(4, Math.floor((d * 0.55) / 0.006));
+  return (
+    <group>
+      {/* keypad */}
+      <Box size={[kw, Math.min(h * 0.3, 0.09), 0.004]} pos={[x, ky, z + 0.002]} color="#15181d" round={0.0015} />
+      <group ref={hz}>
+        <HLabel text={live.run() ? '60.0 Hz  RUN' : '0.0 Hz  STOP'} pos={[x, ky + Math.min(h * 0.07, 0.022), z + 0.0043]} w={kw * 0.82} h={0.011} fg="#11261a" bg="#9fc4a6" />
+      </group>
+      <group ref={amps} visible={false}>
+        <HLabel text="11.6 A   37 °C" pos={[x, ky + Math.min(h * 0.07, 0.022), z + 0.0043]} w={kw * 0.82} h={0.011} fg="#11261a" bg="#9fc4a6" />
+      </group>
+      {[-1, 0, 1].map((c) => [0, 1].map((r) => (
+        <Box key={`${c}${r}`} size={[0.007, 0.0045, 0.002]} pos={[x + c * 0.011, ky - 0.002 - r * 0.0075, z + 0.0045]} color="#4b5563" round={0} />
+      )))}
+      <mesh position={[x - kw * 0.3, ky - Math.min(h * 0.11, 0.03), z + 0.0048]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.0042, 0.0042, 0.002, 18]} /><meshStandardMaterial color="#16a34a" roughness={0.4} /></mesh>
+      <mesh position={[x + kw * 0.3, ky - Math.min(h * 0.11, 0.03), z + 0.0048]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.0042, 0.0042, 0.002, 18]} /><meshStandardMaterial color="#c0392b" roughness={0.4} /></mesh>
+      <Led pos={[x + kw * 0.42, ky + Math.min(h * 0.12, 0.036), z + 0.0043]} color="#3ddc97" read={live.run} size={0.0022} halo={0.01} />
+      {/* warning label + terminal cover */}
+      <HLabel text="WAIT 5 MIN — DC BUS" pos={[x, -h * 0.02, z + 0.0006]} w={Math.min(w * 0.7, 0.07)} h={0.007} fg="#1a1a1a" bg="#f5c400" />
+      <Box size={[w * 0.9, h * 0.34, 0.003]} pos={[x, -h * 0.29, z + 0.0012]} color="#2a2f37" round={0.001} />
+      {[-0.3, 0, 0.3].map((k) => (
+        <mesh key={k} position={[x + k * w, -h / 2 - 0.0004, d * 0.55]} raycast={() => null}><cylinderGeometry args={[Math.min(0.009, w * 0.09), Math.min(0.009, w * 0.09), 0.001, 20]} /><meshStandardMaterial color="#0d1014" /></mesh>
+      ))}
+      {/* heatsink fins on both sides, toward the back */}
+      <Instances limit={fins * 2}>
+        <boxGeometry args={[0.006, h * 0.86, 0.0014]} />
+        <meshStandardMaterial color="#9aa3ad" metalness={0.75} roughness={0.35} />
+        {Array.from({ length: fins }, (_, k) => [-1, 1].map((sg) => <Instance key={`${k}${sg}`} position={[x + sg * (w / 2 + 0.003), 0, d * 0.08 + k * 0.006]} />))}
+      </Instances>
+    </group>
+  );
+}
+
+/** Safety relay front: power and channel LEDs, rotary dials. */
+function RelayFace({ x, w, h, z, live }: { x: number; w: number; h: number; z: number; live: HwLive }) {
+  const r = Math.min(w * 0.22, 0.0045);
+  return (
+    <group>
+      {[0, 1, 2, 3].map((k) => <Led key={k} pos={[x - w * 0.18, h / 2 - 0.028 - k * 0.006, z + 0.001]} color={k === 0 ? '#3ddc97' : '#3ddc97'} read={k === 0 ? live.power : live.run} size={0.0024} halo={0.01} />)}
+      {['PWR', 'CH1', 'CH2', 'OUT'].map((t, k) => <HLabel key={t} text={t} pos={[x + w * 0.14, h / 2 - 0.028 - k * 0.006, z + 0.0008]} w={Math.min(w * 0.45, 0.012)} h={0.0036} fg="#334155" bg="#e6e8ea" />)}
+      {[0, 1].map((k) => (
+        <group key={k} position={[x, -h * 0.08 - k * 0.014, z + 0.0015]}>
+          <mesh rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[r, r, 0.003, 20]} /><meshStandardMaterial color="#9aa3ad" metalness={0.5} roughness={0.4} /></mesh>
+          <Box size={[r * 1.6, 0.0007, 0.001]} pos={[0, 0, 0.0016]} color="#1f2630" round={0} />
+        </group>
+      ))}
     </group>
   );
 }

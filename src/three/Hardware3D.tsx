@@ -11,7 +11,7 @@ import { Icon } from '../components/Icon';
 import type { HwModel } from '../content/hardware';
 import { usePrefs } from '../state/prefs';
 import { HardwareModel, layoutShape, type HwLive } from './HardwareModel';
-import { disposeTextures } from './textures';
+import { retainTextures } from './textures';
 
 const now = () => performance.now();
 /** Deterministic "plant running" pattern: each input toggles on its own rhythm. */
@@ -73,7 +73,7 @@ export default function Hardware3D({ model, selected, onSelect }: { model: HwMod
   const coarse = useMemo(() => window.matchMedia?.('(pointer: coarse)').matches, []);
   const tier = quality === 'low' || quality === 'medium' || quality === 'high' ? quality : coarse ? 'medium' : 'high';
   const [dpr] = useState(() => Math.min(tier === 'high' ? 2 : tier === 'medium' ? 1.5 : 1, window.devicePixelRatio || 1));
-  useEffect(() => () => disposeTextures(), []);
+  useEffect(() => retainTextures(), []);
 
   const [view, setView] = useState<View>('angle');
   const [nonce, setNonce] = useState(0);

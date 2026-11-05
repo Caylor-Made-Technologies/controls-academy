@@ -4,7 +4,7 @@ import { HwFront } from '../../components/HwFront';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
 import { BRAND_GUIDES } from '../../content/brands';
-import { HARDWARE, HARDWARE_BY_ID, STATUS_TEXT, UNIT_INFO, type HwModel } from '../../content/hardware';
+import { CATEGORY_ONE, CATEGORY_TEXT, HARDWARE, HARDWARE_BY_ID, STATUS_TEXT, UNIT_INFO, categoryOf, type HwCategory, type HwModel } from '../../content/hardware';
 import { href } from '../../lib/router';
 import { SKINS } from '../../skins';
 import { usePrefs } from '../../state/prefs';
@@ -39,7 +39,10 @@ export function HardwareCard({ m }: { m: HwModel }) {
           <span className="block font-bold text-heading leading-snug">{m.name}</span>
           <span className="block text-sm text-muted">{m.role}</span>
         </span>
-        <StatusChip m={m} />
+        <span className="flex flex-col items-end gap-1 flex-none">
+          <StatusChip m={m} />
+          <span className="text-[0.66rem] font-bold uppercase tracking-wider text-muted">{CATEGORY_ONE[categoryOf(m)]}</span>
+        </span>
       </span>
     </a>
   );
@@ -49,16 +52,17 @@ export function HardwareLibrary() {
   const [brand, setBrand] = useState<string>('all');
   const [status, setStatus] = useState<'all' | HwModel['status']>('all');
   const [q, setQ] = useState('');
+  const [cat, setCat] = useState<'all' | HwCategory>('all');
   const brands = useMemo(() => BRAND_GUIDES.filter((b) => HARDWARE.some((m) => m.brand === b.id)), []);
   const needle = q.trim().toLowerCase();
-  const list = HARDWARE.filter((m) => (brand === 'all' || m.brand === brand) && (status === 'all' || m.status === status)
+  const list = HARDWARE.filter((m) => (brand === 'all' || m.brand === brand) && (status === 'all' || m.status === status) && (cat === 'all' || categoryOf(m) === cat)
     && (!needle || `${m.name} ${m.role} ${m.software} ${brandName(m.brand)} ${m.where}`.toLowerCase().includes(needle)));
   const groups = brands.filter((b) => list.some((m) => m.brand === b.id));
   return (
     <div>
       <Back to="reference" label="Reference" />
       <PageHead eyebrow="Reference" title="PLC hardware library">
-        {HARDWARE.length} PLC, remote I/O and logic-module families you commonly see in US plants, in 3D. Tap one to turn it around and learn what each module does.
+        {HARDWARE.length} PLCs, remote I/O, drives, HMIs, safety relays and building-automation controllers you commonly see in US plants and data centers, in 3D. Tap one to turn it around and learn what each part does.
       </PageHead>
       <div className="flex flex-wrap gap-2 items-center mb-2">
         <label className="relative flex-1 min-w-[12rem]">
@@ -71,6 +75,13 @@ export function HardwareLibrary() {
             <button key={st} type="button" aria-pressed={status === st} onClick={() => setStatus(st)}>{st === 'all' ? 'All' : st[0].toUpperCase() + st.slice(1)}</button>
           ))}
         </div>
+      </div>
+      <div className="flex gap-1.5 overflow-x-auto pb-2 mb-1 chip-scroll" role="group" aria-label="Filter by type">
+        {([['all', 'All types'], ...Object.entries(CATEGORY_TEXT)] as [string, string][]).map(([id, label]) => (
+          <button key={id} type="button" className="chip cursor-pointer !min-h-[44px] whitespace-nowrap" aria-pressed={cat === id} style={cat === id ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined} onClick={() => setCat(id as 'all' | HwCategory)}>
+            {label} <span className="text-muted font-semibold ml-0.5">{id === 'all' ? HARDWARE.length : HARDWARE.filter((m) => categoryOf(m) === id).length}</span>
+          </button>
+        ))}
       </div>
       <div className="flex gap-1.5 overflow-x-auto pb-2 mb-1 chip-scroll" role="group" aria-label="Filter by brand">
         {[{ id: 'all', name: 'All brands' }, ...brands].map((b) => (
@@ -106,6 +117,7 @@ export function HardwareDetail({ id }: { id: string }) {
   useEffect(() => { setSel(null); window.scrollTo?.(0, 0); }, [id]);
   if (!m) return <div><Back to="reference/hardware" label="Hardware library" /><p>Model not found.</p></div>;
   const unit = sel !== null ? m.shape.units[sel] : null;
+  const isPlc = categoryOf(m) === 'plc' || categoryOf(m) === 'logic';
   const inSim = hwModel === m.id && skin === m.skin;
   const kinds = [...new Set(m.shape.units.map((u) => u.kind))];
   const idx = HARDWARE.indexOf(m);
@@ -117,6 +129,7 @@ export function HardwareDetail({ id }: { id: string }) {
       <PageHead eyebrow={brandName(m.brand)} title={m.name}>{m.role}.</PageHead>
       <div className="flex flex-wrap gap-2 mb-3 items-center">
         <StatusChip m={m} />
+        <span className="chip !text-[0.68rem]">{CATEGORY_TEXT[categoryOf(m)]}</span>
         <span className="text-sm text-muted">{STATUS_TEXT[m.status]}</span>
       </div>
 
@@ -137,17 +150,19 @@ export function HardwareDetail({ id }: { id: string }) {
           <button type="button" className="btn btn-sm btn-ghost" onClick={() => setWant3d(!want3d)} aria-pressed={want3d}>
             <Icon name="layers" size={16} /> {want3d ? 'Show flat front view' : 'Show in 3D'}
           </button>
-          <button type="button" className="btn btn-sm" disabled={inSim} onClick={() => setPrefs({ hwModel: m.id, skin: m.skin })}>
-            <Icon name="sim" size={16} /> {inSim ? 'Shown in the simulator' : 'Use in the simulator'}
-          </button>
+          {isPlc && (
+            <button type="button" className="btn btn-sm" disabled={inSim} onClick={() => setPrefs({ hwModel: m.id, skin: m.skin })}>
+              <Icon name="sim" size={16} /> {inSim ? 'Shown in the simulator' : 'Use in the simulator'}
+            </button>
+          )}
           {inSim && <a className="btn btn-sm btn-ghost" href={href('sim')}>Open simulator <Icon name="chevron" size={16} /></a>}
         </div>
-        <p className="text-xs text-muted px-3 pb-2 m-0">Drag to turn, pinch to zoom, tap a module. Simplified generic look-alike: proportions are approximate, no logos. Simulator dialect: {SKINS[m.skin].brand}.</p>
+        <p className="text-xs text-muted px-3 pb-2 m-0">Drag to turn, pinch to zoom, tap a module. Simplified generic look-alike: proportions are approximate, no logos. {isPlc ? `Simulator dialect: ${SKINS[m.skin].brand}.` : `Type: ${CATEGORY_TEXT[categoryOf(m)]}.`}</p>
       </section>
 
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mb-3" aria-label="At a glance">
         {[
-          ['Mounting', m.shape.mount === 'din' ? 'DIN rail' : m.shape.mount === 'chassis' ? 'Chassis / rack' : 'Panel cut-out'],
+          ['Mounting', m.shape.mount === 'din' ? 'DIN rail' : m.shape.mount === 'chassis' ? 'Chassis / rack' : m.shape.mount === 'plate' ? 'Back plate' : 'Door cut-out'],
           ['Modules shown', String(m.shape.units.filter((u) => u.kind !== 'blank' && u.kind !== 'end').length)],
           ['I/O points shown', String(m.shape.units.reduce((n, u) => n + ioPoints(u), 0))],
           ['Height × depth', `≈ ${m.shape.h} × ${m.shape.d} mm`],

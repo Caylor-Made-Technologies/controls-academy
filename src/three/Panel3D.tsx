@@ -15,10 +15,12 @@ import { href } from '../lib/router';
 import { usePrefs } from '../state/prefs';
 import { SKINS } from '../skins';
 import { BRAND_GUIDES } from '../content/brands';
-import { DEFAULT_HW, HARDWARE, HARDWARE_BY_ID } from '../content/hardware';
+import { DEFAULT_HW, HARDWARE, categoryOf } from '../content/hardware';
+
+const SIM_HW = HARDWARE.filter((m) => categoryOf(m) === 'plc' || categoryOf(m) === 'logic');
 import { PARTS, TOURS, type PartId } from './info';
 import { PanelScene } from './PanelScene';
-import { disposeTextures } from './textures';
+import { retainTextures } from './textures';
 
 type Tier = 'low' | 'medium' | 'high';
 
@@ -58,7 +60,7 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
   const hwModel = usePrefs((s) => s.hwModel);
   const setPrefs = usePrefs((s) => s.setPrefs);
   const hwId = hwModel || DEFAULT_HW[skin.id];
-  const hw = HARDWARE_BY_ID[hwId] ?? null;
+  const hw = SIM_HW.find((m) => m.id === hwId) ?? null;
   const [tier, setTier] = useState<Tier>(() => tierFromPref(quality));
   const [dpr, setDpr] = useState(() => Math.min(tierFromPref(quality) === 'high' ? 2 : tierFromPref(quality) === 'medium' ? 1.5 : 1, window.devicePixelRatio || 1));
   const [selected, setSelected] = useState<PartId | null>(null);
@@ -69,9 +71,14 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
   const [tourId, setTourId] = useState<string>('overview');
   const [lost, setLost] = useState(false);
   const controls = useRef<OrbitControlsImpl | null>(null);
+  // Live motor readout for the HUD; rounded so steady running doesn't re-render every tick.
+  const readout = useSyncExternalStore(rt.subscribe, () => {
+    const st = rt.scene.state;
+    return st.rpm < 1 && st.amps < 0.05 ? 'Motor stopped' : `${Math.round(st.rpm / 5) * 5} rpm · ${st.amps.toFixed(st.amps < 10 ? 1 : 0)} A`;
+  });
   const spinning = useSyncExternalStore(rt.subscribe, () => rt.scene.state.rpm > 1 || Boolean(rt.plc.fault));
 
-  useEffect(() => () => disposeTextures(), []);
+  useEffect(() => retainTextures(), []);
   useEffect(() => { setTier(tierFromPref(quality)); }, [quality]);
 
   const animating = spinning || xray || Boolean(goal) || explode;
@@ -183,7 +190,7 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
             </button>
           ))}
         </div>
-        <div className="absolute bottom-2 left-2 right-2 flex gap-1.5 flex-wrap items-end">
+        <div className="absolute bottom-2 left-2 right-2 flex gap-1.5 items-end overflow-x-auto hud-row" role="toolbar" aria-label="3D tools">
           <button type="button" className="hud-chip" aria-pressed={xray} onClick={() => setXray(!xray)}><Icon name="bolt" size={14} /> X-ray current</button>
           <button type="button" className="hud-chip" aria-pressed={explode} onClick={() => { setExplode(!explode); if (!explode) fly('contactor'); }}><Icon name="layers" size={14} /> Explode contactor</button>
           <label className="hud-chip hud-platform">
@@ -191,14 +198,15 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
             <Icon name="sim" size={14} />
             <select className="hud-select" value={hw ? hw.id : 'generic'} onChange={(e) => setPrefs({ hwModel: e.target.value })} aria-label="PLC hardware shown in 3D">
               <option value="generic">Generic rack ({skin.family})</option>
-              {BRAND_GUIDES.filter((b) => HARDWARE.some((m) => m.brand === b.id)).map((b) => (
+              {BRAND_GUIDES.filter((b) => SIM_HW.some((m) => m.brand === b.id)).map((b) => (
                 <optgroup key={b.id} label={b.name}>
-                  {HARDWARE.filter((m) => m.brand === b.id).map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
+                  {SIM_HW.filter((m) => m.brand === b.id).map((m) => <option key={m.id} value={m.id}>{m.name}</option>)}
                 </optgroup>
               ))}
             </select>
           </label>
-          <span role="note" className="ml-auto hud-chip !cursor-default" aria-label={`3D quality ${tier}`}>{tier.toUpperCase()}</span>
+          <span role="status" className="ml-auto hud-chip !cursor-default tabular-nums" aria-live="off">{readout}</span>
+          <span role="note" className="hud-chip !cursor-default" aria-label={`3D quality ${tier}`}>{tier.toUpperCase()}</span>
         </div>
         {xray && (
           <div className="absolute top-12 right-2 hud-legend text-[0.68rem] space-y-0.5" role="note" aria-label="Current flow legend">

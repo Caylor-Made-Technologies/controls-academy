@@ -8,7 +8,7 @@ import { OP_LIST, type OpCategory } from '../../engine/ops';
 import { href, queryParam } from '../../lib/router';
 import { SKINS, SKIN_LIST, mnemonic } from '../../skins';
 import { usePrefs } from '../../state/prefs';
-import { HARDWARE } from '../../content/hardware';
+import { HARDWARE, categoryOf } from '../../content/hardware';
 import { HardwareCard, HardwareDetail, HardwareLibrary } from './HardwarePages';
 import { HwFront } from '../../components/HwFront';
 
@@ -33,9 +33,9 @@ export default function ReferencePage({ section, item }: { section?: string; ite
   return (
     <div>
       <PageHead eyebrow="Reference" title="Field reference">Quick answers for the plant floor. Everything works offline.</PageHead>
-      <a href={href('reference/hardware')} className="card card-link hw-card mb-3 block overflow-hidden" aria-label={`PLC hardware library: ${HARDWARE.length} PLC and I/O families you see in US plants, as 3D models`}>
+      <a href={href('reference/hardware')} className="card card-link hw-card mb-3 block overflow-hidden" aria-label={`PLC hardware library: ${HARDWARE.length} 3D models of hardware you see in US plants`}>
         <span className="grid grid-cols-3 gap-1.5 p-2 hw-thumb">
-          {['controllogix', 's7-1200', 'click'].map((id) => {
+          {['controllogix', 'powerflex-525', 's7-1200'].map((id) => {
             const m = HARDWARE.find((x) => x.id === id);
             return m ? <HwFront key={id} model={m} className="block w-full h-16 sm:h-24 hw-thumb-svg" title="" /> : null;
           })}
@@ -44,7 +44,7 @@ export default function ReferencePage({ section, item }: { section?: string; ite
           <span className="flex-1">
             <span className="block eyebrow">New · 3D</span>
             <span className="block font-bold text-heading text-lg">PLC hardware library</span>
-            <span className="block text-sm text-muted">{HARDWARE.length} PLC, remote I/O and logic-module families from {new Set(HARDWARE.map((m) => m.brand)).size} brands you see in US plants. Turn them, spread the modules, use any of them in the simulator.</span>
+            <span className="block text-sm text-muted">{HARDWARE.length} PLCs, drives, HMIs, safety relays, remote I/O and building controllers from {new Set(HARDWARE.map((m) => m.brand)).size} brands you see in US plants and data centers. Turn them, spread the modules, put a PLC in the simulator.</span>
           </span>
           <Icon name="chevron" className="text-glow flex-none" />
         </span>
@@ -106,9 +106,11 @@ function BrandGuide({ id }: { id: string }) {
       <Back to="reference/brands" label="Brands" />
       <PageHead eyebrow="Brand field guide" title={b.name}>{b.us && <Rich text={b.us} />}</PageHead>
       <div className="flex flex-wrap gap-2 mb-4">
-        <button type="button" className="btn btn-sm" disabled={skin === b.skin} onClick={() => setPrefs({ skin: b.skin, hwModel: '' })}>
+{models.some((m) => ['plc', 'logic'].includes(categoryOf(m))) && (
+                  <button type="button" className="btn btn-sm" disabled={skin === b.skin} onClick={() => setPrefs({ skin: b.skin, hwModel: '' })}>
           <Icon name="sim" size={16} /> {skin === b.skin ? `Simulator uses ${SKINS[b.skin].brand}` : `Use ${SKINS[b.skin].brand} skin in the simulator`}
         </button>
+        )}
       </div>
       <div className="grid gap-3 lg:grid-cols-2">
         <section className="card card-pad">

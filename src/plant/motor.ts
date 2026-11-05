@@ -30,14 +30,74 @@ export interface MotorState {
   amps: number;
   /** Mechanical load is jammed (fault injection or "jam it" button). */
   jammed: boolean;
+  /** Motor (electromagnetic) torque and load torque, N·m. */
+  torque: number;
+  loadTorque: number;
+  /** Slip 0…1 (1 = locked rotor). */
+  slip: number;
+  /** Line voltage seen at the motor terminals, 0…1 of nameplate (dips during inrush). */
+  volts: number;
 }
 
-export const MOTOR_FLA = 14; // amps, a typical small 480 V motor nameplate value (illustrative)
+export const MOTOR_FLA = 14; // amps, a typical 10 HP 460 V motor nameplate value (illustrative)
 export const MOTOR_RPM = 1770;
+/** Synchronous speed of a 4-pole motor on 60 Hz. */
+export const MOTOR_SYNC_RPM = 1800;
+/** Rated (full-load) torque: 10 HP at 1770 rpm ≈ 40 N·m. */
+export const MOTOR_T_RATED = (7457 / (MOTOR_RPM * 2 * Math.PI / 60));
+/** Motor + coupled load inertia, kg·m² (illustrative small conveyor). */
+export const INERTIA = 0.22;
+
+const SR = 1 - MOTOR_RPM / MOTOR_SYNC_RPM; // rated slip ≈ 1.7 %
+
+/**
+ * Illustrative NEMA design B–like torque–speed curve, per-unit of rated torque.
+ * Kloss's formula gives the breakdown hump near low slip; a deep-bar term lifts starting torque.
+ * Locked rotor ≈ 1.5×, breakdown ≈ 2.5×, 1.0× at rated slip.
+ */
+export function torquePU(slip: number): number {
+  const s = Math.max(1e-5, Math.min(1, slip));
+  const sk = 0.085;
+  const tb = 2.4;
+  const kloss = (2 * tb) / (s / sk + sk / s);
+  const k = 1 / ((2 * tb) / (SR / sk + sk / SR) + 1.05 * SR); // normalize so T(SR) = 1
+  return (kloss + 1.05 * s) * k;
+}
+
+/**
+ * Line current per-unit of FLA from a simplified equivalent circuit: rotor branch that depends on
+ * slip, plus a magnetizing current in quadrature. ≈ 6× at locked rotor, ≈ 1× at rated, ≈ 0.37× no-load.
+ */
+export function currentPU(slip: number): number {
+  const s = Math.max(1e-5, Math.min(1, slip));
+  const a = 0.01753;
+  const b = 0.1659;
+  const ir = 1 / Math.sqrt((a / s) ** 2 + b * b);
+  return Math.sqrt(ir * ir + 0.35 * 0.35);
+}
+
+/** Load torque, N·m: breakaway friction plus a conveyor-like load that rises a little with speed. */
+export function loadTorque(rpm: number, jammed: boolean): number {
+  const n = Math.max(0, rpm) / MOTOR_RPM;
+  if (jammed) return MOTOR_T_RATED * 3.2; // more than breakdown torque: the motor stalls
+  const breakaway = rpm < 5 ? 0.25 : 0.08;
+  return MOTOR_T_RATED * (breakaway + 0.55 + 0.12 * n * n);
+}
+
+/**
+ * Overload thermal model (illustrative Class 10): heat θ follows I² with a time constant, and trips at
+ * 1.15² × FLA² (service-factor pickup). From cold, 600 % current trips in about 5 s.
+ */
+export const OL_TAU_HEAT = 134;
+export const OL_TAU_COOL = 28;
+export const OL_TRIP = 1.15 * 1.15;
+/** The relay can be reset only once it has cooled below this fraction of the trip level. */
+export const OL_RESET_BELOW = 0.8;
 
 const fresh = (): MotorState => ({
   startPressed: false, stopPressed: false, resetPressed: false, estopIn: false,
   olTripped: false, olHeat: 0, contactor: false, pull: 0, rpm: 0, amps: 0, jammed: false,
+  torque: 0, loadTorque: 0, slip: 1, volts: 1,
 });
 
 export function motorProgram(): Program {
@@ -132,6 +192,12 @@ export function createMotorScene(): PlantScene<MotorState> {
       scene.state = fresh();
       scene.activeFault = null;
     },
+    resetOverload() {
+      const st = scene.state;
+      if (!st.olTripped || st.olHeat > OL_RESET_BELOW) return false;
+      st.olTripped = false;
+      return true;
+    },
     step(dtMs, io) {
       const s = scene.state;
       const f = scene.activeFault;
@@ -153,25 +219,42 @@ export function createMotorScene(): PlantScene<MotorState> {
       s.pull = Math.max(0, Math.min(1, s.pull + (coilWorks ? dt / 0.03 : -dt / 0.02)));
       s.contactor = s.pull >= 1 ? true : s.pull <= 0 ? false : s.contactor;
 
-      // ---- Motor mechanics and current ----
-      const target = s.contactor ? (s.jammed ? 0 : MOTOR_RPM) : 0;
-      const tau = s.contactor ? 0.45 : 1.6; // spins up faster than it coasts down
-      s.rpm += (target - s.rpm) * Math.min(1, dt / tau);
-      if (s.rpm < 1) s.rpm = 0;
-      if (s.contactor) {
-        // Current falls from ~6× FLA (locked rotor) to ~0.8 FLA as speed comes up.
-        const slip = 1 - s.rpm / MOTOR_RPM;
-        s.amps = MOTOR_FLA * (0.8 + 5.2 * Math.pow(slip, 1.5));
-      } else s.amps = 0;
+      // ---- Motor mechanics: J·dω/dt = T_motor(slip) − T_load(ω), integrated in 1 ms substeps ----
+      const steps = Math.max(1, Math.ceil(dtMs / 1));
+      const h = dt / steps;
+      const wSync = (MOTOR_SYNC_RPM * 2 * Math.PI) / 60;
+      let w = (s.rpm * 2 * Math.PI) / 60;
+      let te = 0;
+      let tl = 0;
+      for (let k = 0; k < steps; k++) {
+        const slip = 1 - w / wSync;
+        // Inrush pulls the supply down a little; torque goes with V².
+        const v = s.contactor ? 1 - 0.06 * Math.min(1, currentPU(slip) / 6) : 0;
+        te = s.contactor ? torquePU(slip) * MOTOR_T_RATED * v * v : 0;
+        tl = loadTorque((w * 60) / (2 * Math.PI), s.jammed);
+        // Friction holds a stopped shaft: no motion until motor torque beats breakaway.
+        let net = te - tl;
+        if (w <= 0 && net < 0) net = 0;
+        w = Math.max(0, Math.min(wSync, w + (net / INERTIA) * h));
+        s.volts = v || 1;
+      }
+      s.rpm = (w * 60) / (2 * Math.PI);
+      if (s.rpm < 0.5) s.rpm = 0;
+      s.slip = 1 - s.rpm / MOTOR_SYNC_RPM;
+      s.torque = te;
+      s.loadTorque = tl;
+      s.amps = s.contactor ? MOTOR_FLA * currentPU(s.slip) * s.volts : 0;
 
-      // ---- Overload: simple I²t thermal model, roughly a "Class 10" feel (illustrative) ----
+      // ---- Overload: thermal memory follows I², trips at the pickup level, cools when current is low ----
       const ratio = s.amps / MOTOR_FLA;
-      const heatIn = ratio > 1.15 ? (ratio * ratio - 1) / 60 : 0;
-      const coolOut = 0.02;
-      s.olHeat = Math.max(0, s.olHeat + (heatIn - (heatIn ? 0 : coolOut)) * dt);
+      const th = s.olHeat * OL_TRIP;
+      const target2 = ratio * ratio;
+      const tau = target2 > th ? OL_TAU_HEAT : OL_TAU_COOL;
+      const next = th + (target2 - th) * Math.min(1, dt / tau);
+      s.olHeat = Math.max(0, next / OL_TRIP);
       if (s.olHeat >= 1) s.olTripped = true;
     },
-    meterPoints(io) {
+        meterPoints(io) {
       const s = scene.state;
       const f = scene.activeFault;
       const ctrl = f !== 'fuse';

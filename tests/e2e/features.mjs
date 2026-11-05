@@ -14,8 +14,10 @@ let fail = 0;
 const errors = [];
 const ONLY = process.env.ONLY ? new RegExp(process.env.ONLY, 'i') : null;
 let lastPage = null;
+const contexts = [];
 async function check(name, fn) {
   if (ONLY && !ONLY.test(name)) return;
+  const opened = contexts.length;
   try {
     await fn();
     pass++;
@@ -23,6 +25,8 @@ async function check(name, fn) {
   } catch (e) {
     fail++;
     try { await lastPage?.screenshot({ path: `test-results/fail-${fail}.png` }); } catch { /* page gone */ }
+    // Close any browser contexts this check opened, so one failure can't slow down the rest of the run.
+    for (const c of contexts.splice(opened)) await c.close().catch(() => {});
     console.log('✗', name, `[test-results/fail-${fail}.png]`, '—', process.env.VERBOSE ? String(e.message ?? e).slice(0, 1500) : String(e.message ?? e).split('\n')[0].slice(0, 220));
   }
 }
@@ -37,6 +41,7 @@ async function newPage({ prefs = { onboarded: true }, progress, w = 1280, h = 90
     if (pr) localStorage.setItem('ca:prefs', JSON.stringify(pr));
     if (pg) localStorage.setItem('ca:progress', JSON.stringify(pg));
   }, [prefs, progress]);
+  contexts.push(ctx);
   const page = await ctx.newPage();
   lastPage = page;
   page.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errors.push(`${page.url().split('#')[1] ?? ''}: ${m.text()}`); });
@@ -236,6 +241,7 @@ await check('Task capstone-build: write start/stop from a blank rung in the edit
   for (const t of ['Stop_PB', 'EStop_OK', 'OL_OK']) await add(t);
   await press(page, 'Start');
   await page.getByRole('img', { name: 'Running light on' }).waitFor({ timeout: 6000 });
+  await page.waitForTimeout(600); // let the motor come up to speed (real inertia now)
   await press(page, 'Stop');
   await taskDone(page);
   await ctx.close();
@@ -268,7 +274,10 @@ await check('Task capstone-build: write start/stop from a blank rung in the edit
     await page.getByText('OL tripped').waitFor({ timeout: 20000 });
     await page.getByRole('img', { name: 'Fault light on' }).waitFor();
     await page.getByRole('button', { name: 'Clear the jam' }).click();
-    await page.getByRole('button', { name: 'Reset overload' }).click();
+    // A thermal overload has to cool before it will reset.
+    await page.getByRole('button', { name: /Cooling — reset in/ }).waitFor();
+    expect(await page.getByRole('button', { name: /Cooling — reset in/ }).isDisabled(), 'reset blocked while hot');
+    await page.getByRole('button', { name: 'Reset overload', exact: true }).click({ timeout: 30000 });
     await page.getByText('OL tripped').waitFor({ state: 'detached' });
   });
   await check2('Sim: Slow-mo and Step modes, scan pointer', async () => {
@@ -513,11 +522,11 @@ await check('Reference: 8 brand guides, skin button, instructions filter, glossa
   await ctx.close();
 });
 
-await check('Reference: 17 brand guides with US notes; hardware library lists every model with a front view', async () => {
+await check('Reference: 25 brand guides with US notes; hardware library lists every model with a front view', async () => {
   const { ctx, page } = await newPage();
   await go(page, 'reference/brands');
-  expect((await page.locator('a[href*="reference/brand/"]').count()) === 17, 'brand count');
-  for (const id of ['idec', 'unitronics', 'wago', 'phoenix', 'eaton', 'keyence', 'opto22', 'delta', 'bnr']) {
+  expect((await page.locator('a[href*="reference/brand/"]').count()) === 25, 'brand count');
+  for (const id of ['idec', 'unitronics', 'wago', 'phoenix', 'eaton', 'keyence', 'opto22', 'delta', 'bnr', 'yaskawa', 'abb', 'danfoss', 'redlion', 'pilz', 'tridium', 'jci', 'honeywell']) {
     await go(page, `reference/brand/${id}`);
     await page.getByRole('heading', { name: 'Common models in 3D' }).waitFor();
   }
@@ -529,11 +538,14 @@ await check('Reference: 17 brand guides with US notes; hardware library lists ev
   expect(n >= 45, `hardware count ${n}`);
   expect((await page.locator('a[href*="reference/hw/"] svg').count()) === n, 'every card has a front view');
   await page.getByRole('button', { name: 'Siemens', exact: true }).click();
-  expect((await page.locator('a[href*="reference/hw/"]').count()) === 6, 'siemens filter');
+  expect((await page.locator('a[href*="reference/hw/"]').count()) === 12, 'siemens filter');
   await page.getByRole('button', { name: 'All brands' }).click();
   await page.getByRole('button', { name: 'Legacy', exact: true }).click();
-  expect((await page.locator('a[href*="reference/hw/"]').count()) === 7, 'legacy filter');
+  expect((await page.locator('a[href*="reference/hw/"]').count()) === 13, 'legacy filter');
   await page.getByRole('button', { name: 'All', exact: true }).click();
+  await page.getByRole('button', { name: /^Drives \(VFDs\)/ }).click();
+  expect((await page.locator('a[href*="reference/hw/"]').count()) === 19, 'drive filter');
+  await page.getByRole('button', { name: /^All types/ }).click();
   await page.getByLabel('Search hardware').fill('1756');
   expect((await page.locator('a[href*="reference/hw/"]').count()) === 2, 'search 1756');
   await ctx.close();

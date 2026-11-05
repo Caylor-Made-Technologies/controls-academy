@@ -113,6 +113,23 @@ export function floorTexture(): Texture {
   return t;
 }
 
+let users = 0;
+/**
+ * The texture cache is shared by every 3D view. A view calls this when it mounts and the returned
+ * function when it unmounts; textures are freed only when the last view is gone. (A page transition
+ * mounts the next view before the previous one unmounts, so freeing on every unmount blanked labels.)
+ */
+export function retainTextures(): () => void {
+  users++;
+  let released = false;
+  return () => {
+    if (released) return;
+    released = true;
+    users = Math.max(0, users - 1);
+    if (users === 0) disposeTextures();
+  };
+}
+
 export function disposeTextures() {
   for (const t of cache.values()) t.dispose();
   cache.clear();
@@ -144,5 +161,89 @@ export function doorLabelTexture(): Texture {
   const t = new CanvasTexture(c);
   t.colorSpace = SRGBColorSpace;
   cache.set('doorlabel', t);
+  return t;
+}
+
+/** A generic HMI overview screen (original artwork): header, status tiles, a level bar and an alarm banner. */
+export function hmiTexture(aspect: number): Texture {
+  const key = `hmi${aspect.toFixed(2)}`;
+  const hit = cache.get(key);
+  if (hit) return hit;
+  const W = 512;
+  const H = Math.round(W / aspect);
+  const c = document.createElement('canvas');
+  c.width = W;
+  c.height = H;
+  const g = c.getContext('2d')!;
+  const font = (px: number, w = 700) => `${w} ${px}px Inter, system-ui, sans-serif`;
+  g.fillStyle = '#0d1622';
+  g.fillRect(0, 0, W, H);
+  g.fillStyle = '#16324f';
+  g.fillRect(0, 0, W, H * 0.12);
+  g.fillStyle = '#dbe8ff';
+  g.font = font(H * 0.06);
+  g.textBaseline = 'middle';
+  g.fillText('LINE 1 — OVERVIEW', 14, H * 0.06);
+  g.textAlign = 'right';
+  g.fillText('07:42', W - 14, H * 0.06);
+  g.textAlign = 'left';
+  const tile = (x: number, y: number, w: number, h: number, title: string, state: string, color: string) => {
+    g.fillStyle = '#132236';
+    g.beginPath();
+    g.roundRect(x, y, w, h, 10);
+    g.fill();
+    g.fillStyle = color;
+    g.beginPath();
+    g.arc(x + 20, y + h / 2, Math.min(10, h * 0.16), 0, Math.PI * 2);
+    g.fill();
+    g.fillStyle = '#e8f1ff';
+    g.font = font(h * 0.22);
+    g.fillText(title, x + 40, y + h * 0.36);
+    g.fillStyle = color;
+    g.font = font(h * 0.2, 800);
+    g.fillText(state, x + 40, y + h * 0.68);
+  };
+  const th = H * 0.2;
+  tile(12, H * 0.16, W * 0.46, th, 'CONVEYOR 1', 'RUNNING', '#3ddc97');
+  tile(W * 0.52, H * 0.16, W * 0.46, th, 'PUMP 2', 'STOPPED', '#94a3b8');
+  tile(12, H * 0.4, W * 0.46, th, 'MIXER', 'RUNNING', '#3ddc97');
+  // level bar
+  const bx = W * 0.52;
+  const by = H * 0.4;
+  g.fillStyle = '#132236';
+  g.beginPath();
+  g.roundRect(bx, by, W * 0.46, th, 10);
+  g.fill();
+  g.fillStyle = '#e8f1ff';
+  g.font = font(th * 0.22);
+  g.fillText('TANK LEVEL  62 %', bx + 14, by + th * 0.3);
+  g.fillStyle = '#0b1420';
+  g.fillRect(bx + 14, by + th * 0.55, W * 0.46 - 28, th * 0.25);
+  g.fillStyle = '#22d3ee';
+  g.fillRect(bx + 14, by + th * 0.55, (W * 0.46 - 28) * 0.62, th * 0.25);
+  // alarm banner
+  g.fillStyle = '#5a3d0c';
+  g.fillRect(0, H * 0.66, W, H * 0.12);
+  g.fillStyle = '#ffb547';
+  g.font = font(H * 0.055, 800);
+  g.fillText('ALARM  Low air pressure — press ACK', 14, H * 0.72);
+  // buttons
+  ['START', 'STOP', 'RESET', 'ALARMS'].forEach((b, i) => {
+    const w = (W - 60) / 4;
+    const x = 12 + i * (w + 12);
+    g.fillStyle = i === 1 ? '#7a1f1f' : i === 0 ? '#145c3e' : '#173253';
+    g.beginPath();
+    g.roundRect(x, H * 0.82, w, H * 0.13, 8);
+    g.fill();
+    g.fillStyle = '#e8f1ff';
+    g.font = font(H * 0.05, 800);
+    g.textAlign = 'center';
+    g.fillText(b, x + w / 2, H * 0.885);
+    g.textAlign = 'left';
+  });
+  const t = new CanvasTexture(c);
+  t.colorSpace = SRGBColorSpace;
+  t.anisotropy = 4;
+  cache.set(key, t);
   return t;
 }

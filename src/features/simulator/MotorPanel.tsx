@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Icon } from '../../components/Icon';
-import { MOTOR_DEVICES, MOTOR_FLA, MOTOR_RPM } from '../../plant/motor';
+import { MOTOR_DEVICES, MOTOR_FLA, MOTOR_RPM, MOTOR_SYNC_RPM, MOTOR_T_RATED, OL_RESET_BELOW, OL_TAU_COOL, currentPU, loadTorque, torquePU, type MotorState } from '../../plant/motor';
+import { useMemo } from 'react';
 import { buzz, sfx } from '../../lib/sound';
 import type { SimRuntime } from './runtime';
 
@@ -156,11 +157,20 @@ export function MotorPanel({ rt, onDevice, compact }: { rt: SimRuntime; onDevice
           <button type="button" className="btn btn-sm" aria-pressed={s.jammed} onClick={() => set({ jammed: !s.jammed })}>
             <Icon name="warn" size={16} /> {s.jammed ? 'Clear the jam' : 'Jam the load'}
           </button>
-          <button type="button" className="btn btn-sm" disabled={!s.olTripped} onClick={() => set({ olTripped: false, olHeat: Math.min(s.olHeat, 0.6) })}>
-            <Icon name="reset" size={16} /> Reset overload
-          </button>
+          {(() => {
+            const hot = s.olTripped && s.olHeat > OL_RESET_BELOW;
+            // Time for the thermal memory to fall to the reset level at zero current.
+            const wait = hot ? Math.ceil(OL_TAU_COOL * Math.log(s.olHeat / OL_RESET_BELOW)) : 0;
+            return (
+              <button type="button" className="btn btn-sm" disabled={!s.olTripped || hot} onClick={() => { rt.scene.resetOverload?.(); force((x) => x + 1); rt.notify(); }}>
+                <Icon name="reset" size={16} /> {hot ? `Cooling — reset in ${wait} s` : 'Reset overload'}
+              </button>
+            );
+          })()}
         </div>
       )}
+
+      <MotorCurve s={s} open={!compact} />
 
       <IoCards rt={rt} onDevice={onDevice} />
       <p className="sr-only" aria-live="polite">{s.contactor ? 'Motor running' : 'Motor stopped'}. {s.olTripped ? 'Overload tripped.' : ''}</p>
@@ -204,5 +214,80 @@ export function IoCards({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: stri
       {row('DI', ins)}
       {row('DO', outs)}
     </div>
+  );
+}
+
+/**
+ * Live torque–speed chart: the motor's curve, the load's curve, and the operating point moving
+ * along them as the motor starts, runs, jams or coasts. Shows why a jam stalls the motor.
+ */
+function MotorCurve({ s, open }: { s: MotorState; open: boolean }) {
+  const W = 300;
+  const H = 150;
+  const pad = { l: 30, r: 10, t: 10, b: 24 };
+  const TMAX = 3.4;
+  const x = (rpm: number) => pad.l + (rpm / MOTOR_SYNC_RPM) * (W - pad.l - pad.r);
+  const y = (pu: number) => H - pad.b - (Math.min(TMAX, pu) / TMAX) * (H - pad.t - pad.b);
+  const curves = useMemo(() => {
+    const motor: string[] = [];
+    const amps: string[] = [];
+    const load: string[] = [];
+    for (let i = 0; i <= 90; i++) {
+      const rpm = (i / 90) * MOTOR_SYNC_RPM;
+      const slip = 1 - rpm / MOTOR_SYNC_RPM;
+      motor.push(`${x(rpm).toFixed(1)},${y(torquePU(slip)).toFixed(1)}`);
+      amps.push(`${x(rpm).toFixed(1)},${y((currentPU(slip) / 6.5) * TMAX).toFixed(1)}`);
+      load.push(`${x(rpm).toFixed(1)},${y(loadTorque(rpm, false) / MOTOR_T_RATED).toFixed(1)}`);
+    }
+    return { motor: motor.join(' '), amps: amps.join(' '), load: load.join(' ') };
+    // the curves depend only on constants
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+  const tPU = s.torque / MOTOR_T_RATED;
+  const lPU = s.loadTorque / MOTOR_T_RATED;
+  const running = s.contactor;
+  const pt = { cx: x(s.rpm), cy: y(running ? tPU : lPU) };
+  const read = [
+    ['Speed', `${Math.round(s.rpm)} rpm`],
+    ['Slip', running ? `${(s.slip * 100).toFixed(1)} %` : '—'],
+    ['Torque', running ? `${Math.round(s.torque)} N·m (${Math.round(tPU * 100)} %)` : '0'],
+    ['Current', `${s.amps.toFixed(1)} A (${(s.amps / MOTOR_FLA).toFixed(1)}× FLA)`],
+  ];
+  return (
+    <details className="rounded-xl border border-line bg-sunk p-3 group" open={open}>
+      <summary className="cursor-pointer font-bold text-sm text-heading flex items-center justify-between min-h-[32px]">
+        Motor physics <span className="text-xs text-muted font-semibold">torque vs speed · live</span>
+      </summary>
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2" role="group" aria-label="Live motor readings">
+        {read.map(([k, v]) => (
+          <div key={k} className="rounded-lg border border-line px-2 py-1.5 bg-raised">
+            <span className="block text-[0.62rem] uppercase tracking-wider text-muted font-bold">{k}</span>
+            <span className="block text-sm font-bold text-heading tabular-nums">{v}</span>
+          </div>
+        ))}
+      </div>
+      <svg viewBox={`0 0 ${W} ${H}`} className="w-full h-auto mt-2" role="img" aria-label={`Torque-speed chart. Motor at ${Math.round(s.rpm)} rpm, motor torque ${Math.round(tPU * 100)} percent of rated, load ${Math.round(lPU * 100)} percent.${s.jammed ? ' Load is jammed: load torque is above the motor curve, so it stalls.' : ''}`}>
+        {[0, 1, 2, 3].map((t) => (
+          <g key={t}>
+            <line x1={pad.l} x2={W - pad.r} y1={y(t)} y2={y(t)} stroke="var(--border)" strokeWidth="0.6" />
+            <text x={pad.l - 4} y={y(t) + 3} fontSize="8" textAnchor="end" fill="var(--text-muted)">{t * 100}%</text>
+          </g>
+        ))}
+        {[0, 600, 1200, 1800].map((r) => <text key={r} x={x(r)} y={H - 8} fontSize="8" textAnchor="middle" fill="var(--text-muted)">{r}</text>)}
+        <text x={W - pad.r} y={H - 1} fontSize="7.5" textAnchor="end" fill="var(--text-muted)">rpm</text>
+        <polyline points={curves.amps} fill="none" stroke="var(--warn)" strokeWidth="1.2" strokeDasharray="2 3" opacity="0.75" />
+        <polyline points={curves.motor} fill="none" stroke="var(--blue-glow)" strokeWidth="2" strokeLinejoin="round" />
+        {s.jammed
+          ? <line x1={pad.l} x2={W - pad.r} y1={y(3.2)} y2={y(3.2)} stroke="var(--alarm)" strokeWidth="1.6" strokeDasharray="5 3" />
+          : <polyline points={curves.load} fill="none" stroke="var(--text-muted)" strokeWidth="1.4" strokeDasharray="5 3" />}
+        <circle cx={pt.cx} cy={pt.cy} r="5" fill={s.jammed && running ? 'var(--alarm)' : running ? 'var(--live)' : 'var(--text-muted)'} stroke="var(--bg)" strokeWidth="1.5" />
+      </svg>
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[0.7rem] text-muted mt-1">
+        <span><span className="inline-block w-3 h-0.5 align-middle mr-1" style={{ background: 'var(--blue-glow)' }} />Motor torque</span>
+        <span><span className="inline-block w-3 h-0.5 align-middle mr-1" style={{ background: s.jammed ? 'var(--alarm)' : 'var(--text-muted)' }} />Load torque{s.jammed ? ' (jammed)' : ''}</span>
+        <span><span className="inline-block w-3 h-0.5 align-middle mr-1" style={{ background: 'var(--warn)' }} />Current (0–6.5× FLA)</span>
+      </div>
+      <p className="text-[0.72rem] text-muted mt-1.5 mb-0">Where the two curves cross is where the motor settles. Starting current is about 6× nameplate; it falls as speed comes up. Jam the load and the load line rises above the motor curve: it can't accelerate, current stays high, and the overload trips. Illustrative design B–like curve, not a specific motor.</p>
+    </details>
   );
 }

@@ -59,3 +59,12 @@ All in `src/content/hardware.ts` and `src/content/brands.ts`. The 3D shapes are 
 - Delta DVP octal X/Y, software names (ISPSoft/WPLSoft/DIADesigner), EtherNet/IP.
 - B&R Automation Studio version matching.
 - Rockwell HMI product names (PanelView / Optix); Schneider HMI names; Emerson SCADA product ownership; AutomationDirect EtherNet/IP per model.
+
+## Added 0.5.0
+- Motor model constants are illustrative (10 HP / 460 V / 14 A FLA / 1770 rpm, J = 0.22 kg·m², NEMA B–like curve, Class 10 thermal with τ heat 134 s / cool 28 s, reset below 80 %). Not a specific motor or relay; real overload reset rules vary by device.
+- Drive details: parameter naming per Yaskawa/ABB/Danfoss model, Yaskawa fault code examples, DriveWizard Mobile, ABB/Danfoss built-in BACnet, Danfoss multiple set-ups, PowerFlex 4/40 and MICROMASTER lifecycle, Eaton and Delta software names, Altivar web server.
+- HMI software names (FactoryTalk View ME vs Optix on PanelView Plus 7; Harmony tool names).
+- Safety relays: Pilz terminal names and reset configuration per model; Guardmaster rotary function switch and configuration software.
+- Building automation: JACE 8000/9000 names and expansion; Metasys engine/controller names, CCT, command priority behavior; Honeywell WEBs/EBI/Excel; Desigo PXC tools and I/O; SmartX tool name; Niagara SNMP.
+- PLCs: MicroLogix 1500 processor/base split and ports; CompactLogix 5480 layout; S7-200 mode switch; FX2N front cover details.
+- Red Lion protocol list per model; Keyence/Opto 22 items from 0.4.0 still open.

@@ -31,7 +31,7 @@ describe('hardware library', () => {
         expect(u.w, m.id).toBeGreaterThan(0);
         expect(UNIT_INFO[u.kind], `${m.id} ${u.kind}`).toBeTruthy();
       }
-      expect(shape.units.some((u) => ['cpu', 'safety', 'brick', 'logic', 'coupler', 'hmi', 'pc'].includes(u.kind)), m.id).toBe(true);
+      expect(shape.units.some((u) => ['cpu', 'safety', 'brick', 'logic', 'coupler', 'hmi', 'pc', 'drive', 'relay', 'bas'].includes(u.kind)), m.id).toBe(true);
       expect(SKINS[m.skin], m.id).toBeTruthy();
       expect(m.spot.length, m.id).toBeGreaterThan(0);
     }
@@ -50,5 +50,19 @@ describe('hardware library', () => {
       const i = t.indexOf('// VERIFY');
       if (i >= 0) expect(t.slice(i).includes('.'), t).toBe(false);
     }
+  });
+});
+
+import { CATEGORY_TEXT, categoryOf } from '../../src/content/hardware';
+describe('hardware categories', () => {
+  it('covers PLCs, remote I/O, drives, HMIs, safety relays, building automation and logic modules', () => {
+    const cats = new Set(HARDWARE.map(categoryOf));
+    for (const c of Object.keys(CATEGORY_TEXT)) expect(cats.has(c as never), c).toBe(true);
+    expect(categoryOf(HARDWARE_BY_ID.unitronics)).toBe('plc');
+    expect(categoryOf(HARDWARE_BY_ID['powerflex-525'])).toBe('drive');
+    expect(categoryOf(HARDWARE_BY_ID['point-io'])).toBe('io');
+  });
+  it('the simulator default for every dialect is a PLC', () => {
+    for (const id of Object.values(DEFAULT_HW)) if (id !== 'generic') expect(categoryOf(HARDWARE_BY_ID[id])).toBe('plc');
   });
 });

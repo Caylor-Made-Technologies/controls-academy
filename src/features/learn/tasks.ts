@@ -42,7 +42,7 @@ export function createChecker(task: SimTask): (rt: SimRuntime) => boolean {
         return read('Part_Ctr.DN') && Boolean(plc.fieldDO[1]);
       case 'build-start-stop':
         // Pass only after the learner's own rung seals in, then Stop drops it out.
-        if (s.contactor && !s.startPressed && s.rpm > 500 && read('Motor_Run')) sealed = true;
+        if (s.contactor && !s.startPressed && s.rpm > 100 && read('Motor_Run')) sealed = true;
         if (sealed && s.stopPressed) stopSeen = true;
         return sealed && stopSeen && !s.contactor && !read('Motor_Run');
       case 'latch-reset':

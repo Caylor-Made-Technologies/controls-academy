@@ -10,7 +10,8 @@
 import type { SkinId } from '../skins';
 
 export type UnitKind =
-  | 'psu' | 'cpu' | 'safety' | 'di' | 'do' | 'ai' | 'ao' | 'comm' | 'coupler' | 'blank' | 'end' | 'brick' | 'logic' | 'hmi' | 'pc';
+  | 'psu' | 'cpu' | 'safety' | 'di' | 'do' | 'ai' | 'ao' | 'comm' | 'coupler' | 'blank' | 'end' | 'brick' | 'logic' | 'hmi' | 'pc'
+  | 'drive' | 'relay' | 'bas';
 
 export interface HwUnit {
   kind: UnitKind;
@@ -40,7 +41,8 @@ export interface HwUnit {
 }
 
 export interface HwShape {
-  mount: 'din' | 'chassis' | 'panel';
+  /** din = DIN rail, chassis = slotted rack, panel = door cut-out (HMIs), plate = screwed to the back plate (drives). */
+  mount: 'din' | 'chassis' | 'panel' | 'plate';
   /** Typical module height and depth in mm. */
   h: number;
   d: number;
@@ -61,6 +63,27 @@ export const BODY_COLORS: Record<Body, { body: string; face: string; text: strin
 
 export type HwStatus = 'current' | 'mature' | 'legacy';
 
+export type HwCategory = 'plc' | 'io' | 'drive' | 'hmi' | 'safety' | 'bas' | 'logic';
+export const CATEGORY_TEXT: Record<HwCategory, string> = {
+  plc: 'PLCs', io: 'Remote I/O', drive: 'Drives (VFDs)', hmi: 'HMIs', safety: 'Safety relays', bas: 'Building automation', logic: 'Logic modules',
+};
+
+export const CATEGORY_ONE: Record<HwCategory, string> = {
+  plc: 'PLC', io: 'Remote I/O', drive: 'Drive', hmi: 'HMI', safety: 'Safety relay', bas: 'Building automation', logic: 'Logic module',
+};
+
+/** What kind of device a model is, from its shape (so the data doesn't repeat itself). */
+export function categoryOf(m: { shape: HwShape; plcInside?: boolean }): HwCategory {
+  const k = m.shape.units.map((u) => u.kind);
+  if (k.includes('drive')) return 'drive';
+  if (k.includes('relay')) return 'safety';
+  if (k.includes('bas')) return 'bas';
+  if (k.includes('logic')) return 'logic';
+  if (k[0] === 'hmi' && k.length === 1 && !m.plcInside) return 'hmi';
+  if (k.includes('coupler') && !k.includes('cpu') && !k.includes('pc')) return 'io';
+  return 'plc';
+}
+
 export interface HwModel {
   id: string;
   /** Brand guide id in brands.ts. */
@@ -77,6 +100,8 @@ export interface HwModel {
   shape: HwShape;
   /** Closest simulator dialect. */
   skin: SkinId;
+  /** All-in-one HMI that also runs the control program. */
+  plcInside?: boolean;
 }
 
 export const STATUS_TEXT: Record<HwStatus, string> = {
@@ -537,7 +562,7 @@ export const HARDWARE: HwModel[] = [
     ] },
   },
   {
-    id: 'unitronics', brand: 'unitronics', name: 'Unitronics UniStream / Vision', role: 'All-in-one HMI + PLC', status: 'current', skin: 'iec',
+    id: 'unitronics', brand: 'unitronics', name: 'Unitronics UniStream / Vision', role: 'All-in-one HMI + PLC', status: 'current', skin: 'iec', plcInside: true,
     where: 'Small machines and water skids where the operator screen IS the PLC.',
     software: 'UniLogic (UniStream), VisiLogic (Vision)',
     spot: ['The PLC is built into the back of the touchscreen.', 'I/O modules snap onto the back of the panel or sit on the DIN rail. // VERIFY per model'],
@@ -617,6 +642,198 @@ export const HARDWARE: HwModel[] = [
       ...rep(4, io('di', 12.5, 8, { term: 'spring' })), ...rep(2, io('do', 12.5, 8, { term: 'spring' })), io('ai', 12.5, 4, { term: 'spring' }),
     ] },
   },
+
+  // ---------------- More PLC families still common in US plants ----------------
+  {
+    id: 'micrologix-1500', brand: 'rockwell', name: 'MicroLogix 1000 / 1200 / 1500', role: 'Older small brick PLCs', status: 'legacy', skin: 'ab-slc',
+    where: 'Thousands of older US machines, pump panels and conveyors. You will meet them for years.',
+    software: 'RSLogix 500 / RSLogix Micro',
+    spot: ['SLC-style addresses (I:0/0, O:0/0, N7, T4).', 'The 1500 has a separate processor that clips onto the base unit. // VERIFY', 'Serial programming port on many; Ethernet only on some. // VERIFY per model'],
+    shape: { mount: 'din', h: 118, d: 87, body: 'light', units: [
+      { kind: 'brick', w: 160, label: 'CPU', inputs: 16, outputs: 12, term: 'top-bottom', door: true, key: true },
+      io('di', 35, 8, { door: true }),
+    ] },
+  },
+  {
+    id: 'compactlogix-5480', brand: 'rockwell', name: 'CompactLogix 5480', role: 'Controller with a built-in Windows computer', status: 'current', skin: 'ab-logix',
+    where: 'Newer machines that need data collection or analytics beside the control program.',
+    software: 'Studio 5000 Logix Designer',
+    spot: ['Looks like a wider 5380 with extra ports and a separate PC side. // VERIFY', 'Uses the same 5069 I/O.'],
+    shape: { mount: 'din', h: 140, d: 105, body: 'charcoal', units: [
+      { kind: 'cpu', w: 135, label: 'CPU', screen: 'status', key: true, sd: true, ports: 3, term: 'front' },
+      io('di', 22, 16, { term: 'front' }), io('do', 22, 16, { term: 'front' }), io('ai', 22, 8, { term: 'front' }),
+      { kind: 'end', w: 10, label: '' },
+    ] },
+  },
+  {
+    id: 's7-200', brand: 'siemens', name: 'SIMATIC S7-200', role: 'Older compact PLC', status: 'legacy', skin: 'siemens-classic',
+    where: 'Very common on older imported machines and small panels. Many still run; spares are getting scarce.',
+    software: 'STEP 7-Micro/WIN',
+    spot: ['Hinged covers over the top and bottom terminal rows.', 'Addresses like I0.0, Q0.0, V memory (VB/VW/VD).', 'RUN/TERM/STOP switch under a front flap. // VERIFY', 'PPI serial programming port, not Ethernet (on most).'],
+    shape: { mount: 'din', h: 80, d: 62, body: 'graphite', units: [
+      { kind: 'brick', w: 140, label: 'CPU', inputs: 14, outputs: 10, term: 'top-bottom', door: true, key: true },
+      io('di', 46, 8, { term: 'top-bottom', door: true }),
+    ] },
+  },
+  {
+    id: 'fx2n', brand: 'mitsubishi', name: 'MELSEC FX2N / FX1N', role: 'Older brick PLC', status: 'legacy', skin: 'mitsubishi',
+    where: 'Older packaging, plastics and imported machines across the US.',
+    software: 'GX Developer / GX Works2',
+    spot: ['Octal X/Y numbering.', 'Small RUN/STOP switch and a round programming port under the front cover. // VERIFY'],
+    shape: { mount: 'din', h: 90, d: 87, body: 'offwhite', units: [
+      { kind: 'brick', w: 150, label: 'CPU', inputs: 16, outputs: 16, term: 'top-bottom', door: true, key: true },
+    ] },
+  },
+  {
+    id: 'twido', brand: 'schneider', name: 'Modicon Twido', role: 'Older small PLC', status: 'legacy', skin: 'modicon',
+    where: 'Older small machines and pump panels; replaced by the M221.',
+    software: 'TwidoSuite / TwidoSoft',
+    spot: ['Compact base with snap-on expansion modules.', 'Addresses like %I0.0, %Q0.0, %MW0.'],
+    shape: { mount: 'din', h: 90, d: 70, body: 'offwhite', units: [
+      { kind: 'brick', w: 95, label: 'CPU', inputs: 14, outputs: 10, term: 'top-bottom' },
+      io('di', 23, 8, { term: 'front' }), io('do', 23, 8, { term: 'front' }),
+    ] },
+  },
+  {
+    id: 'productivity3000', brand: 'automationdirect', name: 'Productivity3000', role: 'Larger tag-based rack PLC', status: 'mature', skin: 'automationdirect',
+    where: 'Mid-size process and machine control on AutomationDirect systems.',
+    software: 'Productivity Suite',
+    spot: ['Power supply and CPU on the left of the base.', 'Removable front terminal blocks.'],
+    shape: { mount: 'chassis', h: 120, d: 100, body: 'light', units: [
+      { kind: 'psu', w: 40, label: 'PSU' },
+      { kind: 'cpu', w: 40, label: 'CPU', ports: 2, sd: true, key: true, screen: 'status' },
+      io('di', 30, 16, { term: 'front' }), io('di', 30, 16, { term: 'front' }), io('do', 30, 16, { term: 'front' }), io('ai', 30, 8, { term: 'front' }),
+    ] },
+  },
+
+  // ---------------- Drives (VFDs) ----------------
+  ...[
+    ['powerflex-525', 'rockwell', 'PowerFlex 525', 'Compact AC drive', 'current', 'Conveyors, fans, pumps and mixers on Rockwell plants. Probably the most common small drive in US plants.', 'Connected Components Workbench, Studio 5000 (Add-on Profile), or the keypad', 72, 152, 'charcoal'],
+    ['powerflex-755', 'rockwell', 'PowerFlex 753 / 755', 'Large architecture-class AC drive', 'current', 'Big fans, pumps, process lines, and high-horsepower motors.', 'Connected Components Workbench / DriveExecutive / Studio 5000', 165, 400, 'charcoal'],
+    ['powerflex-40', 'rockwell', 'PowerFlex 4 / 40', 'Older compact AC drive', 'legacy', 'Older conveyors and small machines; many are being replaced by PowerFlex 525. // VERIFY lifecycle', 'Keypad, Connected Components Workbench', 72, 152, 'charcoal'],
+    ['sinamics-g120', 'siemens', 'SINAMICS G120 / G120C', 'Modular / compact AC drive', 'current', 'Machines and HVAC from European OEMs, process lines.', 'TIA Portal (Startdrive), or the operator panel', 73, 196, 'graphite'],
+    ['sinamics-v20', 'siemens', 'SINAMICS V20', 'Basic compact AC drive', 'current', 'Simple pumps, fans and conveyors.', 'Built-in keypad (BOP)', 90, 166, 'graphite'],
+    ['micromaster', 'siemens', 'MICROMASTER 420 / 440', 'Older AC drive', 'legacy', 'Older machines; replaced by SINAMICS. // VERIFY lifecycle', 'Operator panel, STARTER', 73, 173, 'graphite'],
+    ['atv320', 'schneider', 'Altivar Machine ATV320', 'Compact machine drive', 'current', 'OEM machines, conveyors, packaging.', 'SoMove, or the keypad', 60, 150, 'offwhite'],
+    ['atv630', 'schneider', 'Altivar Process ATV600 / ATV900', 'Process / HVAC drive', 'current', 'Pumps and fans in water plants and buildings.', 'SoMove, the graphic keypad, or the built-in web server // VERIFY', 145, 350, 'offwhite'],
+    ['yaskawa-ga500', 'yaskawa', 'Yaskawa GA500', 'Compact AC drive', 'current', 'Conveyors, pumps, fans and OEM machines all over the US.', 'DriveWizard, DriveWizard Mobile, or the keypad', 68, 128, 'black'],
+    ['yaskawa-ga800', 'yaskawa', 'Yaskawa GA800 / A1000', 'General-purpose AC drive', 'current', 'Larger fans, pumps, cranes and process lines. The A1000 is the older family it replaces.', 'DriveWizard, or the keypad', 140, 260, 'black'],
+    ['yaskawa-v1000', 'yaskawa', 'Yaskawa V1000 / J1000', 'Older compact AC drive', 'mature', 'Older small machines; replaced by the GA500.', 'DriveWizard, or the keypad', 68, 128, 'black'],
+    ['acs580', 'abb', 'ABB ACS580 / ACH580', 'General-purpose / HVAC drive', 'current', 'Pumps and fans everywhere. The ACH580 is the HVAC version you see in buildings and data centers.', 'Drive Composer, or the assistant control panel', 125, 330, 'offwhite'],
+    ['acs355', 'abb', 'ABB ACS355 / ACS380', 'Machinery drive', 'current', 'Compact drives on OEM machines.', 'Drive Composer, or the panel', 70, 170, 'offwhite'],
+    ['danfoss-fc102', 'danfoss', 'Danfoss VLT HVAC Drive FC 102', 'HVAC drive', 'current', 'Air handlers, cooling towers, chilled-water pumps — very common in US commercial buildings and data centers.', 'MCT 10, or the local control panel (LCP)', 90, 270, 'black'],
+    ['danfoss-fc302', 'danfoss', 'Danfoss VLT AutomationDrive FC 302', 'Industrial drive', 'current', 'Process lines, conveyors, cranes.', 'MCT 10, or the LCP', 90, 270, 'black'],
+    ['gs20', 'automationdirect', 'GS20 / DURApulse GS4', 'Low-cost AC drives', 'current', 'Small machines and shops buying from AutomationDirect.', 'GSoft2, or the keypad', 68, 128, 'light'],
+    ['fr-e800', 'mitsubishi', 'FR-E800 / FR-A800', 'Compact / advanced inverters', 'current', 'Japanese-built machines and packaging lines.', 'FR Configurator2, or the operation panel', 68, 128, 'offwhite'],
+    ['eaton-dg1', 'eaton', 'Eaton PowerXL DG1', 'General-purpose drive', 'current', 'HVAC, pumps and fans, often in Eaton MCCs.', 'Power Xpert inX, or the keypad // VERIFY', 100, 270, 'graphite'],
+    ['delta-ms300', 'delta', 'Delta MS300 / C2000', 'Compact / general drives', 'current', 'Low-cost OEM machines and imported equipment.', 'VFDSoft, or the keypad // VERIFY', 68, 142, 'charcoal'],
+  ].map(([id, brand, name, role, status, where, software, w, h, body]) => ({
+    id: id as string, brand: brand as string, name: name as string, role: role as string, status: status as HwStatus, skin: 'iec' as SkinId,
+    where: where as string, software: software as string,
+    spot: [
+      'Read the fault on the keypad before you reset anything, and write it down with the time.',
+      'Check the DC bus and motor leads only with the drive locked out AND the bus discharged — wait the time on the warning label, then measure.',
+      'Line (L1/L2/L3) lands at one end, motor (T1/T2/T3) at the other. Never swap them.',
+      'Control terminals: run/stop, speed reference (0–10 V or 4–20 mA), relay outputs, and often Safe Torque Off (STO).',
+    ],
+    shape: { mount: 'plate' as const, h: h as number, d: Math.round((h as number) * 0.7), body: body as Body, units: [
+      { kind: 'drive' as const, w: w as number, label: 'VFD', screen: 'lcd' as const, keys: true, ports: 1 },
+    ] },
+  })),
+
+  // ---------------- HMIs ----------------
+  ...[
+    ['panelview-plus-7', 'rockwell', 'PanelView Plus 7', 'Touchscreen HMI', 'current', 'The operator screen on most Rockwell lines.', 'FactoryTalk View ME (or FactoryTalk Optix on newer models) // VERIFY', 260, 190],
+    ['panelview-800', 'rockwell', 'PanelView 800', 'Small touchscreen HMI', 'current', 'Small machines with Micro800 PLCs.', 'Connected Components Workbench', 140, 110],
+    ['siemens-comfort', 'siemens', 'SIMATIC Comfort / Unified Comfort panel', 'Touchscreen HMI', 'current', 'Operator screens on Siemens machines.', 'WinCC in TIA Portal', 270, 190],
+    ['cmore-ea9', 'automationdirect', 'C-more EA9', 'Touchscreen HMI', 'current', 'Small and mid machines on AutomationDirect PLCs (and others).', 'C-more Programming Software', 210, 160],
+    ['redlion-graphite', 'redlion', 'Red Lion Graphite / FlexEdge', 'HMI and protocol converter', 'current', 'Water, oil and gas, and plants that need to talk to many brands at once.', 'Crimson', 260, 190],
+    ['harmony-hmi', 'schneider', 'Harmony HMI (formerly Magelis)', 'Touchscreen HMI', 'current', 'Schneider machines and water plants.', 'EcoStruxure Operator Terminal Expert / Vijeo Designer // VERIFY', 230, 170],
+    ['got2000', 'mitsubishi', 'GOT2000', 'Touchscreen HMI', 'current', 'Mitsubishi-based machines.', 'GT Designer3', 230, 170],
+  ].map(([id, brand, name, role, status, where, software, w, h]) => ({
+    id: id as string, brand: brand as string, name: name as string, role: role as string, status: status as HwStatus, skin: 'iec' as SkinId,
+    where: where as string, software: software as string,
+    spot: [
+      'Alarm banner and alarm history first: they tell you what tripped and when.',
+      'Back up the HMI project file and note the runtime version before changing anything.',
+      'The HMI talks to the PLC over Ethernet: if every value shows ### or stale, check the cable and the PLC connection.',
+      'An HMI button is NOT a safety device. E-stops are hardwired.',
+    ],
+    shape: { mount: 'panel' as const, h: h as number, d: 60, body: 'charcoal' as Body, units: [
+      { kind: 'hmi' as const, w: w as number, label: 'HMI', screen: 'touch' as const, ports: 1 },
+    ] },
+  })),
+
+  // ---------------- Safety relays ----------------
+  {
+    id: 'pnoz', brand: 'pilz', name: 'Pilz PNOZ safety relays', role: 'Safety relays for E-stops, gates and light curtains', status: 'current', skin: 'iec',
+    where: 'Machine guarding everywhere: E-stop circuits, guard doors, light curtains. Pilz invented the safety relay category.',
+    software: 'None for basic relays; PNOZmulti Configurator for the configurable versions',
+    spot: ['Power, input channel and output LEDs tell you which channel opened.', 'Reset type (manual or auto) is set by wiring or a dial. // VERIFY per model', 'Two channels: a fault on one channel blocks restart on purpose.'],
+    shape: { mount: 'din', h: 98, d: 115, body: 'offwhite', units: [
+      { kind: 'relay', w: 22.5, label: 'SAFE', term: 'top-bottom' }, { kind: 'relay', w: 22.5, label: 'SAFE', term: 'top-bottom' }, { kind: 'relay', w: 45, label: 'MULTI', term: 'top-bottom', screen: 'status' },
+    ] },
+  },
+  {
+    id: 'guardmaster', brand: 'rockwell', name: 'Guardmaster 440R safety relays', role: 'Single-function and configurable safety relays', status: 'current', skin: 'ab-logix',
+    where: 'E-stop and guard-door circuits on Rockwell-based machines.',
+    software: 'Connected Components Workbench for the configurable ones // VERIFY',
+    spot: ['Status LEDs per channel and a rotary switch for the function on some models. // VERIFY', 'Safety relays are hardwired. Never jumper an input to "get running".'],
+    shape: { mount: 'din', h: 113, d: 115, body: 'charcoal', units: [
+      { kind: 'relay', w: 22.5, label: 'GSR', term: 'top-bottom' }, { kind: 'relay', w: 22.5, label: 'GSR', term: 'top-bottom' }, { kind: 'relay', w: 22.5, label: 'GSR', term: 'top-bottom' },
+    ] },
+  },
+
+  // ---------------- Building automation (common in US data centers) ----------------
+  {
+    id: 'jace-8000', brand: 'tridium', name: 'Niagara JACE 8000 supervisor', role: 'Building automation supervisory controller', status: 'current', skin: 'iec',
+    where: 'Data centers, hospitals, campuses: ties BACnet, Modbus and LonWorks devices from many vendors together.',
+    software: 'Niagara Workbench (Niagara 4)',
+    spot: ['Ethernet ports for the IP network, RS-485 for BACnet MS/TP or Modbus RTU.', 'Expansion modules can add more RS-485 or LON ports. // VERIFY', 'Many vendors sell Niagara under their own names.'],
+    shape: { mount: 'din', h: 110, d: 60, body: 'black', units: [
+      { kind: 'bas', w: 125, label: 'SUPERVISOR', ports: 2, term: 'top-bottom', screen: 'status' },
+      { kind: 'comm', w: 32, label: 'RS-485', term: 'top-bottom' },
+    ] },
+  },
+  {
+    id: 'metasys', brand: 'jci', name: 'Metasys network engine + field controllers', role: 'Building automation system', status: 'current', skin: 'iec',
+    where: 'Very common in US data centers and commercial buildings for chillers, CRAH/CRAC units, AHUs and pumps.',
+    software: 'Metasys (SMP / web UI), Controller Configuration Tool (CCT) for field controllers // VERIFY',
+    spot: ['Network engine (SNE/NAE) on the IP network; field controllers on BACnet MS/TP or IP below it. // VERIFY', 'Point names and alarms come from the site database — get the point list.', 'Field controllers have universal inputs/outputs: one terminal can be a temperature, a 0–10 V or a 4–20 mA.'],
+    shape: { mount: 'din', h: 120, d: 60, body: 'offwhite', units: [
+      { kind: 'bas', w: 120, label: 'ENGINE', ports: 2, term: 'top-bottom', screen: 'status' },
+      { kind: 'bas', w: 150, label: 'FIELD CTRL', ports: 0, term: 'top-bottom', inputs: 10, outputs: 8 },
+    ] },
+  },
+  {
+    id: 'honeywell-webs', brand: 'honeywell', name: 'Honeywell WEBs / Spyder controllers', role: 'Building automation controllers', status: 'current', skin: 'iec',
+    where: 'Commercial buildings and some data centers; Niagara-based supervisors with Spyder field controllers.',
+    software: 'Niagara Workbench (WEBs) // VERIFY',
+    spot: ['Field controllers on BACnet or LON trunks; supervisor on Ethernet.', 'Universal inputs for sensors, analog outputs for valves and dampers.'],
+    shape: { mount: 'din', h: 110, d: 55, body: 'light', units: [
+      { kind: 'bas', w: 150, label: 'CONTROLLER', ports: 1, term: 'top-bottom', inputs: 8, outputs: 8 },
+    ] },
+  },
+  {
+    id: 'desigo-pxc', brand: 'siemens', name: 'Desigo PXC automation stations', role: 'Building automation controllers', status: 'current', skin: 'iec',
+    where: 'Siemens building automation in data centers, hospitals and campuses.',
+    software: 'Desigo CC / ABT tools // VERIFY',
+    spot: ['BACnet/IP controller with I/O modules or TX-I/O on the side. // VERIFY', 'Point names come from the project; get the points list.'],
+    shape: { mount: 'din', h: 110, d: 60, body: 'offwhite', units: [
+      { kind: 'bas', w: 90, label: 'PXC', ports: 2, term: 'top-bottom', screen: 'status' },
+      io('ai', 32, 8, { term: 'top-bottom' }), io('do', 32, 8, { term: 'top-bottom' }),
+    ] },
+  },
+  {
+    id: 'smartx', brand: 'schneider', name: 'EcoStruxure Building SmartX controllers', role: 'Building automation controllers', status: 'current', skin: 'iec',
+    where: 'Schneider building automation (formerly Andover / TAC) in commercial buildings and data centers.',
+    software: 'EcoStruxure Building Operation (WorkStation) // VERIFY',
+    spot: ['Server/controller on Ethernet with I/O modules on a terminal base. // VERIFY'],
+    shape: { mount: 'din', h: 110, d: 60, body: 'offwhite', units: [
+      { kind: 'bas', w: 90, label: 'AS-P', ports: 2, term: 'top-bottom', screen: 'status' },
+      io('ai', 45, 8, { term: 'top-bottom' }), io('do', 45, 8, { term: 'top-bottom' }),
+    ] },
+  },
 ];
 
 export const HARDWARE_BY_ID: Record<string, HwModel> = Object.fromEntries(HARDWARE.map((m) => [m.id, m]));
@@ -652,4 +869,7 @@ export const UNIT_INFO: Record<UnitKind, { title: string; what: string }> = {
   logic: { title: 'Logic module', what: 'A small programmable relay with a display and keys. Handy for simple jobs: lights, gates, small pumps.' },
   hmi: { title: 'HMI with built-in PLC', what: 'The touchscreen and the controller are one unit. A dead screen can mean a dead controller too.' },
   pc: { title: 'Embedded PC controller', what: 'A small industrial PC that runs a real-time control runtime. It also has an operating system to look after.' },
+  drive: { title: 'Variable frequency drive (VFD)', what: 'Turns fixed 60 Hz power into variable frequency to run a motor at any speed. Keypad shows speed, current and fault codes. Hazard: its DC bus stays charged after power is removed — wait the labeled time and measure before touching.' },
+  relay: { title: 'Safety relay', what: 'Monitors E-stops, guard switches or light curtains on two channels and opens its safety outputs if either channel opens or disagrees. Hardwired; never bypass it.' },
+  bas: { title: 'Building automation controller', what: 'Runs HVAC sequences (chillers, CRAH/CRAC, AHUs, pumps) and talks BACnet or Modbus to the building system. Universal inputs read temperatures and transmitters; outputs drive valves, dampers and starters.' },
 };

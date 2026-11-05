@@ -20,9 +20,10 @@ A phone-first, installable training app that takes someone who has never touched
 - **3D control panel** — a live, explorable enclosure: PLC LEDs follow the I/O, the contactor pulls in, the overload flag pops, X-ray shows current flowing, camera tours fly you to each part, exploded contactor. Lazy-loaded with a 2D fallback.
 - **A machine to control** — motor start/stop station with hardwired E-stop, overload, aux-contact proof and pilot lights.
 - **Course** — 49 lessons in 4 levels (Beginner → Expert) across electrical safety, prints, hardwired control, PLC fundamentals, ladder logic, going online, troubleshooting, networks, VFD/HMI/BACnet, capstones and expert practice, with interactive figures, hands-on tasks and quizzes.
-- **PLC hardware library in 3D** — 48 PLC, remote I/O and logic-module families from 17 brands you commonly see in US plants. Orbit them, tap a module to learn what it does, and drop any of them into the simulator's 3D panel. Simplified look-alikes, no logos.
+- **Hardware library in 3D** — 87 PLCs, remote I/O, drives, HMIs, safety relays and building-automation controllers from 25 brands you commonly see in US plants and data centers. Orbit them, spread the modules, tap a part to learn what it does, and drop any PLC into the simulator's 3D panel. Simplified look-alikes, no logos.
+- **Real motor physics** — torque–speed curve, inertia, inrush current, a jam that stalls the motor, and a thermal overload that has to cool before it resets, with a live torque–speed chart.
 - **Fault Hunt** — find injected faults with a meter (live-dead-live), I/O LEDs and the logic, scored on speed *and* safety.
-- **Reference** — 17 brand field guides (where you'll see each brand in the US, software, HMIs, drives, networks, addressing, gotchas), instruction reference, glossary, safety rules.
+- **Reference** — 25 brand field guides (where you'll see each brand in the US, software, HMIs, drives, networks, addressing, gotchas), instruction reference, glossary, safety rules.
 - XP, streaks, badges, certificates, spaced review, export/import progress. No accounts, no tracking.
 
 ## Who it's for
