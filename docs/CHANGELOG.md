@@ -1,5 +1,14 @@
 # Changelog
 
+## 0.5.1 — 2026-11-05 (Phase 0: baseline and audit)
+- **Audit, bug list and roadmap:** `docs/AUDIT.md` (every route, the 49 lessons against the 8-item quality bar, machines/faults/tasks, reference, tests, baseline numbers), `docs/BUGS.md`, `docs/ROADMAP.md`.
+- **Budgets enforced:** `npm run budget` fails the build if the main bundle grows past 158 KB gzip (the v0.5.0 baseline); CI now also runs the every-feature test (`features.mjs`).
+- **Fixes:**
+  - B-003: "Next lesson" followed source-file order, so 9 of 49 links skipped a lesson or jumped tracks (e.g. Relays → Reading prints, skipping Protection devices). Lessons now follow course order.
+  - B-004: "Up next" on Learn never recommended Track 11, so it went blank after Track 10 with 8 lessons left.
+  - B-002: intro app mark rendered at 2× so it's sharp on phones.
+- **Known issues:** B-001 the simulator re-renders 3D continuously (slow on low-end phones; Lighthouse mobile Performance 44 on `#/sim`) — scheduled for Phase 3.1/6.1.
+
 ## 0.5.0 — 2026-11-05
 - **Motor physics rebuilt.** Real torque balance (J·dω/dt = motor torque − load torque) integrated in 1 ms steps; an illustrative NEMA design B–like torque–speed curve (≈1.5× locked-rotor, ≈2.5× breakdown, 1.0× at rated slip); current from slip via a simplified equivalent circuit (≈6× inrush, ≈1× at rated, ≈0.4× no-load) with a small supply dip during inrush; a conveyor-like load with breakaway friction; a jam now *stalls* the motor because the load exceeds breakdown torque.
 - **Overload relay is a proper thermal model** (illustrative Class 10: 600 % trips in about 5 s from cold; service-factor pickup at 115 %; thermal memory) and **won't reset until it cools**: the button shows "Cooling — reset in N s".

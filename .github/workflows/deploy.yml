@@ -29,6 +29,7 @@ jobs:
       - run: npm run typecheck
       - run: npm test
       - run: npm run build
+      - run: npm run budget
       - name: Browser gate (console errors, axe, overflow)
         run: |
           npx --yes playwright@1.63.0 install --with-deps chromium
@@ -37,6 +38,7 @@ jobs:
           (npx vite preview --port 4180 > /dev/null 2>&1 &) && sleep 3
           node tests/e2e/flows.mjs
           node tests/e2e/three.mjs
+          node tests/e2e/features.mjs
       - uses: actions/upload-pages-artifact@v3
         if: github.ref == 'refs/heads/main'
         with:
