@@ -88,14 +88,14 @@ await check('Onboarding: 4 screens, choices, axe on each, lands on first lesson'
   await page.getByLabel(/What should we call you/).fill('Test Tech');
   await axe(page, 'onboarding 4');
   await page.getByRole('button', { name: 'Start my first lesson' }).click();
-  await page.waitForSelector('h1:has-text("Volts, amps and ohms")');
+  await page.waitForSelector('h1:has-text("What electricity is")');
   await go(page, 'learn');
   expect(await page.getByText('Welcome back, Test Tech').isVisible(), 'name greeting');
   await ctx.close();
 });
 
 // ---------- B. Every lesson + quiz + glossary popover ----------
-const LESSON_IDS = ['volts-amps-ohms', 'meter', 'relays-contactors', 'protection-devices', 'lototo', 'boundaries-ppe', 'reading-ladder-prints', 'panel-layouts', 'print-drills', 'three-wire', 'hardwired-safety', 'jog-fwd-rev', 'reduced-voltage', 'what-is-a-plc', 'sinking-sourcing', 'analog-420', 'numbers', 'data-types', 'contacts-coils', 'timers', 'counters', 'latch-unlatch', 'duplicate-coils', 'compare-math', 'alarm-ack', 'sequencers', 'program-organization', 'upload-download', 'forcing', 'compare-online', 'troubleshooting-method', 'fault-codes', 'ip-basics', 'profinet-names', 'modbus', 'legacy-networks', 'vfd-basics', 'hmi-basics', 'bacnet-bms', 'capstone-build', 'capstone-mixer', 'pid-tuning', 'analog-alarming', 'structured-text', 'reusable-logic', 'network-troubleshooting', 'commissioning', 'safety-systems', 'change-management'];
+const LESSON_IDS = ['z-electricity', 'z-ohms-power', 'z-ac-dc', 'z-series-parallel', 'z-circuits-faults', 'z-grounding', 'z-safety', 'z-tools-ppe', 'z-symbols', 'z-control-panel', 'z-jobs', 'volts-amps-ohms', 'meter', 'relays-contactors', 'protection-devices', 'lototo', 'boundaries-ppe', 'reading-ladder-prints', 'panel-layouts', 'print-drills', 'three-wire', 'hardwired-safety', 'jog-fwd-rev', 'reduced-voltage', 'what-is-a-plc', 'sinking-sourcing', 'analog-420', 'numbers', 'data-types', 'contacts-coils', 'timers', 'counters', 'latch-unlatch', 'duplicate-coils', 'compare-math', 'alarm-ack', 'sequencers', 'program-organization', 'upload-download', 'forcing', 'compare-online', 'troubleshooting-method', 'fault-codes', 'ip-basics', 'profinet-names', 'modbus', 'legacy-networks', 'vfd-basics', 'hmi-basics', 'bacnet-bms', 'capstone-build', 'capstone-mixer', 'pid-tuning', 'analog-alarming', 'structured-text', 'reusable-logic', 'network-troubleshooting', 'commissioning', 'safety-systems', 'change-management'];
 {
   const { ctx, page } = await newPage({ w: 390, h: 844 });
   for (const id of LESSON_IDS) {
@@ -114,9 +114,23 @@ const LESSON_IDS = ['volts-amps-ohms', 'meter', 'relays-contactors', 'protection
       await page.getByText(/Lesson complete/).waitFor();
     });
   }
-  await check('Learn: all 49 lessons show completed, XP awarded', async () => {
+  await check(`Learn: all ${LESSON_IDS.length} lessons show completed, XP awarded`, async () => {
     await go(page, 'learn');
-    await page.getByText('49/49 lessons').waitFor();
+    await page.getByText(`${LESSON_IDS.length}/${LESSON_IDS.length} lessons`).waitFor();
+  });
+  await check('Drills: order drill explains a wrong tap, then completes; sort drill scores', async () => {
+    await go(page, 'lesson/z-safety');
+    const order = page.locator('[data-drill=order]');
+    await order.scrollIntoViewIfNeeded();
+    await order.getByRole('button', { name: 'Do the work' }).click();
+    await order.getByText(/Not yet/).waitFor();
+    for (const step of ['Tell the operators', 'Stop the machine', 'Open the disconnect', 'Release or block', 'Try to start it', 'prove absence', 'Do the work']) await order.getByRole('button', { name: new RegExp(step) }).click();
+    await order.getByText('All in order.').waitFor();
+    await go(page, 'lesson/z-control-panel');
+    const sort = page.locator('[data-drill=sort]');
+    await sort.scrollIntoViewIfNeeded();
+    for (const g of await sort.locator('[role=group]').all()) await g.getByRole('button').first().click();
+    await sort.getByText(/of 5 right\./).waitFor();
   });
   await check('Review: missed questions are scheduled (not due until tomorrow)', async () => {
     await go(page, 'review');

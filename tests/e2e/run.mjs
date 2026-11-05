@@ -25,7 +25,7 @@ if (!LIVE) await new Promise((r) => server.listen(4179, r));
 const url = LIVE ?? `http://localhost:4179${BASE}`;
 mkdirSync('test-results', { recursive: true });
 
-const ROUTES = ['learn', 'lesson/three-wire', 'lesson/sinking-sourcing', 'sim', 'troubleshoot', 'reference', 'reference/brand/rockwell', 'reference/hardware', 'reference/hw/controllogix', 'reference/instructions', 'reference/glossary', 'profile', 'about', 'review'];
+const ROUTES = ['learn', 'lesson/z-series-parallel', 'lesson/three-wire', 'lesson/sinking-sourcing', 'sim', 'troubleshoot', 'reference', 'reference/brand/rockwell', 'reference/hardware', 'reference/hw/controllogix', 'reference/instructions', 'reference/glossary', 'profile', 'about', 'review'];
 const VIEWPORTS = [{ name: 'phone', width: 375, height: 812, scale: 2 }, { name: 'desktop', width: 1440, height: 900, scale: 1 }];
 const only = process.argv[2];
 let failures = 0;

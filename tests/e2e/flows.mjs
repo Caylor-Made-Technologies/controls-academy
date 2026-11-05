@@ -20,7 +20,7 @@ await page.getByRole('button', { name: 'Next' }).click();
 await page.getByRole('radio', { name: /S7-1200 \/ S7-1500/ }).click();
 await page.getByRole('button', { name: 'Next' }).click();
 await page.getByRole('button', { name: 'Start my first lesson' }).click();
-await page.waitForSelector('h1:has-text("Volts, amps and ohms")');
+await page.waitForSelector('h1:has-text("What electricity is")');
 ok(true, 'onboarding lands on first lesson');
 
 await page.goto(URL0 + '#/lesson/three-wire');

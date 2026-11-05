@@ -72,7 +72,7 @@ export function SortDrill({ prompt, bins, items }: { prompt: string; bins: strin
               <p className="m-0 mb-2 text-sm font-medium" id={`sort-${it.i}`}><Rich text={it.text} /></p>
               <div className="flex flex-wrap gap-2" role="group" aria-labelledby={`sort-${it.i}`}>
                 {bins.map((b, bi) => (
-                  <button key={bi} type="button" className="btn btn-sm" aria-pressed={p === bi} disabled={p !== undefined}
+                  <button key={bi} type="button" className="btn" aria-pressed={p === bi} disabled={p !== undefined}
                     onClick={() => { setPicks({ ...picks, [it.i]: bi }); buzz(bi === it.bin ? 8 : 30); }}
                     style={p === undefined ? undefined : bi === it.bin ? { borderColor: 'var(--live)', background: 'var(--live-soft)' } : bi === p ? { borderColor: 'var(--alarm)', background: 'var(--alarm-soft)' } : { opacity: 0.55 }}>
                     {b}

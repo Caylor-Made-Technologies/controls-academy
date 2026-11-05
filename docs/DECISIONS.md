@@ -30,3 +30,12 @@ Reasonable choices made where the build prompt was open. Newest first.
 - **Share links carry the program in the URL hash** (base64url JSON) and are validated on open. Nothing is uploaded.
 - **3D layer deferred to Phase 8b.** The settings switch (incl. "2D only") already exists so the preference is captured; no 3D code ships yet.
 - **Lessons ship where we're confident; the rest of each track is listed as "Coming"** rather than padded (prompt §11: accuracy over volume).
+
+## v0.5.1 → 0.6.0 (Phase 0–1)
+- **The lesson quality bar is enforced by a test with a shrinking allowlist** (`tests/unit/quality.test.ts`). Upgraded lessons must meet all 8 items; listed lessons must still fail, so the list can only shrink. When it's empty the fields become required in TypeScript. Why: the audit can never silently drift, and the work can ship track by track.
+- **One checker** (`src/content/quality.ts`) serves the test and `npm run audit:lessons`, so the audit table and the build agree.
+- **Quality-bar items are fields, not free blocks** (`why`, `prereqs`, `realWorld`, `mistakes`, `safety`), rendered in the same place on every lesson. `safety` is either a note or an explicit "n/a" reason, and n/a is refused when the lesson text mentions energized work.
+- **Track 0 "Start from Zero" (11 lessons) instead of 12.** Relays/contactors already has a full lesson in Track 1, so it isn't duplicated (audit overlap). Track 1's lessons go deeper and will link back to Track 0 as prerequisites. Every goal starts with Track 0 in "Up next".
+- **Generic drills (`order`, `sort`) before bespoke figures.** They make any lesson interactive from data alone; bespoke figures are kept for things that need a picture (series/parallel).
+- **Lesson text is lazy.** The main bundle carries a generated catalog (ids, titles, minutes, summary); bodies load with the lesson/review/search screens. `npm run catalog` (also run by `build`) regenerates it and a test fails if it's stale. Why: Track 0 pushed the main bundle 16 KB over budget; the split took it to 124 KB.
+- **Circuit math lives in `src/lib/circuits.ts`** and every number in a lesson question or worked example is recomputed in `tests/unit/lesson-math.test.ts`.

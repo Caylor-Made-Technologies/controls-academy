@@ -169,6 +169,7 @@
     display: inline-flex; align-items: center; gap: 6px; min-height: 28px; padding: 0 10px; border-radius: 999px;
     border: 1px solid var(--border); background: var(--surface-raised); font-size: 0.78rem; font-weight: 600; color: var(--text-body);
   }
+  a.chip { min-height: 44px; padding: 0 14px; font-size: 0.85rem; }
   .chip-live { border-color: var(--live); color: var(--live); background: var(--live-soft); }
   .chip-warn { border-color: var(--warn); color: var(--warn); background: var(--warn-soft); }
   .chip-alarm { border-color: var(--alarm); color: var(--alarm); background: var(--alarm-soft); }

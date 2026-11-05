@@ -1,7 +1,7 @@
 import type { TagDecl } from '../engine/types';
 import type { SkinId } from '../skins';
 
-export type FigureId = 'ohms' | 'sinksource' | 'scaling' | 'numbers' | 'scan' | 'hardwired-3wire' | 'meter';
+export type FigureId = 'ohms' | 'sinksource' | 'scaling' | 'numbers' | 'scan' | 'hardwired-3wire' | 'meter' | 'seriesparallel';
 
 /**
  * Inline markup inside text:
@@ -55,7 +55,7 @@ export interface SimTask {
   edit?: boolean;
 }
 
-export type TrackId = 't1' | 't2' | 't3' | 't4' | 't5' | 't6' | 't7' | 't8' | 't9' | 't10' | 't11';
+export type TrackId = 't0' | 't1' | 't2' | 't3' | 't4' | 't5' | 't6' | 't7' | 't8' | 't9' | 't10' | 't11';
 
 export type Level = 'Beginner' | 'Intermediate' | 'Advanced' | 'Expert';
 

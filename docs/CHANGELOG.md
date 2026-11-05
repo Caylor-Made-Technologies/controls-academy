@@ -1,5 +1,11 @@
 # Changelog
 
+## Unreleased (Phase 1 in progress → 0.6.0)
+- **Track 0 — Start from Zero:** 11 new lessons for people who have never done electrical work: what electricity is, Ohm's law and power, AC/DC and US plant voltages (120/208/240/277/480, single- vs three-phase), series and parallel, open/short/ground faults, grounding and bonding, safety foundations, tools/PPE/meter, symbols and drawings, what a control panel is, jobs in controls. Every one meets the 8-item quality bar; 27 new glossary terms; every number is re-computed by a unit test. Reviewed by an independent technical pass (4 must-fix and 15 should-fix items found and fixed, e.g. PPE caveats on live measurements, stored-energy step in lockout, high-resistance-grounded systems, GFCI).
+- **New interactive pieces:** series/parallel lamp figure; "put the steps in order" and "sort it" drills (any lesson can use them).
+- **Lesson pages** show "Why this matters on the job", prerequisites (linked), an on-the-job example (flour mill, data center or water plant), common mistakes and a safety note in the same place every time.
+- **Faster start-up:** lesson text moved out of the main bundle (157.5 → 124.2 KB gzip); the bundle ceiling is now 125 KB.
+
 ## 0.5.1 — 2026-11-05 (Phase 0: baseline and audit)
 - **Audit, bug list and roadmap:** `docs/AUDIT.md` (every route, the 49 lessons against the 8-item quality bar, machines/faults/tasks, reference, tests, baseline numbers), `docs/BUGS.md`, `docs/ROADMAP.md`.
 - **Budgets enforced:** `npm run budget` fails the build if the main bundle grows past 158 KB gzip (the v0.5.0 baseline); CI now also runs the every-feature test (`features.mjs`).

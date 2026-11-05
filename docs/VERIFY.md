@@ -68,3 +68,8 @@ All in `src/content/hardware.ts` and `src/content/brands.ts`. The 3D shapes are 
 - Building automation: JACE 8000/9000 names and expansion; Metasys engine/controller names, CCT, command priority behavior; Honeywell WEBs/EBI/Excel; Desigo PXC tools and I/O; SmartX tool name; Niagara SNMP.
 - PLCs: MicroLogix 1500 processor/base split and ports; CompactLogix 5480 layout; S7-200 mode switch; FX2N front cover details.
 - Red Lion protocol list per model; Keyence/Opto 22 items from 0.4.0 still open.
+
+## Added 0.6.0 (Track 0 — Start from Zero)
+- `z-ac-dc` realWorld: rack voltage in data centers (208/120 V, 415/240 V and others are used) — confirm wording is general enough.
+- `z-jobs`: Texas electrician licensing (TDLR) and whether plant-maintenance work is exempt — check current TDLR rules.
+- `z-safety` realWorld: roller-mill roll-engage mechanism (pneumatic vs spring) by make — check an OEM lockout procedure.
