@@ -7,6 +7,15 @@ export const FIELD_LESSONS: Lesson[] = [
     title: 'Upload, download, go online',
     minutes: 7,
     summary: 'The words that save (or wreck) your night shift.',
+    why: 'Going online is where controls work can save a night shift — or wreck it. These words have to be second nature.',
+    prereqs: ['program-organization'],
+    realWorld: { site: 'mill', text: 'A flour mill tech is asked to change a mixer delay. They go online, upload, save Mixer_2026-11-05_before, make one online edit, test it with the operator, assemble, then save Mixer_2026-11-05_after. If anything goes wrong, the "before" file is the way back.' },
+    mistakes: [
+      'Downloading a file from the shared drive without comparing it to the controller first — it may undo months of online edits.',
+      'Mixing up the words: upload = controller to laptop, download = laptop to controller.',
+      'Leaving online edits accepted but not assembled (finalized) at the end of the job.',
+    ],
+    safety: { note: 'A download usually stops the controller, and returning to RUN can start equipment. Coordinate with operations, make the machine safe, and keep people clear before any download or mode change.' },
     blocks: [
       { t: 'table', head: ['Action', 'Direction', 'Risk'], rows: [
         ['[[upload|Upload]]', 'Controller → your laptop', 'Low. Gets you the real running program.'],
@@ -23,6 +32,12 @@ export const FIELD_LESSONS: Lesson[] = [
         '**REM** (on many AB controllers) — the software is allowed to change the mode remotely.',
       ] },
       { t: 'callout', tone: 'tip', title: 'Compare before you leave', text: 'Use your software\'s compare tool to diff online vs offline, save the final version with a clear name and date, and note what you changed in the rung comments.' },
+      { t: 'sort', prompt: 'Low risk or high risk?', bins: ['Low risk', 'High risk'], items: [
+        { text: 'Going online to watch the logic', bin: 0, why: 'Watching changes nothing.' },
+        { text: 'Uploading and saving a dated copy', bin: 0, why: 'Upload reads from the controller; it doesn\'t change it.' },
+        { text: 'Downloading to a running controller', bin: 1, why: 'It replaces the running program and usually stops the process.' },
+        { text: 'Switching the controller from RUN to PROG', bin: 1, why: 'Outputs go off — the process stops wherever it is.' },
+      ] },
     ],
     quiz: [
       { id: 'q1', q: 'First thing you do before editing a running controller?', choices: ['Download your copy', 'Upload and save a dated backup', 'Switch to PROG', 'Force all outputs'], answer: 1, why: 'Upload gets the real program; saving it gives you a way back.' },
@@ -36,6 +51,15 @@ export const FIELD_LESSONS: Lesson[] = [
     title: 'Forcing: power with a price',
     minutes: 6,
     summary: 'What a force really does, how to see one, and why you remove every one.',
+    why: 'Forces are a powerful test tool and a classic cause of "it stopped working after maintenance". Use them carefully, and remove every one.',
+    prereqs: ['upload-download', 'hardwired-safety'],
+    realWorld: { site: 'water', text: 'During a night repair at a water plant, a tech forces a filter valve\'s "closed" limit-switch input ON to finish a backwash test. Next morning the filter won\'t run normally: the force is still installed, and the PLC\'s FORCE light has been on all night.' },
+    mistakes: [
+      'Leaving a force installed at the end of the shift. Check the FORCE indicator on your way out.',
+      'Forcing an output without knowing exactly what it moves and who is near it.',
+      'Forcing a safety input or output to "get it running". Never.',
+    ],
+    safety: { note: 'Forces bypass the program\'s interlocks. Get authorization, clear the area, document every force, tell the next shift, and never force a safety device.' },
     blocks: [
       { t: 'p', text: 'A [[force]] overrides an I/O point. A forced input makes the PLC see ON (or OFF) no matter what the field says. A forced output drives the field device no matter what the logic says.' },
       { t: 'callout', tone: 'safety', title: 'Forces move real equipment', text: 'Forcing an output can start a motor or open a valve with someone in the machine. Never force without knowing what moves, who\'s near it, and having authorization. Never force a safety device.' },
@@ -45,10 +69,18 @@ export const FIELD_LESSONS: Lesson[] = [
         'Forces are easy to forget. A machine that "stopped working after maintenance" is a classic forgotten force.',
       ] },
       { t: 'callout', tone: 'tip', title: 'The rule', text: 'Document every force you install, tell the next shift, and remove it before you leave. Check the force indicator on your way out.' },
+      { t: 'order', prompt: 'You need to force an output for a test. Put the steps in order.', steps: [
+        'Get authorization and tell the operators',
+        'Confirm what the output moves and clear the area',
+        'Install and enable the force; watch the test',
+        'Remove the force',
+        'Check the FORCE indicator is off and log what you did',
+      ], why: 'Authorization and a clear area first; removal and a check last. A force you didn\'t log is a force someone else will trip over.' },
     ],
     quiz: [
       { id: 'q1', q: 'An output is forced ON. The logic rung goes false. The field device…', choices: ['turns off', 'stays on', 'faults', 'blinks'], answer: 1, why: 'The force overrides the logic.' },
       { id: 'q2', q: 'Machine stopped working after last night\'s maintenance; the logic looks right. Check…', choices: ['the paint', 'for forces left installed', 'the HMI color', 'the IP address first'], answer: 1, why: 'A forgotten force is the classic cause.' },
+      { id: 'q3', q: 'A guard switch input keeps dropping out. Can you force it ON until the end of the shift?', choices: ['Yes, if you tag it', 'No — never force a safety device; fix the switch', 'Yes, with the supervisor\'s OK', 'Only at night'], answer: 1, why: 'Forcing a safety input removes the protection. Find and fix the fault.' },
     ],
   },
   {
@@ -57,6 +89,15 @@ export const FIELD_LESSONS: Lesson[] = [
     title: 'A repeatable troubleshooting method',
     minutes: 8,
     summary: 'The order that finds faults fast and keeps you safe.',
+    why: 'A method beats guessing every time. It finds faults faster, and it keeps you from swapping good parts.',
+    prereqs: ['print-drills', 'forcing'],
+    realWorld: { site: 'mill', text: 'A flour mill\'s sifter won\'t start. The operator says it tripped once and was reset. The tech checks the obvious (overload tripped again), looks at the I/O (overload input off), finds the cause (a broken drive belt guard rubbing the sifter), fixes it and logs it — 20 minutes, no parts swapped blindly.' },
+    mistakes: [
+      'Starting by replacing parts. Talk to the operator and check the obvious first.',
+      'Skipping the I/O LEDs and logic, and measuring at random.',
+      'Fixing it and not writing anything down — the next tech starts from zero.',
+    ],
+    safety: { note: 'Live measurements during troubleshooting are energized work: qualified people, a rated meter, the PPE on the label. When you need hands in the equipment, lock it out.' },
     blocks: [
       { t: 'list', ordered: true, items: [
         '**Talk to the operator.** What happened, when, what changed, any alarms?',
@@ -68,6 +109,14 @@ export const FIELD_LESSONS: Lesson[] = [
       ] },
       { t: 'callout', tone: 'safety', title: 'Safe first, fast second', text: 'Measuring live voltage is often necessary to find a fault — but only with the right PPE, a rated meter, and inside the rules for that equipment. When you need hands in, it\'s LOTOTO.' },
       { t: 'callout', tone: 'tip', title: 'Practice it', text: 'Fault-Hunt mode (Troubleshoot tab) injects real faults into the motor station. You get a meter, I/O LEDs and the logic. You\'re scored on time AND on staying safe.' },
+      { t: 'order', prompt: 'Put the troubleshooting steps in order.', steps: [
+        'Talk to the operator',
+        'Check the obvious (power, E-stops, overloads, air, guards)',
+        'Look at the I/O LEDs',
+        'Find the output in the logic and work backward',
+        'Half-split with your meter',
+        'Fix, test, document',
+      ], why: 'Cheap, fast checks first; meter work once you know where to look.' },
     ],
     quiz: [
       { id: 'q1', q: 'Motor won\'t start. First step?', choices: ['Swap the PLC', 'Talk to the operator and check the obvious', 'Force the output', 'Download a backup'], answer: 1, why: 'Many calls are an E-stop, an overload or no air.' },

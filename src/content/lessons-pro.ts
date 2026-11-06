@@ -12,19 +12,33 @@ export const PRO_LESSONS: Lesson[] = [
     title: 'Comparing online vs offline',
     minutes: 6,
     summary: 'Know exactly what changed before and after you touch a controller.',
+    why: '"What did you change?" is the first question after any problem. A before-and-after compare answers it in seconds.',
+    prereqs: ['upload-download'],
+    realWorld: { site: 'datacenter', text: 'After a contractor\'s visit, a data center\'s chiller plant sequence behaves differently. Comparing today\'s upload against last month\'s backup shows no logic changes — but the chiller staging setpoint (data) was changed from 65 % to 85 % load.' },
+    mistakes: [
+      'Believing "the file on the share is current". Someone may have edited online and never saved — always compare against the controller before downloading.',
+      'Comparing logic only and missing changed data values like timer presets and setpoints.',
+      'Keeping the only backup on one laptop.',
+    ],
+    safety: { na: 'Comparing files is done offline on a laptop; it doesn\'t change the controller or touch equipment.' },
     blocks: [
       { t: 'p', text: 'Before a change: **go online, upload, save a dated copy** (e.g. `Mixer_2026-11-05_before.ext`). After: save `…_after`. Now you can always answer "what did you change?"' },
       { t: 'list', items: [
         'Vendor software has compare tools that diff two projects or online vs offline: changed rungs, tags, data values, hardware config. // VERIFY tool names per software version',
         'Compare **logic** and **data** separately — a changed timer preset or setpoint is data, not logic, and is easy to miss.',
         'Keep files in a controlled place (version control or a backup server), not on one laptop.',
-        'Write the change in a log or MOC record: what, why, who, when, how to back it out.',
+        'Write the change in a log or [[moc|MOC]] record: what, why, who, when, how to back it out.',
       ] },
-      { t: 'callout', tone: 'gotcha', title: '"The file on the share is current"', text: 'Often it isn\'t. Someone made an online edit and never saved. Always compare the shared file against the controller before you download anything.' },
+      { t: 'sort', prompt: 'Logic change or data change?', bins: ['Logic', 'Data'], items: [
+        { text: 'A new branch added to rung 12', bin: 0, why: 'Rungs and instructions are logic.' },
+        { text: 'A timer preset changed from 5000 to 3000', bin: 1, why: 'Presets are data values — a logic-only compare can miss them.' },
+        { text: 'A pump start setpoint changed from 12.0 to 14.0 ft', bin: 1, why: 'Setpoints are data.' },
+      ] },
     ],
     quiz: [
       { id: 'q1', q: 'Why save a copy before AND after a change?', choices: ['Disk space', 'So you can compare them and back the change out', 'Required by the PLC', 'Speed'], answer: 1, why: 'Two snapshots let you prove and reverse the change.' },
       { id: 'q2', q: 'A setpoint changed but no rung changed. A logic-only compare will…', choices: ['Show it', 'Possibly miss it — compare data values too', 'Fault the CPU', 'Delete it'], answer: 1, why: 'Data is separate from logic.' },
+      { id: 'q3', q: 'You\'re about to download the file from the shared drive. What first?', choices: ['Nothing — it\'s the official copy', 'Upload from the controller and compare the two', 'Delete the controller program', 'Change the IP address'], answer: 1, why: 'The controller may have online edits that aren\'t in the shared file. Compare before you overwrite.' },
     ],
   },
   // ---------------- Track 7 ----------------
@@ -34,8 +48,17 @@ export const PRO_LESSONS: Lesson[] = [
     title: 'Controller faults and diagnostic buffers',
     minutes: 8,
     summary: 'When the CPU stops itself — read why before you reset.',
+    why: 'A faulted controller stops the whole machine. Reading the fault first tells you what broke and stops it happening again.',
+    prereqs: ['troubleshooting-method', 'data-types'],
+    realWorld: { site: 'water', text: 'A water plant\'s high-service pump PLC faults at 2 AM. The fault log points to a lost remote I/O rack at the pump building. The tech finds a tripped 24 VDC supply breaker there, fixes it, then clears the fault with the operators ready — the pumps restart on the operator\'s command.' },
+    mistakes: [
+      'Clearing the fault before writing it down — the evidence is gone.',
+      'Fixing the symptom (clear and run) and not the cause, so it faults again.',
+      'Returning to RUN without warning operations that outputs may turn on.',
+    ],
+    safety: { note: 'Before clearing a fault or returning to RUN, make sure the machine is in a safe state and people are clear — outputs the logic calls for will turn on.' },
     blocks: [
-      { t: 'p', text: 'A **major fault** stops the controller (outputs go to their fault state). A **minor fault** is logged but the program keeps running. Both have a type/code and often the routine and rung where it happened.' },
+      { t: 'p', text: 'A **major fault** stops the controller (outputs go to their fault state, and the [[scan]] stops). A **minor fault** is logged but the program keeps running. Both have a type/code and often the routine and rung where it happened.' },
       { t: 'table', head: ['Common cause', 'Example'], rows: [
         ['Array index out of range', 'Temps[Zone] with Zone = 12 on a 10-element array'],
         ['Math problem', 'Divide by zero, overflow (often minor)'],
@@ -49,6 +72,11 @@ export const PRO_LESSONS: Lesson[] = [
       ] },
       { t: 'list', ordered: true, items: ['Write down the fault (photo the screen).', 'Find the rung/block it points to.', 'Understand the cause (bad index? lost module?).', 'Fix the cause, then clear the fault and return to RUN — with operations aware outputs may start.'] },
       { t: 'callout', tone: 'safety', title: 'Clearing a fault can restart things', text: 'When the controller goes back to RUN, outputs that the logic calls for turn on. Make sure the machine is in a safe state and people are clear.' },
+      { t: 'sort', prompt: 'Major or minor fault (typical behavior)?', bins: ['Major — controller stops', 'Minor — logged, keeps running'], items: [
+        { text: 'Array index out of range', bin: 0, why: 'On most controllers this is a major fault.' },
+        { text: 'A required remote I/O rack is lost', bin: 0, why: 'A module configured as required faults the controller when it\'s lost.' },
+        { text: 'Math overflow in a calculation', bin: 1, why: 'Often only a minor fault — the program keeps running with a wrong value.' },
+      ] },
     ],
     quiz: [
       { id: 'q1', q: 'Major vs minor fault?', choices: ['Same thing', 'Major stops the controller; minor is logged and it keeps running', 'Minor stops it', 'Major is only a warning'], answer: 1, why: 'Major = controller stops.' },

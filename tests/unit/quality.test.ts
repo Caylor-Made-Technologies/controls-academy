@@ -9,9 +9,7 @@ import { stableShuffle } from '../../src/features/learn/Drills';
  * When it is empty, the quality fields become required in `Lesson` (types.ts).
  */
 export const NOT_YET_UPGRADED = new Set<string>([
-            'upload-download', 'forcing', 'compare-online',
-  'troubleshooting-method', 'fault-codes',
-  'ip-basics', 'profinet-names', 'modbus', 'legacy-networks',
+                'ip-basics', 'profinet-names', 'modbus', 'legacy-networks',
   'vfd-basics', 'hmi-basics', 'bacnet-bms',
   'capstone-build', 'capstone-mixer',
   'pid-tuning', 'analog-alarming', 'structured-text', 'reusable-logic', 'network-troubleshooting', 'commissioning', 'safety-systems', 'change-management',
