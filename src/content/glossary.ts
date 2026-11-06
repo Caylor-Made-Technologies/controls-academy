@@ -92,6 +92,9 @@ export const GLOSSARY: GlossaryTerm[] = [
   { id: 'safety-relay', term: 'Safety relay', def: 'A monitored relay module for E-stops, gates and light curtains: dual-channel inputs, redundant force-guided contacts and a monitored reset.' },
   { id: 'performance-level', term: 'PL / SIL', def: 'Ratings for how reliable a safety function must be: Performance Level (ISO 13849-1) and Safety Integrity Level (IEC 62061 / IEC 61508). Set by a risk assessment, verified by engineers.' },
   { id: 'moc', term: 'MOC', def: 'Management of change: the written process for reviewing, approving, documenting and communicating a change before it is made.' },
+  { id: 'incident-energy', term: 'Incident energy', def: 'How much heat an arc flash could put on a surface at a working distance, in cal/cm². 1.2 cal/cm² is about the onset of a second-degree burn on bare skin.' },
+  { id: 'arc-rated', term: 'Arc-rated (AR)', def: 'Clothing or gear tested to resist an arc flash up to a stated incident energy (its arc rating, in cal/cm²). Ordinary clothes are not arc-rated.' },
+  { id: 'inrush', term: 'Inrush current', def: 'The big burst of current when a motor or transformer is first switched on — for a motor, several times its running current for a few seconds.' },
   // ── Start from Zero (Track 0) ──
   { id: 'charge', term: 'Electric charge', def: 'The property of electrons (negative) and protons (positive) that makes them push and pull on each other. Moving charge is electric current.' },
   { id: 'voltage', term: 'Voltage', def: 'Electrical pressure: the difference in "push" between two points. Measured in volts (V), always between two points.', aka: ['potential difference', 'volts'] },
@@ -99,7 +102,7 @@ export const GLOSSARY: GlossaryTerm[] = [
   { id: 'resistance', term: 'Resistance', def: 'How strongly something opposes current. Measured in ohms (Ω). Copper wire is low; a heater element or a coil is higher; air and rubber are very high.' },
   { id: 'ohms-law', term: 'Ohm\'s law', def: 'V = I × R. Voltage equals current times resistance, so I = V ÷ R and R = V ÷ I.' },
   { id: 'power', term: 'Power', def: 'How fast energy is used or delivered, in watts (W). For DC or a resistive AC load, P = V × I. 1 horsepower ≈ 746 W.', aka: ['watts'] },
-  { id: 'ac', term: 'AC', def: 'Alternating current: the voltage reverses direction many times a second — 60 times (60 Hz) on US power. What comes out of the wall and feeds motors.' },
+  { id: 'ac', term: 'AC', def: 'Alternating current: the voltage swings back and forth — 60 complete cycles a second (60 Hz) on US power, reversing direction 120 times a second. What comes out of the wall and feeds motors.' },
   { id: 'dc', term: 'DC', def: 'Direct current: flows one direction only, like from a battery or a 24 VDC power supply. PLC inputs, sensors and electronics usually run on DC.' },
   { id: 'three-phase', term: 'Three-phase', def: 'Three AC voltages on three wires (often called L1, L2, L3), each a third of a cycle apart. Delivers smooth, efficient power to motors. Standard in US plants at 480 V.', aka: ['3-phase', '3Ø'] },
   { id: 'single-phase', term: 'Single-phase', def: 'One AC voltage between two wires — e.g. 120 V from a hot to neutral, 240 V across the two hots of a home\'s 120/240 V split-phase service, or 208 V between two legs of a three-phase system.' },

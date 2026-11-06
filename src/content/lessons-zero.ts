@@ -92,7 +92,7 @@ export const ZERO_LESSONS: Lesson[] = [
     why: 'You need to know what voltage to expect before you open a door — it decides your meter, your PPE and how careful you are.',
     prereqs: ['z-ohms-power'],
     blocks: [
-      { t: 'p', text: '[[dc|DC]] (direct current) flows one way — from a battery or a 24 VDC power supply. [[ac|AC]] (alternating current) reverses direction 60 times a second (60 Hz) in the US. Power plants make AC because transformers (two coils of wire on an iron core) can step it up and down easily.' },
+      { t: 'p', text: '[[dc|DC]] (direct current) flows one way — from a battery or a 24 VDC power supply. [[ac|AC]] (alternating current) swings back and forth 60 complete cycles a second (60 Hz) in the US. Power plants make AC because transformers (two coils of wire on an iron core) can step it up and down easily.' },
       { t: 'p', text: '[[single-phase|Single-phase]] power uses one AC voltage. [[three-phase|Three-phase]] uses three, each a third of a cycle behind the last. Three-phase gives motors a smooth, rotating push, so almost every industrial motor runs on it.' },
       { t: 'table', head: ['Voltage', 'Type', 'Where you\'ll see it'], rows: [
         ['24 VDC', 'DC', 'Controller inputs/outputs, sensors and most modern control wiring'],
