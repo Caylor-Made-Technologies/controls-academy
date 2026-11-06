@@ -285,16 +285,17 @@ export const CORE2_LESSONS: Lesson[] = [
     summary: 'Turn numbers into decisions: high level alarms, run hours, batch totals.',
     why: 'Alarms, run hours, totals and setpoints are all compares and math. They\'re how a PLC turns numbers into decisions.',
     prereqs: ['counters', 'data-types'],
-    realWorld: { site: 'water', text: 'A water plant\'s clearwell high-level alarm is GEQ(Level, 18.5) — in feet. A LIM keeps the transfer pump running only while the level is between 4 and 18 ft.' },
+    realWorld: { site: 'water', text: 'A water plant\'s clearwell high-level alarm is GEQ(Level, 18.5) — in feet. A short delay timer keeps it from chattering on ripples. The pump that fills the clearwell starts at 12 ft and stops at 18 ft — separate start and stop levels with a seal-in, so it doesn\'t short-cycle.' },
     mistakes: [
-      'Integer division: DINT 7 ÷ 2 gives 3 on many controllers. Use REALs when you need the decimal.',
+      'Integer division differs by brand: Logix DIV truncates 7 ÷ 2 to 3, SLC DIV rounds to 4. Use REALs when you need the decimal.',
+      'Alarming on a single compare with no deadband or delay — the alarm chatters on and off as the value wobbles.',
       'Putting ADD on a rung that stays true — it runs every scan. Pulse it with a one-shot or timer.',
       'Comparing REALs with EQU. Use a range (LIM, GEQ/LEQ).',
     ],
     safety: { note: 'Changing an alarm or interlock limit changes how the process is protected. Treat setpoint changes as changes: approval, a record, and the operators told.' },
     blocks: [
       { t: 'p', text: 'Compare instructions are **inputs** — they condition a [[rung]]. Math and move instructions are **outputs** — they act when the rung is true.' },
-      { t: 'rung', text: 'GEQ(Level,90.0)OTE(High_Alarm)', tags: [{ name: 'Level', type: 'REAL' }, { name: 'High_Alarm', type: 'BOOL' }], caption: 'High level alarm at 90 %.' },
+      { t: 'rung', text: 'GEQ(Level,90.0)OTE(High_Alarm)', tags: [{ name: 'Level', type: 'REAL' }, { name: 'High_Alarm', type: 'BOOL' }], caption: 'High level alarm at 90 %. Real programs add a short delay or a deadband so it doesn\'t chatter.' },
       { t: 'rung', text: 'LIM(40.0,Level,60.0)OTE(Level_OK)', tags: [{ name: 'Level', type: 'REAL' }, { name: 'Level_OK', type: 'BOOL' }], caption: 'LIM: true while 40 ≤ Level ≤ 60.' },
       { t: 'rung', text: 'XIC(Motor_Running)XIC(One_Sec_Pulse)ADD(Run_Secs,1,Run_Secs)', tags: [{ name: 'Motor_Running', type: 'BOOL' }, { name: 'One_Sec_Pulse', type: 'BOOL' }, { name: 'Run_Secs', type: 'DINT' }], caption: 'Run-hour counting: add 1 on a one-scan pulse every second (not every scan!).' },
       { t: 'p', text: '**CPT** lets you write a whole expression: `CPT(Gallons, (Raw - 4000) * 0.0125)`. Order of operations works like a calculator: × and ÷ before + and −, parentheses first.' },
@@ -308,7 +309,7 @@ export const CORE2_LESSONS: Lesson[] = [
     quiz: [
       { id: 'q1', q: 'ADD on a rung that stays true for 1 second with a 10 ms scan adds…', choices: ['1', 'About 100 times', '10', '0'], answer: 1, why: 'Math runs every scan the rung is true. Pulse it with a one-shot or timer.' },
       { id: 'q2', q: 'LIM(40, Level, 60) is true when Level is…', choices: ['39', '50', '61', '100'], answer: 1, why: 'Inside the band 40–60.' },
-      { id: 'q3', q: 'DINT 7 ÷ DINT 2 into a DINT on many PLCs gives…', choices: ['3.5', '3', '4', 'Fault'], answer: 1, why: 'Integer division truncates; use REAL for decimals.' },
+      { id: 'q3', q: 'On a Logix controller, DIV of DINT 7 by DINT 2 into a DINT gives…', choices: ['3.5', '3', 'An error', 'Fault'], answer: 1, why: 'Logix integer DIV truncates to 3. (SLC DIV rounds to 4; converting a REAL to a DINT rounds.) Use REAL for decimals. // VERIFY per instruction' },
     ],
   },
   {
@@ -336,14 +337,15 @@ export const CORE2_LESSONS: Lesson[] = [
       ] },
       { t: 'rung', text: 'XIC(Fault_Cond)OTL(Alarm)', tags: [{ name: 'Fault_Cond', type: 'BOOL' }, { name: 'Alarm', type: 'BOOL' }], caption: '1 — latch the alarm when the condition appears.' },
       { t: 'rung', text: 'XIC(Fault_Cond)ONS(New_OS)OTL(Unacked)', tags: [{ name: 'Fault_Cond', type: 'BOOL' }, { name: 'New_OS', type: 'BOOL' }, { name: 'Unacked', type: 'BOOL' }], caption: '2 — mark it unacknowledged once, on the rising edge.' },
-      { t: 'rung', text: 'XIC(Ack_PB)OTU(Unacked)', tags: [{ name: 'Ack_PB', type: 'BOOL' }, { name: 'Unacked', type: 'BOOL' }], caption: '3 — acknowledge.' },
+      { t: 'rung', text: 'XIC(Ack_PB)ONS(Ack_OS)OTU(Unacked)', tags: [{ name: 'Ack_PB', type: 'BOOL' }, { name: 'Ack_OS', type: 'BOOL' }, { name: 'Unacked', type: 'BOOL' }], caption: '3 — acknowledge, once per press (so a stuck Ack button can\'t hide new alarms).' },
       { t: 'rung', text: 'XIO(Fault_Cond)XIO(Unacked)OTU(Alarm)', tags: [{ name: 'Fault_Cond', type: 'BOOL' }, { name: 'Unacked', type: 'BOOL' }, { name: 'Alarm', type: 'BOOL' }], caption: '4 — clear only when gone AND acknowledged.' },
-      { t: 'rung', text: '[XIC(Unacked)XIC(Flasher),XIO(Unacked)XIC(Alarm)]OTE(Alarm_Light)', tags: [{ name: 'Unacked', type: 'BOOL' }, { name: 'Flasher', type: 'BOOL' }, { name: 'Alarm', type: 'BOOL' }, { name: 'Alarm_Light', type: 'BOOL' }], caption: '5 — flash while unacked, steady once acked.' },
+      { t: 'rung', text: '[XIC(Unacked)XIC(Flasher),XIO(Unacked)XIC(Alarm)]OTE(Alarm_Light)', tags: [{ name: 'Unacked', type: 'BOOL' }, { name: 'Flasher', type: 'BOOL' }, { name: 'Alarm', type: 'BOOL' }, { name: 'Alarm_Light', type: 'BOOL' }], caption: '5 — flash while unacked, steady once acked. (Flasher is a bit that blinks on and off, e.g. from a timer.)' },
+      { t: 'rung', text: 'XIC(Unacked)OTE(Horn)', tags: [{ name: 'Unacked', type: 'BOOL' }, { name: 'Horn', type: 'BOOL' }], caption: '6 — horn sounds until acknowledged.' },
       { t: 'callout', tone: 'tip', title: 'Fewer, better alarms', text: 'An alarm should need an operator action. Nuisance alarms train people to ignore the horn — that\'s how real alarms get missed.' },
     ],
     task: {
-      goal: 'Trigger the motor\'s fail-to-start alarm, then acknowledge (reset) it.',
-      steps: ['A "coil open" fault is injected. Press Start.', 'After 2 s the amber light latches on.', 'Press Reset to acknowledge and clear it.'],
+      goal: 'Trigger the motor station\'s fail-to-start alarm, then reset it. (This station uses a simple latch-and-reset alarm — compare it with the full acknowledge pattern above.)',
+      steps: ['A "coil open" fault is injected. Press Start.', 'After 2 s the amber light latches on.', 'Press Reset to clear the latch.'],
       check: 'latch-reset',
     },
     quiz: [
@@ -413,7 +415,7 @@ export const CORE2_LESSONS: Lesson[] = [
     blocks: [
       { t: 'table', head: ['Idea', 'Logix-style', 'Siemens-style'], rows: [
         ['When code runs', '[[task|Tasks]]: continuous, periodic, event', 'OBs: OB1 cyclic, cyclic-interrupt OBs (e.g. OB30-series), OB100 startup // VERIFY exact OB numbers per CPU family'],
-        ['Containers', 'Programs → Routines (MainRoutine calls others with JSR)', 'FCs (no memory) and FBs (with instance DB)'],
+        ['Containers', 'Programs → Routines (MainRoutine calls others with JSR)', 'FCs (no memory kept between calls) and FBs (keep their memory in an instance DB)'],
         ['Data', 'Controller tags and program tags', 'Global DBs, instance DBs, PLC tags'],
         ['Reusable logic', 'Add-On Instructions', 'Function blocks'],
       ] },

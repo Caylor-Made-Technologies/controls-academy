@@ -164,7 +164,7 @@ export const PLC_LESSONS: Lesson[] = [
     summary: 'The three instructions behind most ladder logic — and the NC stop-button trap.',
     why: 'XIC, XIO and OTE are most of every ladder program. Reading them right — especially on NC buttons — is day-one troubleshooting.',
     prereqs: ['what-is-a-plc', 'three-wire'],
-    realWorld: { site: 'mill', text: 'A new conveyor at a flour mill "won\'t start" after commissioning. Online, the Stop rung shows XIO(Stop_PB) — and the NC Stop input is ON, so the rung is false. Changing it to XIC fixes it in seconds.' },
+    realWorld: { site: 'mill', text: 'A new conveyor at a flour mill "won\'t start" after commissioning. Online, the Stop rung shows XIO(Stop_PB) — and the NC Stop input is ON, so the rung is false. Stop is wired NC so a broken wire stops the conveyor (fail-safe), so the logic must use XIC. With approval and the operators told, a one-instruction online edit fixes it.' },
     mistakes: [
       'Choosing XIO for a Stop button because it\'s a "stop". Pick by the bit\'s state when you want power to flow.',
       'Thinking XIC/XIO are the physical contacts. They examine bits in memory — the field device can be NO or NC.',
@@ -214,11 +214,11 @@ export const PLC_LESSONS: Lesson[] = [
     safety: { note: 'Changing logic on a running machine can start or stop equipment. Get approval, tell the operators, and know what each output does before you edit or download. A shortened timer can let equipment start before a guard, purge or fan is ready.' },
     blocks: [
       { t: 'p', text: 'A timer has a [[preset]] (.PRE — the target), an [[acc|accumulated]] value (.ACC — how far it got) and status bits.' },
-      { t: 'table', head: ['Bit', 'Means'], rows: [['.EN', 'Enabled: the rung is true'], ['.TT', 'Timer timing: counting right now'], ['.DN', 'Done: reached the preset (for TON)']] },
+      { t: 'table', head: ['Bit', 'Means'], rows: [['.EN', 'Enabled: the rung is true'], ['.TT', 'Timer timing: counting right now (a TOF times while its rung is FALSE)'], ['.DN', 'Done: reached the preset (for TON)']] },
       { t: 'list', items: [
         '**[[ton|TON]]** (on-delay): times while true. Done at preset. **Resets to zero** if the rung goes false. Use: "run the fan 5 s after the heater comes on."',
         '**[[tof|TOF]]** (off-delay): DN is on while true, and **stays on for the preset after** the rung goes false. Use: "keep the cooling fan running 2 min after the motor stops."',
-        '**[[rto|RTO]]** (retentive): like TON but **keeps its time** when the rung goes false. Needs RES. Use: "total run hours before maintenance."',
+        '**[[rto|RTO]]** (retentive): like TON but **keeps its time** when the rung goes false. Needs RES. Use: "total minutes a heater has been on this shift." (A Logix RTO counts milliseconds in a DINT and tops out near 25 days — for run hours, count seconds instead.)',
       ] },
       { t: 'brands', rows: [
         { skin: 'ab-logix', text: 'Time in milliseconds: 5 s → .PRE = 5000.' },
@@ -258,10 +258,10 @@ export const PLC_LESSONS: Lesson[] = [
     safety: { na: 'Counting logic in the simulator only; no hands-on equipment work in this lesson.' },
     blocks: [
       { t: 'p', text: 'A CTU adds 1 each time its rung goes **false → true** — an edge, not every scan. DN turns on when ACC ≥ PRE. CTD counts down. RES clears it.' },
-      { t: 'p', text: 'But a plain ADD (or MOV, or a sequencer step) on a held button runs **every scan** — thousands of times a second. A [[one-shot]] makes the rung true for just one scan.' },
+      { t: 'p', text: 'A CTU counts up, CTD counts down, and RES clears ACC and the status bits. But a plain ADD on a held button runs **every scan** — about 100 times a second with a 10 ms scan. A [[one-shot]] makes the rung true for just one scan, on the **edge** (the moment it goes false → true).' },
       { t: 'rung', text: 'XIC(Start_PB)ONS(Start_OS)ADD(Count,1,Count)', tags: [io.start, { name: 'Start_OS', type: 'BOOL' }, { name: 'Count', type: 'DINT' }], caption: 'Without the ONS, holding the button would add 1 every scan.' },
       { t: 'brands', rows: [
-        { skin: 'ab-logix', text: 'ONS (input-style), OSR/OSF (output-style with a storage bit).' },
+        { skin: 'ab-logix', text: 'ONS (its operand is the storage bit), or OSR/OSF (output-style, rising/falling, with a storage bit and an output bit).' },
         { skin: 'siemens-tia', text: '-|P|- and -|N|- edge contacts, or P_TRIG/N_TRIG. Each needs its own edge memory bit.' },
         { skin: 'mitsubishi', text: 'LDP/ANDP contacts, PLS/PLF outputs.' },
       ] },
@@ -295,13 +295,13 @@ export const PLC_LESSONS: Lesson[] = [
     ],
     safety: { note: 'Changing logic on a running machine can start or stop equipment. Get approval, tell the operators, and know what each output does before you edit or download. Deleting a rung on a live machine is a change like any other.' },
     blocks: [
-      { t: 'p', text: 'Two rungs both end in OTE(Motor_Run). Rung 0 is true, rung 1 is false. What happens? Every scan, rung 0 writes 1, then rung 1 writes 0. The output card only gets what\'s in memory **at the end of the logic** — 0.' },
+      { t: 'p', text: 'Two rungs both end in OTE(Motor_Run). Rung 0 is true, rung 1 is false. What happens? Every scan, rung 0 writes 1, then rung 1 writes 0. On SLC, Siemens and Mitsubishi the output card gets what\'s in memory **at the end of the logic** — 0. On ControlLogix/CompactLogix outputs are sent on their own timer (the RPI), so the module can catch the brief 1 and the output may blip or chatter. Either way it\'s a bug.' },
       { t: 'p', text: 'Online, rung 0 looks perfectly true and the motor still won\'t run. That\'s a [[duplicate-coil]].' },
       { t: 'callout', tone: 'tip', title: 'Fix', text: 'One OTE per bit. Combine the conditions on one rung with a branch (OR), or use OTL/OTU on purpose. The app\'s Verify button and your platform\'s cross-reference tool catch duplicates.' },
     ],
     task: {
       goal: 'Rung 1 writes Motor_Run again and undoes rung 0. Fix it so Start runs the motor.',
-      steps: ['Press Start. Rung 0 goes true — but nothing runs. Why?', 'Tap Verify: it reports the duplicate coil.', 'Delete rung 1 (select it → delete), or move its condition into a branch on rung 0.'],
+      steps: ['Press Start. Rung 0 goes true — but nothing runs. Why?', 'Tap Verify: it reports the duplicate coil.', 'Delete rung 1 (select it → delete). If jog is really needed, it belongs on rung 0 as a branch that still passes through Stop, E-stop and OL — and must not seal in (see the jog lesson).'],
       rungs: [
         { text: '[XIC(Start_PB),XIC(Motor_Run)]XIC(Stop_PB)XIC(EStop_OK)XIC(OL_OK)OTE(Motor_Run)', comment: 'The real start/stop.' },
         { text: 'XIC(Jog_Mode)OTE(Motor_Run)', comment: 'Someone added jog control… with a second coil.' },
@@ -311,9 +311,9 @@ export const PLC_LESSONS: Lesson[] = [
       edit: true,
     },
     quiz: [
-      { id: 'q1', q: 'Two OTEs write the same bit. Which one controls the output?', choices: ['The first', 'The last one solved in the scan', 'Whichever is true', 'Both, alternating'], answer: 1, why: 'Outputs are written after the whole logic solve, so the last write wins.' },
+      { id: 'q1', q: 'Two OTEs write the same bit. Which one controls the output?', choices: ['The first', 'The last one solved in the scan', 'Whichever is true', 'Both, alternating'], answer: 1, why: 'The last write in the scan wins the memory bit. (On Logix, outputs update on the RPI, so the module may even see the in-between value — another reason never to duplicate coils.)' },
       { id: 'q2', q: 'Fastest way to find every rung that writes a bit?', choices: ['Read every rung', 'Cross-reference the tag', 'Power cycle', 'Ask the operator'], answer: 1, why: 'Cross-reference lists every use and marks which ones write.' },
-      { id: 'q3', q: 'You need Motor_Run on from Start OR from jog mode. Best fix?', choices: ['A second OTE(Motor_Run) on a new rung', 'One rung with a branch (OR) for the two conditions', 'Two OTLs', 'A timer'], answer: 1, why: 'One OTE per bit. Combine the conditions with a branch.' },
+      { id: 'q3', q: 'You need Motor_Run on from Start OR from jog. Best fix?', choices: ['A second OTE(Motor_Run) on a new rung', 'One rung: a jog branch that still passes through Stop/E-stop/OL and doesn\'t seal in', 'Two OTLs', 'A timer'], answer: 1, why: 'One OTE per bit. The jog path must keep every stop in series and must not hold itself on.' },
     ],
   },
   {
@@ -326,25 +326,25 @@ export const PLC_LESSONS: Lesson[] = [
     prereqs: ['contacts-coils', 'timers'],
     realWorld: { site: 'water', text: 'A water plant\'s chlorine-leak alarm is latched with OTL. Even if the sensor reading dips back below the limit, the alarm stays on until an operator investigates and resets it.' },
     mistakes: [
-      'Latching a motor run bit. After a power cycle the controller returns to RUN with the bit still set — the motor can start on its own.',
+      'Latching a motor run bit. If the controller comes back up in RUN after a power cycle with the bit still set, the motor can start on its own.',
       'Forgetting the OTU. A latched bit never clears by itself.',
-      'Putting OTL and OTU for the same bit on rungs that are both true — the later rung wins every scan.',
+      'Putting OTL and OTU for the same bit on rungs that are both true. The bit toggles every scan (the later rung wins in memory, and on Logix the output module can see it flicker).',
     ],
     safety: { note: 'Before returning a controller to RUN after a fault or download, check which outputs are latched or retentive — they may energize immediately. Clear the area first.' },
     blocks: [
       { t: 'p', text: '[[latch|OTL]] sets a bit to 1 when its rung is true and **leaves it set** after the rung goes false. OTU clears it. Unlike OTE, they don\'t write anything when their rung is false.' },
-      { t: 'p', text: 'When a controller goes to RUN, it runs a [[prescan]]: OTE bits are cleared, but **latched bits keep their value** — even through a power cycle.' },
+      { t: 'p', text: 'When a controller goes to RUN, it runs a [[prescan]]: OTE bits are cleared, but **latched bits keep their value**. On Logix that includes a power cycle; on other brands it depends on memory being set as retentive. // VERIFY per platform' },
       { t: 'callout', tone: 'safety', title: 'Never latch motion without thought', text: 'A latched motor bit can start a machine the instant the controller returns to RUN. Use latches for alarms and memory; use seal-in OTE logic for things that move.' },
       { t: 'brands', rows: [
         { skin: 'ab-logix', text: 'OTL / OTU.' },
-        { skin: 'siemens-tia', text: '-(S)- set coil and -(R)- reset coil, or SR/RS flip-flop boxes.' },
-        { skin: 'mitsubishi', text: 'SET and RST.' },
+        { skin: 'siemens-tia', text: '-(S)- set coil and -(R)- reset coil, or SR/RS flip-flop boxes. Bits survive a power cycle only in memory marked retentive.' },
+        { skin: 'mitsubishi', text: 'SET and RST. On FX, only the latched (battery-backed) M range keeps its value through power-up. // VERIFY range per model' },
         { skin: 'omron', text: 'SET and RSET; H (holding) bits are retentive.' },
       ] },
     ],
     task: {
       goal: 'Trip the fail-to-start alarm, then clear it with Reset.',
-      steps: ['Hold the contactor from pulling in: there\'s a "coil open" fault already injected.', 'Press Start. After 2 s, Fail_Alarm latches and the amber light comes on.', 'Press Reset to unlatch it.'],
+      steps: ['A "coil open" fault is already injected, so the contactor can\'t pull in.', 'Press Start. After 2 s, Fail_Alarm latches and the amber light comes on.', 'Press Reset to unlatch it.'],
       check: 'latch-reset',
     },
     quiz: [
