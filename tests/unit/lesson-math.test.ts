@@ -67,6 +67,14 @@ describe('every number in the lessons is checked', () => {
     expect((0x0012).toString(2).padStart(16, '0')).toBe('0000000000010010');
   });
 
+  it('32-bit REAL rounding example (data-types)', () => {
+    let sum = Math.fround(0);
+    for (let i = 0; i < 10; i++) sum = Math.fround(sum + Math.fround(0.1));
+    expect(sum).not.toBe(1);
+    expect(sum.toFixed(7)).toBe('1.0000001');
+    expect(text('data-types')).toContain('1.0000001');
+  });
+
   it('volts-amps-ohms (Track 1)', () => {
     expect(ohm.current(24, 240)).toBeCloseTo(0.1);
     expect(answer('volts-amps-ohms', 'q1')).toContain('0.1 A');

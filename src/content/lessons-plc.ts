@@ -23,19 +23,20 @@ export const PLC_LESSONS: Lesson[] = [
     ],
     safety: { note: 'A PLC in RUN can turn outputs on at any moment. Putting it in Program mode is not a lockout — lock out the equipment before working on anything the PLC controls.' },
     blocks: [
-      { t: 'p', text: 'A [[plc]] replaced walls of relays with one rugged computer. It sits on a DIN rail or in a **rack/chassis** with:' },
+      { t: 'p', text: 'A [[plc]] replaced walls of relays with one rugged computer. It clips onto a DIN rail or slides into a **rack/chassis** (a backplane that holds the modules) with:' },
       { t: 'list', items: [
         '**Power supply** — feeds the rack.',
         '**CPU** (processor) — holds and runs the program. Has a mode switch and status lights (RUN, FAULT, FORCE…).',
         '**Input cards** — turn 24 VDC or 120 VAC field signals into bits. Each point has an LED.',
         '**Output cards** — turn bits into voltage to coils, lights and valves.',
         '**Analog cards** — read/write 4–20 mA or 0–10 V.',
-        '**Comms** — Ethernet to the HMI, drives and other PLCs. **Remote I/O** puts cards out near the machine.',
+        '**Comms** — Ethernet to the [[hmi|HMI]] (operator screen), drives and other PLCs. **Remote I/O** puts cards out near the machine, connected by a network cable.',
       ] },
       { t: 'h', text: 'The scan' },
       { t: 'figure', fig: 'scan' },
       { t: 'p', text: 'The CPU runs the same [[scan]] over and over, often in a few milliseconds:' },
-      { t: 'list', ordered: true, items: ['**Read inputs** into memory (the input image).', '**Solve the logic**, rung by rung, top to bottom, left to right.', '**Write outputs** from memory to the cards.', '**Housekeeping**: comms, diagnostics. Then again.'] },
+      { t: 'list', ordered: true, items: ['**Read inputs** into memory — the input image, a snapshot of every input point.', '**Solve the logic**, rung by rung, top to bottom (branches and called routines in order).', '**Write outputs** from memory to the cards.', '**Housekeeping**: comms, diagnostics. Then again.'] },
+      { t: 'callout', tone: 'brand', title: 'Logix is different', text: 'ControlLogix and CompactLogix update I/O on their own schedule (the RPI), separate from the scan, so an input tag can change partway through a scan. Programmers often copy inputs to buffer tags at the start of a routine to get a stable snapshot. // VERIFY per controller family' },
     ],
     task: {
       goal: 'Single-step through one complete scan and watch the pointer move.',
@@ -44,7 +45,7 @@ export const PLC_LESSONS: Lesson[] = [
     },
     quiz: [
       { id: 'q1', q: 'What order does a scan run in?', choices: ['Outputs, logic, inputs', 'Read inputs, solve logic, write outputs, housekeeping', 'Logic only', 'Random'], answer: 1, why: 'Read → solve → write → housekeeping, repeated.' },
-      { id: 'q2', q: 'An input turns on while rung 5 is being solved. Rung 2 uses it. When does rung 2 see it?', choices: ['Immediately', 'Next scan, after the next input read', 'Never', 'After a power cycle'], answer: 1, why: 'Inputs are copied into memory at the start of the scan. Rung 2 sees the new value next scan.' },
+      { id: 'q2', q: 'On a classic-scan PLC (SLC 500, S7, FX), an input turns on while rung 5 is being solved. Rung 2 uses it. When does rung 2 see it?', choices: ['Immediately', 'Next scan, after the next input read', 'Never', 'After a power cycle'], answer: 1, why: 'Classic-scan PLCs copy inputs into the input image at the start of the scan, so rung 2 sees it next scan. (Logix updates I/O on the RPI, so there it could change mid-scan.)' },
       { id: 'q3', q: 'Which part turns 24 VDC field signals into bits?', choices: ['CPU', 'Power supply', 'Input card', 'Output card'], answer: 2, why: 'Input cards condition the field voltage and give the CPU a 0 or 1.' },
     ],
   },
@@ -64,7 +65,7 @@ export const PLC_LESSONS: Lesson[] = [
     ],
     safety: { note: '24 VDC is low risk for shock, but sensor wiring shares the panel with 120 V and 480 V. And a sensor that "won\'t switch" may be part of a guard or interlock — fix it, never jumper it.' },
     blocks: [
-      { t: 'p', text: 'Every DC circuit needs a complete loop: from **+24 V**, through the load, back to **0 V** (common). The question is just **who provides which side**.' },
+      { t: 'p', text: 'Every DC circuit needs a complete loop: from **+24 V**, through the load, back to **0 V** (the common). Arrows here show conventional current, + to −. The question is just **who provides which side**.' },
       { t: 'list', items: [
         '**[[sourcing|Sourcing]]** = provides **+V**. Current flows **out** of it.',
         '**[[sinking|Sinking]]** = provides the path to **0 V**. Current flows **into** it.',
@@ -78,7 +79,7 @@ export const PLC_LESSONS: Lesson[] = [
       { t: 'callout', tone: 'tip', title: 'Memory trick', text: 'P for PNP → "Positive" switched. N for NPN → "Negative" switched.' },
     ],
     quiz: [
-      { id: 'q1', q: 'A PNP sensor should connect to an input card that is…', choices: ['Sourcing', 'Sinking', 'Either', 'Analog'], answer: 1, why: 'PNP sources +V, so the card must sink it to 0 V.' },
+      { id: 'q1', q: 'A PNP sensor should connect to an input card that is…', choices: ['Sourcing', 'Sinking', 'Never mind the type — any card works', 'Analog'], answer: 1, why: 'PNP sources +V, so the card must sink it to 0 V. (Many DC cards can be wired either way by where their common goes — then wire the common to 0 V.)' },
       { id: 'q2', q: 'An NPN prox is wired to a sinking card. The target is present and the sensor\'s LED is on. The PLC input…', choices: ['turns on', 'stays off — no complete loop', 'flickers', 'shorts the supply'], answer: 1, why: 'Both sides offer 0 V. No +V source in the loop means no current.' },
       { id: 'q3', q: 'A "sourcing" device…', choices: ['provides +V; current flows out of it', 'provides 0 V; current flows into it', 'is AC only', 'needs no power'], answer: 0, why: 'Sourcing = supplies the positive side.' },
     ],
@@ -91,19 +92,20 @@ export const PLC_LESSONS: Lesson[] = [
     summary: 'Why the zero is alive, and how raw counts become gallons.',
     why: 'Levels, pressures, flows and temperatures reach the PLC as 4–20 mA. When a reading looks wrong, this is how you prove where.',
     prereqs: ['what-is-a-plc', 'z-ohms-power'],
-    realWorld: { site: 'water', text: 'A water plant\'s clearwell level transmitter is ranged 0–20 ft. The operator says the level is wrong. The transmitter\'s display shows 16.0 mA: (16 − 4) ÷ 16 × 20 = 15 ft — exactly what the PLC shows. The instrument is right; the level really is 15 ft.' },
+    realWorld: { site: 'water', text: 'A water plant\'s clearwell level transmitter is ranged 0–20 ft. The operator says the level is wrong. The transmitter\'s display shows 16.0 mA: (16 − 4) ÷ 16 × 20 = 15 ft — exactly what the PLC shows. The PLC side checks out; next, compare the transmitter with a local reading (sight glass or staff gauge) before blaming the level.' },
     mistakes: [
       'Assuming 0 mA means empty. Empty is 4 mA; 0 mA is a broken loop or dead transmitter.',
-      'Clipping a meter across the loop terminals on the mA setting. That shorts the signal — break the loop to put the meter in series, or use a loop clamp or the transmitter\'s test terminals.',
+      'Breaking into a live loop without warning. The PLC will see 0 mA — that can trip alarms, interlocks or send PID loops to their fail action. Tell the operator and put the loop in manual (or get the approved bypass) first; a loop-current clamp avoids breaking it at all.',
+      'Clipping a meter across terminals on the mA setting. Across the PLC input it steals the signal (PLC reads ~0); across the transmitter it can over-range the card or blow the meter fuse.',
       'Scaling with the wrong raw range for the card (for example 0–32767 instead of the card\'s real 4–20 mA counts).',
     ],
     safety: { note: 'Most loops run on 24 VDC, but some 4-wire transmitters are powered from 120 VAC, and transmitters in hazardous (classified) areas use intrinsically safe wiring with its own rules. Check the drawing before opening a housing or connecting a meter.' },
     blocks: [
       { t: 'p', text: 'A level [[transmitter]] can\'t say "37 %" as a bit. It sends an analog signal, most often [[four-twenty]]. 4 mA = bottom of the range, 20 mA = top, 12 mA = halfway.' },
       { t: 'list', items: [
-        '**Current doesn\'t drop over long wires** the way voltage does — great for big plants.',
-        '**[[live-zero|Live zero]]:** 0 % is 4 mA, not 0 mA. If the PLC sees ~0 mA, the wire is broken. Many cards flag below ~3.6 mA as a fault. // VERIFY per card',
-        '**2-wire (loop-powered)** transmitters get power from the loop itself. **4-wire** transmitters have their own power and a separate signal pair.',
+        '**Current doesn\'t drop over long wires** the way voltage does — great for big plants. (Wire resistance still uses up the loop supply\'s voltage, so very long runs have limits.)',
+        '**[[live-zero|Live zero]]:** 0 % is 4 mA, not 0 mA. If the PLC sees ~0 mA, the wire is broken. Many cards flag below ~3.6 mA or above ~21 mA as a fault (NAMUR NE 43 style), and many transmitters drive to a set fail value. // VERIFY per card',
+        '**2-wire (loop-powered)** transmitters get power from the loop itself — from the analog card or a separate 24 V supply. **4-wire** transmitters have their own power and a separate signal pair.',
         'A **250 Ω resistor** turns 4–20 mA into 1–5 V (V = I × R: 0.004 × 250 = 1 V; 0.020 × 250 = 5 V).',
       ] },
       { t: 'h', text: 'Scaling' },
@@ -128,10 +130,10 @@ export const PLC_LESSONS: Lesson[] = [
     track: 't4',
     title: 'Binary, hex, BCD and octal',
     minutes: 7,
-    summary: 'How PLCs count — and why Mitsubishi has no X8.',
+    summary: 'How PLCs count — and why a Mitsubishi FX has no X8.',
     why: 'Fault codes, status words and I/O addresses show up in hex, BCD and octal. Misread one and you chase the wrong problem.',
     prereqs: ['what-is-a-plc'],
-    realWorld: { site: 'datacenter', text: 'A data center chiller reports alarm word 16#0012 to the building system. In binary that\'s 0000 0000 0001 0010: bits 1 and 4 are on. The chiller manual\'s bit table says which two alarms those are.' },
+    realWorld: { site: 'datacenter', text: 'A data center chiller reports alarm word 16#0012 to the building system. In binary that\'s 0000 0000 0001 0010: bits 1 and 4 are on (counting from bit 0 on the right). The chiller manual\'s bit table says which two alarms those are.' },
     mistakes: [
       'Looking for X8 on an octal-numbered PLC (Mitsubishi FX, AutomationDirect DirectLOGIC). After X7 comes X10.',
       'Overlapping Siemens words: MW0 is MB0 + MB1 (MB0 is the HIGH byte), and MW1 is MB1 + MB2, so MW0 and MW1 share a byte. Use even word addresses.',
@@ -143,15 +145,15 @@ export const PLC_LESSONS: Lesson[] = [
       { t: 'figure', fig: 'numbers', caption: 'Type a number and see it in every base.' },
       { t: 'list', items: [
         '**Binary** (base 2): what the hardware stores. 1010 = 10.',
-        '**[[hex|Hex]]** (base 16): 4 bits per digit. 16#FF = 255. Handy for status words and fault codes.',
+        '**[[hex|Hex]]** (base 16): 4 bits per digit. 16#FF = 255 (also written 0xFF or FFh, depending on the software). Handy for status words and fault codes.',
         '**[[bcd|BCD]]**: each decimal digit in its own 4 bits. 0010 0101 = 25. Thumbwheels, old displays, some timers.',
-        '**[[octal|Octal]]** (base 8): digits 0–7. **Mitsubishi FX and AutomationDirect DirectLOGIC number I/O in octal**: X0…X7, then X10.',
+        '**[[octal|Octal]]** (base 8): digits 0–7. **Mitsubishi FX and AutomationDirect DirectLOGIC number X/Y I/O in octal**: X0…X7, then X10. (Mitsubishi Q and iQ-R use hex for X/Y; FX timers, counters and data registers are decimal.)',
       ] },
     ],
     quiz: [
       { id: 'q1', q: 'On a Mitsubishi FX, what input comes after X7?', choices: ['X8', 'X10', 'X08', 'Y0'], answer: 1, why: 'FX inputs are octal. 7 + 1 = 10 in octal.' },
       { id: 'q2', q: 'Binary 1111 = ?', choices: ['4', '11', '15', '16'], answer: 2, why: '8 + 4 + 2 + 1 = 15 (hex F).' },
-      { id: 'q3', q: 'BCD 0100 0010 = ?', choices: ['42', '66', '24', '0x42'], answer: 0, why: 'Each 4-bit group is one decimal digit: 0100 = 4, 0010 = 2.' },
+      { id: 'q3', q: 'BCD 0100 0010 = ?', choices: ['42', '66', '24', '6'], answer: 0, why: 'Each 4-bit group is one decimal digit: 0100 = 4, 0010 = 2.' },
     ],
   },
   {

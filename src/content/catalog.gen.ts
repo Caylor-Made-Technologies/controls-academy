@@ -29,7 +29,7 @@ export const LESSON_META: LessonMeta[] = [
   {"id":"what-is-a-plc","track":"t4","title":"What a PLC is — and the scan","minutes":8,"summary":"Rack, CPU, I/O cards, and the loop that runs forever.","task":true},
   {"id":"sinking-sourcing","track":"t4","title":"Sinking vs sourcing, NPN vs PNP","minutes":10,"summary":"The #1 confusion in controls, settled with current-flow arrows.","task":false},
   {"id":"analog-420","track":"t4","title":"4–20 mA and scaling","minutes":9,"summary":"Why the zero is alive, and how raw counts become gallons.","task":false},
-  {"id":"numbers","track":"t4","title":"Binary, hex, BCD and octal","minutes":7,"summary":"How PLCs count — and why Mitsubishi has no X8.","task":false},
+  {"id":"numbers","track":"t4","title":"Binary, hex, BCD and octal","minutes":7,"summary":"How PLCs count — and why a Mitsubishi FX has no X8.","task":false},
   {"id":"data-types","track":"t4","title":"Data types, arrays and UDTs","minutes":8,"summary":"Choosing the right container for every value.","task":false},
   {"id":"contacts-coils","track":"t5","title":"Contacts and coils: XIC, XIO, OTE","minutes":9,"summary":"The three instructions behind most ladder logic — and the NC stop-button trap.","task":true},
   {"id":"timers","track":"t5","title":"Timers: TON, TOF and RTO","minutes":9,"summary":"Preset, accumulated, and the bits that tell you what a timer is doing.","task":true},

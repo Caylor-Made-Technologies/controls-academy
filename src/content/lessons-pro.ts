@@ -73,7 +73,7 @@ export const PRO_LESSONS: Lesson[] = [
       { t: 'list', ordered: true, items: ['Write down the fault (photo the screen).', 'Find the rung/block it points to.', 'Understand the cause (bad index? lost module?).', 'Fix the cause, then clear the fault and return to RUN — with operations aware outputs may start.'] },
       { t: 'callout', tone: 'safety', title: 'Clearing a fault can restart things', text: 'When the controller goes back to RUN, outputs that the logic calls for turn on. Make sure the machine is in a safe state and people are clear.' },
       { t: 'sort', prompt: 'Major or minor fault (typical behavior)?', bins: ['Major — controller stops', 'Minor — logged, keeps running'], items: [
-        { text: 'Array index out of range', bin: 0, why: 'On most controllers this is a major fault.' },
+        { text: 'Array index out of range (Logix)', bin: 0, why: 'On Logix this is a major fault; other platforms differ.' },
         { text: 'A required remote I/O rack is lost', bin: 0, why: 'A module configured as required faults the controller when it\'s lost.' },
         { text: 'Math overflow in a calculation', bin: 1, why: 'Often only a minor fault — the program keeps running with a wrong value.' },
       ] },
