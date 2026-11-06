@@ -133,6 +133,13 @@ const LESSON_IDS = ['z-electricity', 'z-ohms-power', 'z-ac-dc', 'z-series-parall
     await go(page, 'exam');
     await page.getByText(/Best \d+ %/).first().waitFor();
   });
+  await check('Study summary: terms, formulas, safety, mistakes; Markdown download', async () => {
+    await go(page, 'summary/t4');
+    for (const h of ['Why each lesson matters', 'Formulas', 'Safety points', 'Common mistakes']) await page.getByRole('heading', { name: h }).waitFor();
+    await page.getByRole('heading', { name: /Key terms \(\d+\)/ }).waitFor();
+    const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Download (.md)' }).click()]);
+    if (!/track-4-summary\.md$/.test(dl.suggestedFilename())) throw new Error(dl.suggestedFilename());
+  });
   await check('Skill map: map and list views, every lesson listed, finished lessons marked', async () => {
     await go(page, 'skills');
     await page.locator('.skill-map svg').waitFor();

@@ -201,6 +201,16 @@
   .skill-chip.skill-unlocked { border-color: var(--blue-glow); color: var(--text-heading); background: var(--blue-soft); }
   .skill-chip.skill-done { border-color: var(--live); color: var(--text-heading); background: var(--live-soft); }
   .skill-chip.skill-mastered { border-color: var(--warn); color: var(--text-heading); background: var(--warn-soft); }
+  .summary-sec { margin: 0 0 1.25rem; break-inside: avoid-page; }
+  .summary-sec h2 { font-size: 1.15rem; font-weight: 800; margin: 0 0 0.5rem; }
+  .summary-sec ul { padding-left: 1.25rem; margin: 0; list-style: disc; }
+  .summary-sec li { margin: 0.3rem 0; }
+  .summary-table { width: 100%; border-collapse: collapse; font-size: 0.9rem; }
+  .summary-table th, .summary-table td { text-align: left; vertical-align: top; padding: 0.45rem 0.5rem; border-top: 1px solid var(--border); }
+  .summary-table code { white-space: normal; }
+  .summary-terms { margin: 0; display: grid; gap: 0.5rem; }
+  .summary-terms dt { font-weight: 700; color: var(--text-heading); }
+  .summary-terms dd { margin: 0; font-size: 0.92rem; }
   .why-line { font-size: 0.95rem; padding: 10px 12px; border-radius: 10px; border-left: 3px solid var(--live); background: var(--live-soft); color: var(--text-body); }
   .why-line strong { color: var(--text-heading); }
   .real-world { border-left: 3px solid var(--blue-glow); }
@@ -512,3 +522,15 @@ body {
 .page-head > :not(svg) { position: relative; z-index: 1; }
 .page-head h1 { text-shadow: 0 0 10px var(--bg); }
 @media (max-width: 640px) { .page-head svg.traces { opacity: 0.3; width: 170px; } }
+
+/* Printable study summaries and certificates: only the article prints, black on white. */
+@media print {
+  .rail, .app-header, .tabbar, .skip-link, .no-print, footer, .page-head svg, .power-on { display: none !important; }
+  html, body, #root, main { background: #fff !important; color: #000 !important; }
+  main { padding: 0 !important; margin: 0 !important; }
+  .summary, .summary * { color: #000 !important; background: transparent !important; box-shadow: none !important; }
+  .summary a { text-decoration: none; }
+  .summary .term { border: 0; padding: 0; }
+  .summary-table th, .summary-table td { border-color: #999 !important; }
+  @page { margin: 14mm; }
+}

@@ -9,14 +9,15 @@ import { installSpotlight } from './lib/spotlight';
 import { PowerOn } from './components/PowerOn';
 import { applyTheme, usePrefs } from './state/prefs';
 import { useProgress } from './state/progress';
-import { Onboarding } from './features/onboarding/Onboarding';
 import LearnPage from './features/learn/LearnPage';
 
+const Onboarding = lazy(() => import('./features/onboarding/Onboarding').then((m) => ({ default: m.Onboarding })));
 const CommandPalette = lazy(() => import('./features/CommandPalette').then((m) => ({ default: m.CommandPalette })));
 const LessonPage = lazy(() => import('./features/learn/LessonPage'));
 const ReviewPage = lazy(() => import('./features/learn/ReviewPage'));
 const SkillMapPage = lazy(() => import('./features/learn/SkillMapPage'));
 const ExamPage = lazy(() => import('./features/learn/ExamPage'));
+const SummaryPage = lazy(() => import('./features/learn/SummaryPage'));
 const SimulatorPage = lazy(() => import('./features/simulator/SimulatorPage'));
 const TroubleshootPage = lazy(() => import('./features/troubleshoot/TroubleshootPage'));
 const ReferencePage = lazy(() => import('./features/reference/ReferencePage'));
@@ -51,6 +52,7 @@ function Page({ route }: { route: string[] }) {
     case 'review': return <ReviewPage />;
     case 'skills': return <SkillMapPage />;
     case 'exam': return <ExamPage id={b} />;
+    case 'summary': return <SummaryPage track={b} />;
     case 'sim': return <SimulatorPage />;
     case 'troubleshoot': return <TroubleshootPage huntId={b} />;
     case 'reference': return <ReferencePage section={b} item={route[2]} />;
@@ -215,7 +217,7 @@ export default function App() {
       </nav>
 
       {paletteOpen && <Suspense fallback={null}><CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} /></Suspense>}
-      {!prefs.onboarded && <Onboarding onDone={(path) => { prefs.setPrefs({ onboarded: true }); if (path) navigate(path); }} />}
+      {!prefs.onboarded && <Suspense fallback={null}><Onboarding onDone={(path) => { prefs.setPrefs({ onboarded: true }); if (path) navigate(path); }} /></Suspense>}
     </LayoutGroup>
     </MotionConfig>
   );

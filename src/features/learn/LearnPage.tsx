@@ -107,7 +107,10 @@ export default function LearnPage() {
       {/* Tracks */}
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h2 className="text-xl font-bold m-0">Tracks</h2>
-        <a href={href('skills')} className="btn btn-sm"><Icon name="layers" size={16} /> Skill map</a>
+        <span className="flex gap-2">
+          <a href={href('summary')} className="btn btn-sm"><Icon name="book" size={16} /> Summaries</a>
+          <a href={href('skills')} className="btn btn-sm"><Icon name="layers" size={16} /> Skill map</a>
+        </span>
       </div>
       <ol className="relative list-none p-0 m-0 space-y-3" aria-label="Tracks">
         <span className="absolute left-[27px] top-6 bottom-6 w-[3px] rounded bg-line" aria-hidden="true" />
