@@ -1,5 +1,21 @@
 # Changelog
 
+## 0.7.0 — 2026-11-06 (Phase 2: machines and a VFD)
+- **7 new machines** in the simulator (pick one at the top of the Simulator, or open `#/sim?m=<id>`), each with a working ladder program, wiring notes for every device, meter points, SI-unit physics tested against hand-worked values, and 4–5 injectable faults:
+  - **Fan on a VFD:** accel/decel ramps, 4–20 mA / 0–10 V / keypad speed reference, terminal or keypad control, current limit, DC-bus regeneration, braking resistor, STO, and OC / OV / loss-of-reference / motor-overload trips.
+  - **Forward/reverse screw conveyor:** mechanical, electrical and logic interlocks (the hardwired ones hold even if reverse is forced on), zero-speed anti-plugging.
+  - **Bag conveyor:** two photo-eyes, bag counting, jam detection, pallet counter.
+  - **Tank level PID:** 4–20 mA transmitter, PID fill valve tunable from the panel (watch overshoot on the trend), bad-signal and high-high protection.
+  - **Lift station:** pump lead/lag with alternation, fail-to-start fail-over and an independent high-level float.
+  - **Data center:** ATS with generator start, transfer, retransfer delay and cooldown, plus a CRAH chilled-water temperature PID — a utility outage visibly warms the room until the generator picks up.
+  - **Flour batch mixer:** recipe weights, state machine with fault codes 901–906, dust-collector and gate interlocks, in-flight overshoot.
+- **37 faults** across 8 machines, each with the symptom, what the meter shows, root cause, the fix and a safety note.
+- **Fault Hunt** covers every machine, with a difficulty filter, a real meter-mode selector (ohms or amps-jacks on a live point is flagged as unsafe) and method scoring that rewards proving the culprit with the meter before naming it.
+- **One machine interface** (`docs/SIM-ARCHITECTURE.md`): a declarative operator panel (buttons, switches, sliders, lights, gauges, trends, PLC-tag setpoints), shared tested physics kit, machine registry.
+- **Bug caught before release:** B-007 — the new lift-station program let both pumps short-cycle on the backup float until their overloads tripped; fixed with float deadband and a 60 s hold.
+- **Known issues:** B-001 (3D renders continuously; `#/sim` Lighthouse). The new machines are 2D; their 3D scenes come in Phase 3.3, including the live VFD keypad.
+
+
 ## 0.6.0 — 2026-11-06 (Phase 1: teach from scratch)
 - **Track 0 — Start from Zero:** 11 new beginner lessons (electricity, Ohm's law and power, AC/DC and US plant voltages, series/parallel, open/short/ground faults, grounding and bonding, safety foundations, tools/PPE/meter, symbols and drawings, control panels, jobs in controls). 60 lessons in 12 tracks.
 - **Every lesson meets the 8-item quality bar**, enforced by the type system and a test: why it matters on the job, a plain explainer with tap-to-define terms, an interactive figure/drill/sim task, a flour-mill / data-center / water-plant example, common mistakes, a safety note, a 3–5 question check with explanations, and linked prerequisites.

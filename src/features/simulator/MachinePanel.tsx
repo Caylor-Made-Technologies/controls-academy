@@ -34,7 +34,7 @@ function Control({ c, rt, set }: { c: PanelControl; rt: SimRuntime; set: (field:
       const v = Number(s[c.field]);
       return (
         <label className="block w-full">
-          <span className="flex justify-between text-sm"><span className="font-semibold text-heading">{c.label}</span><span className="font-mono tabular-nums">{fmt(v, c.step < 1 ? 1 : 0)} {c.unit}</span></span>
+          <span className="flex justify-between text-sm"><span className="font-semibold text-heading">{c.label}</span><span className="font-mono tabular-nums">{fmt(v, Math.max(0, Math.ceil(-Math.log10(c.step) - 1e-9)))} {c.unit}</span></span>
           <input type="range" min={c.min} max={c.max} step={c.step} value={v} onChange={(e) => set(c.field, Number(e.target.value))} className="w-full accent-[var(--blue)] h-11" aria-describedby={`hint-${c.field}`} />
           <span id={`hint-${c.field}`} className="sr-only">{c.hint}</span>
         </label>
