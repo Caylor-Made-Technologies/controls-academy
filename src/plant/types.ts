@@ -96,7 +96,7 @@ export interface PlantScene<S = unknown> {
   /** Extra "this is the problem" choices in Fault Hunt (things that aren't a device, like a fuse or a force). */
   huntChoices?: { id: string; label: string }[];
   /** Arm a fault that needs the controller too (e.g. a force left installed). */
-  armFault?(id: string, plc: { forces: { DI: Map<number, boolean>; DO: Map<number, boolean> } }): void;
+  armFault?(id: string, plc: { forces: { DI: Map<number, boolean>; DO: Map<number, boolean> }; tags: { write(name: string, v: number | boolean): void } }): void;
   /** Sound cues: motor hum level 0–1 and whether a contactor is pulled in (clunk on change). */
   sound?: { hum: (s: S) => number; contactor: (s: S) => boolean };
   devices: FieldDevice[];
