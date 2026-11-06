@@ -6,7 +6,6 @@ import { OPS } from '../../engine/ops';
 import { walk } from '../../engine/text';
 import type { Elem, Instr, OpCode, Program, TagDecl, TimerValue, CounterValue } from '../../engine/types';
 import { verifyProgram, crossReference, type Issue } from '../../engine/verify';
-import { MOTOR_DEVICES } from '../../plant/motor';
 import { SKINS, addressMap, skinsByMaker, type SkinId } from '../../skins';
 import { PlatformBar, makerShort } from './PlatformBar';
 import { usePrefs } from '../../state/prefs';
@@ -16,6 +15,7 @@ import {
   History, addParallel, addRung, duplicateRung, findElem, insert, move, newInstr, remove, setComment, updateInstr, type Sel,
 } from './edit';
 import { Ladder } from './Ladder';
+import { MachinePanel } from './MachinePanel';
 import { MotorPanel } from './MotorPanel';
 import { OperandSheet } from './OperandSheet';
 import { SimRuntime, type RunMode } from './runtime';
@@ -25,8 +25,8 @@ const Panel3D = lazy(() => import('../../three/Panel3D'));
 
 const QUICK: OpCode[] = ['XIC', 'XIO', 'OTE', 'OTL', 'OTU', 'ONS', 'TON', 'TOF', 'RTO', 'CTU', 'CTD', 'RES', 'EQU', 'GRT', 'LES', 'MOV', 'ADD', 'CPT'];
 
-export function useRuntime(initial: Program): SimRuntime {
-  const [rt] = useState(() => new SimRuntime(initial));
+export function useRuntime(initial: Program, machine = 'motor'): SimRuntime {
+  const [rt] = useState(() => new SimRuntime(initial, machine));
   useEffect(() => {
     rt.start();
     return () => rt.dispose();
@@ -52,10 +52,12 @@ export interface WorkbenchProps {
   devicePickLabel?: string;
   /** Open in the 3D view when the device supports it. */
   start3D?: boolean;
+  /** Which machine to run (see src/plant/index.ts). */
+  machine?: string;
 }
 
-export function Workbench({ initial, editable = true, onProgramChange, onRuntime, hidePanel, onUnsafe, extraTools, onDevicePick, devicePickLabel, start3D }: WorkbenchProps) {
-  const rt = useRuntime(initial);
+export function Workbench({ initial, editable = true, onProgramChange, onRuntime, hidePanel, onUnsafe, extraTools, onDevicePick, devicePickLabel, start3D, machine = 'motor' }: WorkbenchProps) {
+  const rt = useRuntime(initial, machine);
   const skinId = usePrefs((s) => s.skin);
   const setPrefs = usePrefs((s) => s.setPrefs);
   const sawSkin = useProgress((s) => s.sawSkin);
@@ -72,7 +74,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
   const [, bump] = useState(0);
   const quality = usePrefs((s) => s.quality);
   const [view3d, setView3d] = useState(() => Boolean(start3D) && prefer3D(quality));
-  const can3d = useMemo(() => hasWebGL() && quality !== '2d', [quality]);
+  const can3d = useMemo(() => hasWebGL() && quality !== '2d' && rt.scene.view3d === 'motor-panel', [quality, rt]);
   useEffect(() => { if (!can3d) setView3d(false); }, [can3d]);
 
   useEffect(() => { onRuntime?.(rt); }, [rt, onRuntime]);
@@ -176,7 +178,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
       <div className={hidePanel ? '' : 'grid gap-3 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] items-start'}>
         {!hidePanel && (
           <div className="lg:sticky lg:top-[72px]">
-            <MotorPanel rt={rt} onDevice={(id) => setDevice(id)} compact={view3d} />
+            {rt.scene.ui ? <MachinePanel rt={rt} onDevice={(id) => setDevice(id)} /> : <MotorPanel rt={rt} onDevice={(id) => setDevice(id)} compact={view3d} />}
           </div>
         )}
 
@@ -407,7 +409,7 @@ function TagMonitor({ rt, program, map }: { rt: SimRuntime; program: Program; ma
 }
 
 function DeviceSheet({ rt, id, onClose, onUnsafe, onPick, pickLabel }: { rt: SimRuntime; id: string | null; onClose: () => void; onUnsafe?: (w: string) => void; onPick?: (id: string) => void; pickLabel?: string }) {
-  const d = MOTOR_DEVICES.find((x) => x.id === id);
+  const d = rt.scene.devices.find((x) => x.id === id);
   const [confirm, setConfirm] = useState<boolean | null>(null);
   useEffect(() => setConfirm(null), [id]);
   if (!d) return <Sheet open={false} onClose={onClose} title="">{null}</Sheet>;

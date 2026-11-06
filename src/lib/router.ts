@@ -29,3 +29,8 @@ export function queryParam(name: string): string | null {
   const q = window.location.hash.split('?')[1];
   return q ? new URLSearchParams(q).get(name) : null;
 }
+
+/** A query parameter from the hash (#/sim?m=tank) that re-renders when it changes. */
+export function useQueryParam(name: string): string | null {
+  return useSyncExternalStore(subscribe, () => queryParam(name), () => null);
+}

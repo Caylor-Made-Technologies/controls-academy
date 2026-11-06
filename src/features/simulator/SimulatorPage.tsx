@@ -3,17 +3,29 @@ import { PageHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { SkeletonPage } from '../../components/Skeleton';
 import type { Program } from '../../engine/types';
-import { motorProgram } from '../../plant/motor';
+import { MACHINES, MACHINE_BY_ID, createMachine } from '../../plant';
 import { SKIN_LIST, addressMap } from '../../skins';
 import { debouncedSaver, load } from '../../state/persist';
 import { usePrefs } from '../../state/prefs';
-import { queryParam } from '../../lib/router';
+import { navigate, queryParam, useQueryParam } from '../../lib/router';
 import { decodeProgram, encodeProgram, validateProgram } from './edit';
 import { Workbench } from './Workbench';
 
-const saveProgram = debouncedSaver<Program>('sim-program', 400);
+/** Each machine keeps its own saved program. The motor keeps the original key so old saves still load. */
+const storeKey = (m: string) => (m === 'motor' ? 'sim-program' : `sim-program:${m}`);
+const savers = new Map<string, (p: Program) => void>();
+const saveProgram = (m: string, p: Program) => {
+  if (!savers.has(m)) savers.set(m, debouncedSaver<Program>(storeKey(m), 400));
+  savers.get(m)!(p);
+};
 
 export default function SimulatorPage() {
+  const m = useQueryParam('m');
+  const machine = m && MACHINE_BY_ID.has(m) ? m : 'motor';
+  return <MachineSim key={machine} machine={machine} />;
+}
+
+function MachineSim({ machine }: { machine: string }) {
   const [initial, setInitial] = useState<Program | null>(null);
   const [key, setKey] = useState(0);
   const [msg, setMsg] = useState('');
@@ -25,19 +37,19 @@ export default function SimulatorPage() {
     (async () => {
       const shared = queryParam('p');
       const fromLink = shared ? decodeProgram(shared) : null;
-      const saved = validateProgram(await load('sim-program'));
+      const saved = validateProgram(await load(storeKey(machine)));
       if (!alive) return;
-      const p = fromLink ?? saved ?? motorProgram();
+      const p = fromLink ?? saved ?? createMachine(machine).program();
       if (fromLink) setMsg('Loaded a shared program from the link.');
       current.current = p;
       setInitial(p);
     })();
     return () => { alive = false; };
-  }, []);
+  }, [machine]);
 
   const loadProgram = (p: Program, note: string) => {
     current.current = p;
-    saveProgram(p);
+    saveProgram(machine, p);
     setInitial(p);
     setKey((k) => k + 1);
     setMsg(note);
@@ -57,7 +69,7 @@ export default function SimulatorPage() {
   const share = async () => {
     const p = current.current;
     if (!p) return;
-    const url = `${location.origin}${location.pathname}#/sim?p=${encodeProgram(p)}`;
+    const url = `${location.origin}${location.pathname}#/sim?${machine === 'motor' ? '' : `m=${machine}&`}p=${encodeProgram(p)}`;
     try {
       if (navigator.share) await navigator.share({ title: 'Controls Academy program', url });
       else {
@@ -74,6 +86,13 @@ export default function SimulatorPage() {
       <PageHead eyebrow="Simulator" title="PLC workbench">
         A real scan cycle driving a real-feeling machine. Press buttons, watch power flow, edit the logic online, switch brands.
       </PageHead>
+      <label className="flex flex-wrap items-center gap-2 mb-3">
+        <span className="font-semibold text-heading text-sm">Machine</span>
+        <select className="input !w-auto max-w-full" value={machine} onChange={(e) => navigate(e.target.value === 'motor' ? 'sim' : `sim?m=${e.target.value}`)} aria-label="Machine">
+          {MACHINES.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
+        </select>
+        <span className="text-xs text-muted">{MACHINE_BY_ID.get(machine)!.summary}</span>
+      </label>
       {msg && <p className="callout callout-tip text-sm mb-3" role="status">{msg}</p>}
       {!initial ? (
         <SkeletonPage />
@@ -82,14 +101,15 @@ export default function SimulatorPage() {
           <Workbench
             key={key}
             initial={initial}
+            machine={machine}
             start3D
-            onProgramChange={(p) => { current.current = p; saveProgram(p); }}
+            onProgramChange={(p) => { current.current = p; saveProgram(machine, p); }}
             extraTools={
               <>
                 <button type="button" className="btn btn-sm" onClick={share}><Icon name="share" size={16} /> Share</button>
                 <button type="button" className="btn btn-sm" onClick={exportJson}><Icon name="download" size={16} /> Export</button>
                 <button type="button" className="btn btn-sm" onClick={() => fileRef.current?.click()}><Icon name="upload" size={16} /> Import</button>
-                <button type="button" className="btn btn-sm" onClick={() => loadProgram(motorProgram(), 'Restored the original motor program.')}><Icon name="reset" size={16} /> Original</button>
+                <button type="button" className="btn btn-sm" onClick={() => loadProgram(createMachine(machine).program(), 'Restored the original program for this machine.')}><Icon name="reset" size={16} /> Original</button>
               </>
             }
           />

@@ -456,7 +456,7 @@ await check('Task capstone-build: write start/stop from a blank rung in the edit
   });
   await check2('Sim: restore Original, then import the exported program', async () => {
     await page.getByRole('button', { name: 'Original' }).click();
-    await page.getByText('Restored the original motor program.').waitFor();
+    await page.getByText('Restored the original program for this machine.').waitFor();
     await page.locator('input[type=file]').setInputFiles(exported);
     await page.getByText(/^Imported "/).waitFor();
     const bad = 'test-results/bad.json';
@@ -536,7 +536,7 @@ const HUNTS = [
   });
   await check('Fault Hunt list shows all 8 solved; Surprise me starts a hunt', async () => {
     await go(page, 'troubleshoot');
-    await page.getByText('8 of 8 motor-station faults solved').waitFor();
+    await page.getByText('8/8 solved', { exact: false }).first().waitFor();
     await page.getByRole('button', { name: 'Start a hunt' }).click();
     await page.getByText('Work order').waitFor();
   });

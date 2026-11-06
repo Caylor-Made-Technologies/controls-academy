@@ -3,7 +3,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { PageHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
-import { MOTOR_DEVICES, MOTOR_FAULTS, motorProgram } from '../../plant/motor';
+import { MACHINES, MACHINE_BY_ID, allFaults, createMachine } from '../../plant';
 import type { FaultDef } from '../../plant/types';
 import { href, navigate } from '../../lib/router';
 import { buzz, sfx } from '../../lib/sound';
@@ -18,20 +18,23 @@ function fmtTime(ms: number) {
   return `${Math.floor(s / 60)}:${String(s % 60).padStart(2, '0')}`;
 }
 
+type HuntFault = FaultDef & { machine: string };
+const FAULTS: HuntFault[] = allFaults();
+
 export default function TroubleshootPage({ huntId }: { huntId?: string }) {
   const hunts = useProgress((s) => s.hunts);
-  const fault = huntId ? MOTOR_FAULTS.find((f) => f.id === huntId) ?? null : null;
+  const fault = huntId ? FAULTS.find((f) => f.id === huntId) ?? null : null;
   const [round, setRound] = useState(0);
 
   // Each hunt has its own URL, so the Back button and the Troubleshoot tab return to the list.
-  const start = (f: FaultDef) => {
+  const start = (f: HuntFault) => {
     setRound((r) => r + 1);
     buzz(15);
     navigate(`troubleshoot/${f.id}`);
   };
   const surprise = () => {
-    const unsolved = MOTOR_FAULTS.filter((f) => !hunts[f.id] && f.id !== huntId);
-    const pool = unsolved.length ? unsolved : MOTOR_FAULTS.filter((f) => f.id !== huntId);
+    const unsolved = FAULTS.filter((f) => !hunts[f.id] && f.id !== huntId);
+    const pool = unsolved.length ? unsolved : FAULTS.filter((f) => f.id !== huntId);
     start(pool[Math.floor(Math.random() * pool.length)]);
   };
 
@@ -40,7 +43,7 @@ export default function TroubleshootPage({ huntId }: { huntId?: string }) {
   return (
     <div>
       <PageHead eyebrow="Troubleshoot" title="Fault Hunt">
-        A fault is hidden in the motor station. You get the operator's complaint, I/O LEDs, the live logic, a meter and a stopwatch. Scored on speed <em>and</em> on staying safe.
+        A fault is hidden in one of {MACHINES.length} machines. You get the operator's complaint, I/O LEDs, the live logic, a meter and a stopwatch. Scored on speed <em>and</em> on staying safe.
       </PageHead>
       <div className="card card-pad mb-4 flex flex-wrap gap-3 items-center" style={{ boxShadow: 'var(--glow)' }}>
         <div className="flex-1 min-w-[12rem]">
@@ -52,29 +55,35 @@ export default function TroubleshootPage({ huntId }: { huntId?: string }) {
       <div className="callout callout-tip text-sm mb-4">
         <strong className="text-heading">The method:</strong> talk to the operator → check the obvious → I/O LEDs → find the output in logic and work backward → half-split with your meter → fix, test, document. <a href={href('lesson/troubleshooting-method')}>Lesson</a>
       </div>
-      <h2 className="text-lg font-bold mb-2">Pick a fault to practice</h2>
-      <div className="grid gap-2 sm:grid-cols-2">
-        {MOTOR_FAULTS.map((f) => {
-          const h = hunts[f.id];
-          return (
-            <button key={f.id} type="button" className="card card-link card-pad text-left cursor-pointer" onClick={() => start(f)}>
-              <span className="flex items-center justify-between gap-2">
-                <span className="font-bold text-heading">"{f.complaint}"</span>
-              </span>
-              <span className="flex gap-1.5 mt-2 flex-wrap">
-                <span className="chip">{'●'.repeat(f.difficulty)}{'○'.repeat(3 - f.difficulty)} difficulty</span>
-                {h ? <span className="chip chip-live"><Icon name="check" size={13} /> Best {fmtTime(h.bestMs)}{h.safe ? ' · safe' : ''}</span> : <span className="chip">Unsolved</span>}
-              </span>
-            </button>
-          );
-        })}
-      </div>
-      <p className="text-sm text-muted mt-4">{Object.keys(hunts).length} of {MOTOR_FAULTS.length} motor-station faults solved. More machines and faults are coming with the next plant scenes.</p>
+      {MACHINES.map((m) => {
+        const list = FAULTS.filter((f) => f.machine === m.id);
+        return (
+          <section key={m.id} className="mb-5" aria-labelledby={`fh-${m.id}`}>
+            <h2 id={`fh-${m.id}`} className="text-lg font-bold mb-1">{m.title}</h2>
+            <p className="text-sm text-muted mt-0 mb-2">{m.summary} · {list.filter((f) => hunts[f.id]).length}/{list.length} solved</p>
+            <div className="grid gap-2 sm:grid-cols-2">
+              {list.map((f) => {
+                const h = hunts[f.id];
+                return (
+                  <button key={f.id} type="button" className="card card-link card-pad text-left cursor-pointer" onClick={() => start(f)}>
+                    <span className="font-bold text-heading">"{f.complaint}"</span>
+                    <span className="flex gap-1.5 mt-2 flex-wrap">
+                      <span className="chip">{'●'.repeat(f.difficulty)}{'○'.repeat(3 - f.difficulty)} difficulty</span>
+                      {h ? <span className="chip chip-live"><Icon name="check" size={13} /> Best {fmtTime(h.bestMs)}{h.safe ? ' · safe' : ''}</span> : <span className="chip">Unsolved</span>}
+                    </span>
+                  </button>
+                );
+              })}
+            </div>
+          </section>
+        );
+      })}
+      <p className="text-sm text-muted">{FAULTS.filter((f) => hunts[f.id]).length} of {FAULTS.length} faults solved across {MACHINES.length} machines.</p>
     </div>
   );
 }
 
-function Hunt({ fault, onExit, onNext }: { fault: FaultDef; onExit: () => void; onNext: () => void }) {
+function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void; onNext: () => void }) {
   const recordHunt = useProgress((s) => s.recordHunt);
   const [rt, setRt] = useState<SimRuntime | null>(null);
   const [t0] = useState(() => performance.now());
@@ -86,7 +95,8 @@ function Hunt({ fault, onExit, onNext }: { fault: FaultDef; onExit: () => void; 
   const [reading, setReading] = useState<string | null>(null);
   const [proved, setProved] = useState(false);
   const [wrong, setWrong] = useState<string | null>(null);
-  const initial = useMemo(() => motorProgram(), []);
+  const machine = MACHINE_BY_ID.get(fault.machine)!;
+  const initial = useMemo(() => createMachine(fault.machine).program(), [fault.machine]);
   const penalize = useCallback((why: string, pts: number) => {
     setPenalties((p) => [...p, { why, pts }]);
     setMoment(why);
@@ -105,7 +115,7 @@ function Hunt({ fault, onExit, onNext }: { fault: FaultDef; onExit: () => void; 
       if (cur === r) return cur;
       r.scene.reset();
       r.scene.setFault(fault.id);
-      if (fault.id === 'forced') r.plc.forces.DO.set(0, false);
+      r.scene.armFault?.(fault.id, r.plc);
       return r;
     });
   }, [fault]);
@@ -124,7 +134,7 @@ function Hunt({ fault, onExit, onNext }: { fault: FaultDef; onExit: () => void; 
       sfx.tick();
       buzz(20);
     } else {
-      const label = MOTOR_DEVICES.find((d) => d.id === id)?.label ?? (id === 'fuse' ? 'the control fuse' : id === 'force' ? 'a force' : id);
+      const label = rt?.scene.devices.find((d) => d.id === id)?.label ?? rt?.scene.huntChoices?.find((c) => c.id === id)?.label.toLowerCase() ?? id;
       setWrong(label);
       penalize(`Replaced or blamed ${label}, but that wasn't it. On the job that's a part, an hour and a callback. Measure before you swap.`, 15);
     }
@@ -153,11 +163,9 @@ function Hunt({ fault, onExit, onNext }: { fault: FaultDef; onExit: () => void; 
       <section className="card card-pad mb-3" style={{ borderColor: 'var(--warn)' }}>
         <p className="eyebrow m-0">Work order</p>
         <h1 className="text-xl font-extrabold mt-1">"{fault.complaint}"</h1>
-        <p className="text-sm text-muted m-0 mt-1">Operator, motor station 1. Find the cause. Tap a device, I/O point or contactor and choose <strong className="text-heading">This is the problem</strong> — or use the buttons below for power and forces.</p>
+        <p className="text-sm text-muted m-0 mt-1">Operator, {machine.title.toLowerCase()}. Find the cause. Tap a device or I/O point and choose <strong className="text-heading">This is the problem</strong> — or use the buttons below.</p>
         <div className="flex flex-wrap gap-2 mt-3">
-          <button type="button" className="btn btn-sm" onClick={() => pick('fuse')}><Icon name="flag" size={16} /> Control power / fuse</button>
-          <button type="button" className="btn btn-sm" onClick={() => pick('force')}><Icon name="flag" size={16} /> A force is installed</button>
-          <button type="button" className="btn btn-sm" onClick={() => pick('logic')}><Icon name="flag" size={16} /> The program is wrong</button>
+          {(rt?.scene.huntChoices ?? []).map((c) => <button key={c.id} type="button" className="btn btn-sm" onClick={() => pick(c.id)}><Icon name="flag" size={16} /> {c.label}</button>)}
         </div>
       </section>
 
@@ -180,6 +188,9 @@ function Hunt({ fault, onExit, onNext }: { fault: FaultDef; onExit: () => void; 
           </div>
           <p className="m-0"><strong className="text-heading">Cause:</strong> <Rich text={fault.cause} /></p>
           <p className="mt-2 mb-0"><strong className="text-heading">How a pro finds it:</strong> <Rich text={fault.howToFind} /></p>
+          <p className="mt-2 mb-0"><strong className="text-heading">What the meter shows:</strong> <Rich text={fault.readings} /></p>
+          <p className="mt-2 mb-0"><strong className="text-heading">The fix:</strong> <Rich text={fault.fix} /></p>
+          <p className="mt-2 mb-0 flex gap-1.5"><Icon name="shield" size={16} className="flex-none mt-1 text-warn" /><span><strong className="text-heading">Safety first:</strong> <Rich text={fault.safety} /></span></p>
           {penalties.length > 0 && <ul className="text-sm text-muted mt-2 mb-0 pl-5 list-disc">{penalties.map((p, i) => <li key={i}>−{p.pts}: {p.why}</li>)}</ul>}
           <p className="text-sm text-muted mt-2 mb-0">Then: fix, test, document — and remove any forces.</p>
           <div className="flex gap-2 mt-3 flex-wrap">
@@ -209,7 +220,7 @@ function Hunt({ fault, onExit, onNext }: { fault: FaultDef; onExit: () => void; 
         <p className="text-xs text-muted mb-0 mt-2">{proved ? 'Meter proved on a known source. Prove it again before you call anything dead.' : 'Tip: prove the meter on the 24 VDC supply first (live-dead-live). Readings are to 0 V / neutral unless the point says "across".'} Training sim: on real gear, measuring live needs the right PPE, a CAT-rated meter, and authorization.</p>
       </section>
 
-      <Workbench initial={initial} editable={false} onRuntime={onRuntime} onUnsafe={(w) => penalize(`${w}. Forcing can start equipment with someone in the machine. Find the cause with your meter and the logic instead — forcing is a last resort with authorization and everyone clear.`, 20)} onDevicePick={pick} devicePickLabel="This is the problem" />
+      <Workbench initial={initial} machine={fault.machine} editable={false} onRuntime={onRuntime} onUnsafe={(w) => penalize(`${w}. Forcing can start equipment with someone in the machine. Find the cause with your meter and the logic instead — forcing is a last resort with authorization and everyone clear.`, 20)} onDevicePick={pick} devicePickLabel="This is the problem" />
     </div>
   );
 }

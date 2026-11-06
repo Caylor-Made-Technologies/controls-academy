@@ -1,12 +1,12 @@
 import { useState } from 'react';
 import { Icon } from '../../components/Icon';
-import { MOTOR_DEVICES, MOTOR_FLA, MOTOR_RPM, MOTOR_SYNC_RPM, MOTOR_T_RATED, OL_RESET_BELOW, OL_TAU_COOL, currentPU, loadTorque, torquePU, type MotorState } from '../../plant/motor';
+import { MOTOR_FLA, MOTOR_RPM, MOTOR_SYNC_RPM, MOTOR_T_RATED, OL_RESET_BELOW, OL_TAU_COOL, currentPU, loadTorque, torquePU, type MotorState } from '../../plant/motor';
 import { useMemo } from 'react';
 import { buzz, sfx } from '../../lib/sound';
 import type { SimRuntime } from './runtime';
 
 /** Momentary button: on while pointer/key is held. */
-function PushButton({ label, color, pressed, onChange, hint }: { label: string; color: 'green' | 'red' | 'white'; pressed: boolean; onChange: (v: boolean) => void; hint: string }) {
+export function PushButton({ label, color, pressed, onChange, hint }: { label: string; color: 'green' | 'red' | 'white'; pressed: boolean; onChange: (v: boolean) => void; hint: string }) {
   const down = () => {
     if (!pressed) {
       buzz(8);
@@ -45,7 +45,7 @@ function PushButton({ label, color, pressed, onChange, hint }: { label: string; 
   );
 }
 
-function Lamp({ on, color, label }: { on: boolean; color: 'green' | 'amber' | 'red'; label: string }) {
+export function Lamp({ on, color, label }: { on: boolean; color: 'green' | 'amber' | 'red'; label: string }) {
   return (
     <div className="flex flex-col items-center gap-1.5 min-w-[56px]">
       <span className="lamp" data-on={on} data-color={color} role="img" aria-label={`${label} light ${on ? 'on' : 'off'}`} />
@@ -182,9 +182,10 @@ export function MotorPanel({ rt, onDevice, compact }: { rt: SimRuntime; onDevice
 export function IoCards({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => void }) {
   const io = rt.io;
   const forces = rt.plc.forces;
-  const ins = MOTOR_DEVICES.filter((d) => d.io?.kind === 'DI').sort((a, b) => a.io!.point - b.io!.point);
-  const outs = MOTOR_DEVICES.filter((d) => d.io?.kind === 'DO').sort((a, b) => a.io!.point - b.io!.point);
-  const row = (kind: 'DI' | 'DO', list: typeof ins) => (
+  const devices = rt.scene.devices;
+  const ins = devices.filter((d) => d.io?.kind === 'DI').sort((a, b) => a.io!.point - b.io!.point);
+  const outs = devices.filter((d) => d.io?.kind === 'DO').sort((a, b) => a.io!.point - b.io!.point);
+  const row = (kind: 'DI' | 'DO', list: typeof ins) => list.length === 0 ? null : (
     <div className="rounded-xl border border-line bg-sunk p-2.5">
       <p className="text-[0.68rem] font-bold tracking-widest uppercase text-muted m-0 mb-2">{kind === 'DI' ? 'Input card · 24 VDC' : 'Output card'}</p>
       <div className="grid grid-cols-3 gap-1.5">

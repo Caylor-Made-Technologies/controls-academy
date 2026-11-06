@@ -4,8 +4,8 @@
  */
 import { Plc } from '../../engine/plc';
 import type { Program } from '../../engine/types';
-import { createMotorScene, type MotorState } from '../../plant/motor';
-import type { FieldIO, PlantScene } from '../../plant/types';
+import { createMachine, type AnyScene } from '../../plant';
+import type { FieldIO } from '../../plant/types';
 import { sfx } from '../../lib/sound';
 
 export type RunMode = 'run' | 'slow' | 'step';
@@ -16,7 +16,7 @@ const SLOW_SCAN_MS = 700;
 
 export class SimRuntime {
   plc: Plc;
-  scene: PlantScene<MotorState>;
+  scene: AnyScene;
   runMode: RunMode = 'run';
   private listeners = new Set<() => void>();
   private raf = 0;
@@ -30,8 +30,8 @@ export class SimRuntime {
   private lastFault = false;
   private visible = true;
 
-  constructor(program?: Program) {
-    this.scene = createMotorScene();
+  constructor(program?: Program, machine = 'motor') {
+    this.scene = createMachine(machine);
     this.plc = new Plc(program ?? this.scene.program());
     this.plc.setMode('RUN');
     this.onVis = this.onVis.bind(this);
@@ -103,11 +103,15 @@ export class SimRuntime {
 
   private sounds() {
     const s = this.scene.state;
-    if (s.contactor !== this.lastContactor) {
-      sfx.clunk();
-      this.lastContactor = s.contactor;
+    const snd = this.scene.sound;
+    if (snd) {
+      const c = snd.contactor(s);
+      if (c !== this.lastContactor) {
+        sfx.clunk();
+        this.lastContactor = c;
+      }
+      sfx.hum(snd.hum(s));
     }
-    sfx.hum(s.rpm / 1770);
     const faulted = Boolean(this.plc.fieldDO[2]) || Boolean(this.plc.fault);
     if (faulted && !this.lastFault) sfx.horn();
     this.lastFault = faulted;
