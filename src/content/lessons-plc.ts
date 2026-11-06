@@ -13,6 +13,15 @@ export const PLC_LESSONS: Lesson[] = [
     title: 'What a PLC is — and the scan',
     minutes: 8,
     summary: 'Rack, CPU, I/O cards, and the loop that runs forever.',
+    why: 'Almost every machine you\'ll troubleshoot has a PLC deciding what runs. Knowing how it thinks tells you where to look.',
+    prereqs: ['z-control-panel', 'three-wire'],
+    realWorld: { site: 'water', text: 'A water plant\'s filter PLC sits in the control room, with remote I/O racks in the filter gallery. Every few milliseconds it reads the valve limit switches and level transmitters, solves the backwash sequence, and writes the valve outputs.' },
+    mistakes: [
+      'Expecting an input that flickers ON for less than one scan to be seen — it can be missed completely.',
+      'Writing the same output on two rungs. The rung solved last wins, so the first one seems to "not work".',
+      'Treating the input LED as proof the program used the signal. The LED shows the field side; check the bit in the program too.',
+    ],
+    safety: { note: 'A PLC in RUN can turn outputs on at any moment. Putting it in Program mode is not a lockout — lock out the equipment before working on anything the PLC controls.' },
     blocks: [
       { t: 'p', text: 'A [[plc]] replaced walls of relays with one rugged computer. It sits on a DIN rail or in a **rack/chassis** with:' },
       { t: 'list', items: [
@@ -27,7 +36,6 @@ export const PLC_LESSONS: Lesson[] = [
       { t: 'figure', fig: 'scan' },
       { t: 'p', text: 'The CPU runs the same [[scan]] over and over, often in a few milliseconds:' },
       { t: 'list', ordered: true, items: ['**Read inputs** into memory (the input image).', '**Solve the logic**, rung by rung, top to bottom, left to right.', '**Write outputs** from memory to the cards.', '**Housekeeping**: comms, diagnostics. Then again.'] },
-      { t: 'callout', tone: 'gotcha', title: 'Two things the scan explains', text: 'An input that changes halfway through the logic isn\'t seen until the next scan. And if two rungs write the same output, the one solved **last** wins.' },
     ],
     task: {
       goal: 'Single-step through one complete scan and watch the pointer move.',
@@ -46,6 +54,15 @@ export const PLC_LESSONS: Lesson[] = [
     title: 'Sinking vs sourcing, NPN vs PNP',
     minutes: 10,
     summary: 'The #1 confusion in controls, settled with current-flow arrows.',
+    why: 'Swap a sensor for the wrong type and the input never comes on, even though the sensor\'s light does. This is the fix.',
+    prereqs: ['what-is-a-plc', 'z-series-parallel'],
+    realWorld: { site: 'mill', text: 'At a flour mill, a failed proximity sensor on a bucket elevator\'s speed switch is replaced from the stock room. The new sensor\'s LED blinks with every bucket, but the PLC input never turns on: it\'s NPN, and the card is wired sinking. The right part is a PNP sensor.' },
+    mistakes: [
+      'Ordering a replacement sensor by shape and thread only. Check PNP or NPN, and NO or NC, on the label.',
+      'Trusting card names. Some makers name a card by what the CARD does, some by what the DEVICE must be — read the wiring diagram in the card\'s manual. // VERIFY per manufacturer',
+      'Trusting the sensor\'s own LED. It shows the sensor switched, not that current reached the card.',
+    ],
+    safety: { note: '24 VDC is low risk for shock, but sensor wiring shares the panel with 120 V and 480 V. And a sensor that "won\'t switch" may be part of a guard or interlock — fix it, never jumper it.' },
     blocks: [
       { t: 'p', text: 'Every DC circuit needs a complete loop: from **+24 V**, through the load, back to **0 V** (common). The question is just **who provides which side**.' },
       { t: 'list', items: [
@@ -59,7 +76,6 @@ export const PLC_LESSONS: Lesson[] = [
         ['[[npn|NPN]]', 'Switches the input to 0 V (sinks)', 'Sourcing (card\'s common goes to +24 V)'],
       ] },
       { t: 'callout', tone: 'tip', title: 'Memory trick', text: 'P for PNP → "Positive" switched. N for NPN → "Negative" switched.' },
-      { t: 'callout', tone: 'gotcha', title: 'Card naming varies', text: 'Some manufacturers label a card by what the CARD does, some by what the DEVICE must be. Always read the wiring diagram in the card\'s manual. // VERIFY per manufacturer' },
     ],
     quiz: [
       { id: 'q1', q: 'A PNP sensor should connect to an input card that is…', choices: ['Sourcing', 'Sinking', 'Either', 'Analog'], answer: 1, why: 'PNP sources +V, so the card must sink it to 0 V.' },
@@ -73,6 +89,15 @@ export const PLC_LESSONS: Lesson[] = [
     title: '4–20 mA and scaling',
     minutes: 9,
     summary: 'Why the zero is alive, and how raw counts become gallons.',
+    why: 'Levels, pressures, flows and temperatures reach the PLC as 4–20 mA. When a reading looks wrong, this is how you prove where.',
+    prereqs: ['what-is-a-plc', 'z-ohms-power'],
+    realWorld: { site: 'water', text: 'A water plant\'s clearwell level transmitter is ranged 0–20 ft. The operator says the level is wrong. The transmitter\'s display shows 16.0 mA: (16 − 4) ÷ 16 × 20 = 15 ft — exactly what the PLC shows. The instrument is right; the level really is 15 ft.' },
+    mistakes: [
+      'Assuming 0 mA means empty. Empty is 4 mA; 0 mA is a broken loop or dead transmitter.',
+      'Clipping a meter across the loop terminals on the mA setting. That shorts the signal — break the loop to put the meter in series, or use a loop clamp or the transmitter\'s test terminals.',
+      'Scaling with the wrong raw range for the card (for example 0–32767 instead of the card\'s real 4–20 mA counts).',
+    ],
+    safety: { note: 'Most loops run on 24 VDC, but some 4-wire transmitters are powered from 120 VAC, and transmitters in hazardous (classified) areas use intrinsically safe wiring with its own rules. Check the drawing before opening a housing or connecting a meter.' },
     blocks: [
       { t: 'p', text: 'A level [[transmitter]] can\'t say "37 %" as a bit. It sends an analog signal, most often [[four-twenty]]. 4 mA = bottom of the range, 20 mA = top, 12 mA = halfway.' },
       { t: 'list', items: [
@@ -104,6 +129,15 @@ export const PLC_LESSONS: Lesson[] = [
     title: 'Binary, hex, BCD and octal',
     minutes: 7,
     summary: 'How PLCs count — and why Mitsubishi has no X8.',
+    why: 'Fault codes, status words and I/O addresses show up in hex, BCD and octal. Misread one and you chase the wrong problem.',
+    prereqs: ['what-is-a-plc'],
+    realWorld: { site: 'datacenter', text: 'A data center chiller reports alarm word 16#0012 to the building system. In binary that\'s 0000 0000 0001 0010: bits 1 and 4 are on. The chiller manual\'s bit table says which two alarms those are.' },
+    mistakes: [
+      'Looking for X8 on an octal-numbered PLC (Mitsubishi FX, AutomationDirect DirectLOGIC). After X7 comes X10.',
+      'Overlapping Siemens words: MW0 is MB0 + MB1 (MB0 is the HIGH byte), and MW1 is MB1 + MB2, so MW0 and MW1 share a byte. Use even word addresses.',
+      'Reading a hex status word as a decimal number.',
+    ],
+    safety: { na: 'Number formats only — no hands-on work on equipment.' },
     blocks: [
       { t: 'p', text: 'Everything in a PLC is stored as bits. A 16-bit [[int]] holds −32,768 to 32,767; a 32-bit [[dint]] much more; a [[real]] holds decimals.' },
       { t: 'figure', fig: 'numbers', caption: 'Type a number and see it in every base.' },
@@ -113,7 +147,6 @@ export const PLC_LESSONS: Lesson[] = [
         '**[[bcd|BCD]]**: each decimal digit in its own 4 bits. 0010 0101 = 25. Thumbwheels, old displays, some timers.',
         '**[[octal|Octal]]** (base 8): digits 0–7. **Mitsubishi FX and AutomationDirect DirectLOGIC number I/O in octal**: X0…X7, then X10.',
       ] },
-      { t: 'callout', tone: 'gotcha', title: 'Siemens word overlap', text: 'In Siemens memory, MW0 is made of MB0 and MB1, and MB0 is the HIGH byte. MW1 is MB1+MB2 — so MW0 and MW1 overlap. Use even word addresses.' },
     ],
     quiz: [
       { id: 'q1', q: 'On a Mitsubishi FX, what input comes after X7?', choices: ['X8', 'X10', 'X08', 'Y0'], answer: 1, why: 'FX inputs are octal. 7 + 1 = 10 in octal.' },

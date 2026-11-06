@@ -240,6 +240,15 @@ export const CORE2_LESSONS: Lesson[] = [
     title: 'Data types, arrays and UDTs',
     minutes: 8,
     summary: 'Choosing the right container for every value.',
+    why: 'The wrong data type causes overflows, rounding bugs and controller faults. The right one makes programs easy to read and reuse.',
+    prereqs: ['numbers'],
+    realWorld: { site: 'mill', text: 'A flour mill\'s batch recipes live in an array of a Recipe UDT: name (STRING), flour, water and salt targets (REAL, in pounds), mix time (DINT, in ms). The operator picks recipe 7 and one rung copies Recipes[7] into the active batch.' },
+    mistakes: [
+      'Testing two REALs for exact equality. 0.1 + 0.2 isn\'t exactly 0.3 in floating point — use a range (LIM, GEQ/LEQ) or a small tolerance.',
+      'Using INT for a count that can pass 32,767. It overflows — on many platforms it wraps or faults.',
+      'Indexing an array with an unchecked value. Check it with a LIM first so a bad value can\'t fault the controller.',
+    ],
+    safety: { note: 'A major fault stops the controller and drops its outputs: machines stop wherever they are, valves go to their fail position. Treat a "simple" data change on a running machine like any other change — get approval first.' },
     blocks: [
       { t: 'table', head: ['Type', 'Holds', 'Range / note'], rows: [
         ['BOOL', 'One bit', '0 / 1'],
@@ -254,7 +263,12 @@ export const CORE2_LESSONS: Lesson[] = [
       { t: 'p', text: 'An [[array]] is a numbered list: `Temps[0]`…`Temps[9]`. Use a tag as the index (`Temps[Zone]`) to write one rung that handles every zone. An index outside the array is a **major fault** on most controllers — the sim does this too.' },
       { t: 'h', text: 'UDTs / structures' },
       { t: 'p', text: 'A [[udt|UDT]] groups related data. Build a `Motor` type once (`.Run`, `.Running`, `.Fault`, `.Hours`, `.Amps`), then make `Pump1`, `Pump2`, `Fan3` from it. Every motor looks the same in logic, HMI and alarms.' },
-      { t: 'callout', tone: 'gotcha', title: 'REAL equality', text: 'Never test two REALs with EQU. 0.1 + 0.2 isn\'t exactly 0.3 in floating point. Use LIM, GEQ/LEQ or a small tolerance.' },
+      { t: 'sort', prompt: 'Pick the data type.', bins: ['BOOL', 'DINT', 'REAL'], items: [
+        { text: 'Is the motor running?', bin: 0, why: 'On/off is one bit.' },
+        { text: 'Bags packed today (could pass 40,000)', bin: 1, why: 'Whole numbers that can exceed 32,767 need a 32-bit integer.' },
+        { text: 'Tank level in gallons with decimals', bin: 2, why: 'Decimal engineering values belong in REAL.' },
+        { text: 'The index into an array of recipes', bin: 1, why: 'Indexes are whole numbers; DINT is the usual choice on Logix.' },
+      ] },
     ],
     quiz: [
       { id: 'q1', q: 'Which type would you use for a tank level in gallons with decimals?', choices: ['BOOL', 'INT', 'REAL', 'STRING'], answer: 2, why: 'Decimal engineering values belong in REAL.' },

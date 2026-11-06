@@ -9,8 +9,7 @@ import { stableShuffle } from '../../src/features/learn/Drills';
  * When it is empty, the quality fields become required in `Lesson` (types.ts).
  */
 export const NOT_YET_UPGRADED = new Set<string>([
-        'what-is-a-plc', 'sinking-sourcing', 'analog-420', 'numbers', 'data-types',
-  'contacts-coils', 'timers', 'counters', 'latch-unlatch', 'duplicate-coils', 'compare-math', 'alarm-ack', 'sequencers', 'program-organization',
+          'contacts-coils', 'timers', 'counters', 'latch-unlatch', 'duplicate-coils', 'compare-math', 'alarm-ack', 'sequencers', 'program-organization',
   'upload-download', 'forcing', 'compare-online',
   'troubleshooting-method', 'fault-codes',
   'ip-basics', 'profinet-names', 'modbus', 'legacy-networks',

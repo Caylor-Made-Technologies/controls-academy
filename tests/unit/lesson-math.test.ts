@@ -48,6 +48,25 @@ describe('every number in the lessons is checked', () => {
     expect(answer('z-series-parallel', 'q2')).toBe('4 A');
   });
 
+  it('4–20 mA scaling (analog-420)', () => {
+    const scale = (x: number, x0: number, x1: number, y0: number, y1: number) => ((x - x0) * (y1 - y0)) / (x1 - x0) + y0;
+    expect(scale(12, 4, 20, 0, 100)).toBe(50);
+    expect(answer('analog-420', 'q1')).toBe('50 psi');
+    expect(scale(8000, 4000, 20000, 0, 200)).toBe(50);
+    expect(answer('analog-420', 'q3')).toBe('50');
+    expect(ohm.voltage(0.02, 250)).toBeCloseTo(5);
+    expect(ohm.voltage(0.004, 250)).toBeCloseTo(1);
+    expect(scale(16, 4, 20, 0, 20)).toBe(15);
+    expect(text('analog-420')).toContain('(16 − 4) ÷ 16 × 20 = 15 ft');
+  });
+
+  it('number bases (numbers)', () => {
+    expect(parseInt('1111', 2)).toBe(15);
+    expect(parseInt('FF', 16)).toBe(255);
+    expect((7 + 1).toString(8)).toBe('10');
+    expect((0x0012).toString(2).padStart(16, '0')).toBe('0000000000010010');
+  });
+
   it('volts-amps-ohms (Track 1)', () => {
     expect(ohm.current(24, 240)).toBeCloseTo(0.1);
     expect(answer('volts-amps-ohms', 'q1')).toContain('0.1 A');
