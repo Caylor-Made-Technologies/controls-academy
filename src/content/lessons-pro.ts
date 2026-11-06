@@ -91,6 +91,15 @@ export const PRO_LESSONS: Lesson[] = [
     title: 'IP addressing for techs',
     minutes: 8,
     summary: 'Get your laptop talking to a PLC in two minutes.',
+    why: 'Before you can see a PLC\'s logic you have to talk to it. Two minutes of IP basics saves an hour of "it won\'t connect".',
+    prereqs: ['upload-download'],
+    realWorld: { site: 'datacenter', text: 'A data center tech needs to check a chiller plant PLC at 10.20.5.20/24. Their laptop gets 10.20.5.240 (checked free on the IP list), the ping replies, and the programming software connects — all on the isolated controls network, with the site\'s OT security approval.' },
+    mistakes: [
+      'Giving your laptop an address already in use. Duplicate IPs cause intermittent, maddening failures — check the IP list first.',
+      'Plugging into a plant network without permission. IT/OT security rules apply, and a laptop can carry malware onto the controls network.',
+      'Assuming "ping works" means the software will connect — ping only proves the network path.',
+    ],
+    safety: { note: 'Plant networks carry live control traffic. Plug into one only with permission, never change a device address on a running system without coordinating, and remember a lost connection can stop machines or send outputs to their fault state.' },
     blocks: [
       { t: 'p', text: 'Every Ethernet device has an IP address like `192.168.1.10`. The **subnet mask** (often `255.255.255.0`, written /24) says which part is the network: here every device `192.168.1.x` is on the same [[subnet]] and can talk directly.' },
       { t: 'list', ordered: true, items: [
@@ -99,8 +108,12 @@ export const PRO_LESSONS: Lesson[] = [
         '**Ping** the PLC. Reply = network OK. No reply = cable, subnet, wrong IP, or a firewall.',
         'Then go online with the vendor software.',
       ] },
-      { t: 'callout', tone: 'gotcha', title: 'Duplicate IPs', text: 'Two devices with the same address cause intermittent, maddening failures. Check before you assign. Never plug your laptop into a plant network without permission — IT/OT security rules apply.' },
       { t: 'p', text: 'Static addresses are normal for PLCs and HMIs. Drives and new devices may ship using DHCP or BOOTP and need an address assigned with a tool. // VERIFY per device' },
+      { t: 'sort', prompt: 'The PLC is 192.168.1.10 with mask 255.255.255.0. Can your laptop talk to it directly?', bins: ['Yes', 'No'], items: [
+        { text: 'Laptop 192.168.1.200', bin: 0, why: 'Same 192.168.1.x subnet, different address.' },
+        { text: 'Laptop 192.168.2.200', bin: 1, why: '192.168.2.x is a different subnet — it would need a gateway.' },
+        { text: 'Laptop 192.168.1.10', bin: 1, why: 'That\'s the PLC\'s own address: a duplicate IP.' },
+      ] },
     ],
     quiz: [
       { id: 'q1', q: 'PLC is 10.0.5.20/24. Which laptop address works?', choices: ['10.0.6.20', '10.0.5.250', '192.168.1.5', '10.0.5.20'], answer: 1, why: 'Same 10.0.5.x subnet and not a duplicate.' },
@@ -114,11 +127,25 @@ export const PRO_LESSONS: Lesson[] = [
     title: 'PROFINET device names and EtherNet/IP',
     minutes: 7,
     summary: 'Why a replaced Siemens I/O drop "won\'t come back" — and how AB differs.',
+    why: 'Replacing a network I/O module or drive is routine — until it won\'t come back online. The fix is usually one name or one address.',
+    prereqs: ['ip-basics'],
+    realWorld: { site: 'water', text: 'A water plant replaces a failed PROFINET remote I/O module at the filter gallery. Same part number, but it won\'t connect: it has no device name. The tech assigns "filter-io-2" exactly as in the project, and the controller gives it its IP and brings it online.' },
+    mistakes: [
+      'Setting only the IP on a PROFINET device. The controller looks for the device NAME.',
+      'Giving an EtherNet/IP replacement a new IP instead of the one the project expects.',
+      'A one-character name mismatch ("infeed-io1" vs "infeed-io-1").',
+    ],
+    safety: { note: 'Plant networks carry live control traffic. Plug into one only with permission, never change a device address on a running system without coordinating, and remember a lost connection can stop machines or send outputs to their fault state. When a remote drop reconnects, its outputs can turn on immediately — make sure the machine is safe first.' },
     blocks: [
       { t: 'p', text: 'On [[profinet|PROFINET]] the controller finds devices by **device name**, not by IP. At startup it looks for "infeed-io-1" and gives it the IP from the project. A brand-new replacement module has no name (or the wrong one), so it never connects.' },
       { t: 'list', ordered: true, items: ['Replace the module like-for-like.', 'Assign the exact device name from the project (online tools can do it, or topology-based automatic naming may handle it). // VERIFY per project setup', 'The controller then assigns the IP and the device joins.'] },
       { t: 'p', text: 'On [[ethernet-ip|EtherNet/IP]] devices are usually found by **IP address**, so a replacement needs the same IP (set by switches, a tool, or BOOTP/DHCP). Both also need a matching **device description**: GSDML files for PROFINET, EDS files for EtherNet/IP.' },
       { t: 'callout', tone: 'tip', title: 'Fastest check', text: 'Compare what\'s on the wire (device name or IP the tool sees) with what the project expects. A one-character mismatch is enough to fail.' },
+      { t: 'sort', prompt: 'How does the controller find this device?', bins: ['By device name', 'By IP address'], items: [
+        { text: 'A Siemens ET 200SP remote I/O on PROFINET', bin: 0, why: 'PROFINET identifies devices by name.' },
+        { text: 'An Allen-Bradley POINT I/O adapter on EtherNet/IP', bin: 1, why: 'EtherNet/IP projects point at an IP address.' },
+        { text: 'A PROFINET drive', bin: 0, why: 'Any PROFINET device is found by its name.' },
+      ] },
     ],
     quiz: [
       { id: 'q1', q: 'A replaced PROFINET drop won\'t connect. First suspect?', choices: ['CPU firmware', 'Device name not assigned or mismatched', 'Cable color', 'The HMI'], answer: 1, why: 'PROFINET identifies devices by name.' },
@@ -132,6 +159,15 @@ export const PRO_LESSONS: Lesson[] = [
     title: 'Legacy networks you\'ll still meet',
     minutes: 7,
     summary: 'DH+, Remote I/O, DeviceNet, ControlNet, Profibus — what they look like and what kills them.',
+    why: 'Old networks run for decades. When one drops, knowing what it is and what usually kills it gets the line back fast.',
+    prereqs: ['profinet-names'],
+    realWorld: { site: 'mill', text: 'A flour mill\'s 1990s packing line still runs a DeviceNet trunk to its starters and valve banks. After a motor was replaced, half the nodes drop out: a tee connector was left loose. With the trunk powered down, the tech measures about 60 Ω across CAN_H and CAN_L — both terminators are there — and reseats the tee.' },
+    mistakes: [
+      'Turning termination ON at more than the two ends of the cable.',
+      'Duplicating a node address when swapping a device.',
+      'Measuring network resistance with the network powered up.',
+    ],
+    safety: { note: 'Unplugging a network cable can drop every device downstream — on a running line, outputs go to their fault state. Coordinate with operations before disconnecting.' },
     blocks: [
       { t: 'table', head: ['Network', 'Seen with', 'Look for'], rows: [
         ['DH+ / Remote I/O', 'PLC-5, SLC 500', 'Twinax "blue hose", terminating resistors at the ends'],
@@ -140,7 +176,13 @@ export const PRO_LESSONS: Lesson[] = [
         ['ControlNet', 'ControlLogix / PLC-5 era', 'RG-6 coax, taps, often redundant A/B media'],
         ['Profibus DP', 'Siemens, drives, remote I/O', 'Purple RS-485 cable, addresses 1–125, termination switch ON only at the two ends'],
       ] },
-      { t: 'callout', tone: 'tip', title: 'Most bus problems are physical', text: 'Missing or extra termination, a damaged cable, a loose connector, duplicate addresses or a bad power supply cause most failures. Check termination at both ends and measure the resistance with the network powered down (two 120 Ω-class terminators in parallel read ~60 Ω). // VERIFY per network' },
+      { t: 'callout', tone: 'tip', title: 'Most bus problems are physical', text: 'Missing or extra [[terminator|termination]], a damaged cable, a loose connector, duplicate addresses or a bad power supply cause most failures. Check termination at both ends and measure the resistance with the network powered down (two 120 Ω-class terminators in parallel read ~60 Ω). // VERIFY per network' },
+      { t: 'sort', prompt: 'Name that network.', bins: ['Profibus DP', 'DeviceNet', 'ControlNet', 'DH+'], items: [
+        { text: 'Purple RS-485 cable on Siemens remote I/O', bin: 0, why: 'Profibus DP cable is typically purple.' },
+        { text: 'Coax with taps, often A and B channels', bin: 2, why: 'ControlNet uses RG-6 coax and can be redundant.' },
+        { text: 'A trunk carrying 24 V power to starters, addresses 0–63', bin: 1, why: 'DeviceNet: CAN with power in the cable, MAC IDs 0–63.' },
+        { text: '"Blue hose" between a PLC-5 and an SLC', bin: 3, why: 'DH+ runs on blue twinax.' },
+      ] },
     ],
     quiz: [
       { id: 'q1', q: 'A Profibus segment has termination ON at three connectors. Effect?', choices: ['Better signal', 'Errors — only the two ends should be terminated', 'No effect', 'Faster'], answer: 1, why: 'Extra termination loads the bus.' },
@@ -155,6 +197,15 @@ export const PRO_LESSONS: Lesson[] = [
     title: 'VFD basics',
     minutes: 9,
     summary: 'Inside a drive, the parameters that matter, and the faults you\'ll see.',
+    why: 'Drives run most pumps, fans and conveyors you\'ll see. Their faults point straight at the cause — if you know how to read them.',
+    prereqs: ['reduced-voltage', 'analog-420'],
+    realWorld: { site: 'datacenter', text: 'A data center cooling-tower fan drive trips "overvoltage" only when the fan is commanded to stop. The big fan coasts and pushes energy back into the drive. Lengthening the decel time (per the drive manual) stops the trips.' },
+    mistakes: [
+      'Opening or closing a contactor between a running drive and its motor — it can damage the drive unless it\'s designed and set up for it. // VERIFY per manual',
+      'Fixing an overvoltage trip by shortening decel. Longer decel (or a braking resistor) is the cure.',
+      'Skipping the motor nameplate parameters, so the drive\'s motor overload protection is wrong.',
+    ],
+    safety: { note: 'A drive stopped from its keypad is still fully powered. Lock out the supply, wait the discharge time on the label, then verify the DC bus is near zero before touching anything.' },
     blocks: [
       { t: 'p', text: 'A [[vfd]] rectifies AC to DC (the **DC bus**), then an inverter of IGBTs chops it back into variable-frequency AC. Lower frequency = slower motor. Voltage scales with frequency (V/Hz) so the motor stays magnetized correctly.' },
       { t: 'table', head: ['Parameter group', 'Why it matters'], rows: [
@@ -172,7 +223,11 @@ export const PRO_LESSONS: Lesson[] = [
         ['Ground fault', 'Damaged motor cable or wet motor'],
       ] },
       { t: 'callout', tone: 'safety', title: 'The DC bus stays charged', text: 'After removing power, wait the time on the drive\'s label/manual, then verify the DC bus is near zero with a rated meter before touching anything.' },
-      { t: 'callout', tone: 'gotcha', title: 'No contactor switching on the output', text: 'Opening or closing a contactor between a running drive and its motor can damage the drive, unless the drive is designed and configured for it. // VERIFY per manual' },
+      { t: 'sort', prompt: 'Match the drive fault to its usual cause.', bins: ['Overcurrent', 'Overvoltage', 'Overtemperature'], items: [
+        { text: 'Accel time set to 1 s on a heavy conveyor', bin: 0, why: 'Fast accel demands high current.' },
+        { text: 'A big fan stopping in 3 s', bin: 1, why: 'Fast decel regenerates energy onto the DC bus.' },
+        { text: 'Clogged cabinet filter in summer', bin: 2, why: 'The drive can\'t shed its heat.' },
+      ] },
     ],
     quiz: [
       { id: 'q1', q: 'A fan drive trips "overvoltage" only when stopping. Most likely fix?', choices: ['Shorter decel time', 'Longer decel time (or braking resistor)', 'Bigger fuse', 'Higher speed'], answer: 1, why: 'Fast decel regenerates energy onto the DC bus.' },
@@ -186,6 +241,15 @@ export const PRO_LESSONS: Lesson[] = [
     title: 'HMI basics',
     minutes: 6,
     summary: 'What the operator\'s screen can and can\'t do.',
+    why: 'Operators see the plant through the HMI. Knowing what it can and can\'t do keeps you from trusting a screen over the field.',
+    prereqs: ['alarm-ack', 'ip-basics'],
+    realWorld: { site: 'water', text: 'At a water plant, every value on one HMI screen shows "####" after a network switch was replaced. The PLC is still running the plant fine — the HMI lost its connection. Fixing the switch port brings the screen back.' },
+    mistakes: [
+      'Trusting the HMI over the field. A stale or broken tag link can show an old value.',
+      'Using a momentary HMI button for jogging motion with no timeout — if comms drop mid-press, the bit can stick on.',
+      'Treating a screen interlock as safety. Safety functions are hardwired or safety-rated.',
+    ],
+    safety: { note: 'Before pressing a start or open button on an HMI, know what it moves and that the area is clear — the screen can\'t see people.' },
     blocks: [
       { t: 'p', text: 'An [[hmi]] reads and writes PLC tags over the network: it shows values, sends button presses and setpoints, raises alarms and draws trends.' },
       { t: 'list', items: [
@@ -196,10 +260,17 @@ export const PRO_LESSONS: Lesson[] = [
       ] },
       { t: 'callout', tone: 'safety', title: 'The HMI is not a safety device', text: 'Never rely on an HMI button or screen interlock for safety. E-stops and safety functions are hardwired or safety-rated.' },
       { t: 'p', text: 'Common platforms: FactoryTalk View ME/SE (Rockwell), WinCC (Siemens), and many vendor-neutral SCADA packages. Same ideas everywhere.' },
+      { t: 'sort', prompt: 'HMI or hardwired?', bins: ['Fine on the HMI', 'Must be hardwired / safety-rated'], items: [
+        { text: 'Changing a tank level setpoint', bin: 0, why: 'Setpoints are normal HMI functions (with security).' },
+        { text: 'Emergency stop', bin: 1, why: 'E-stops must not depend on a screen or network.' },
+        { text: 'Showing a trend of pump amps', bin: 0, why: 'Trends are information.' },
+        { text: 'Stopping a machine when its guard door opens', bin: 1, why: 'Guarding is a safety function.' },
+      ] },
     ],
     quiz: [
       { id: 'q1', q: 'Every field on an HMI screen shows ####. Most likely?', choices: ['Values too large', 'Lost communication to the PLC', 'Bad monitor', 'Wrong units'], answer: 1, why: 'When every tag fails, it\'s usually comms.' },
       { id: 'q2', q: 'Can an HMI stop button replace a hardwired E-stop?', choices: ['Yes', 'No', 'If colored red', 'If password protected'], answer: 1, why: 'Safety must not depend on a screen.' },
+      { id: 'q3', q: 'An operator holds a momentary HMI "Jog" button and the network drops. What should stop the motor?', choices: ['Nothing — it will keep jogging', 'A timeout in the PLC logic for the HMI bit', 'The HMI screen saver', 'The overload'], answer: 1, why: 'A stuck HMI bit is a known risk; the PLC should time out momentary commands.' },
     ],
   },
   {
@@ -208,6 +279,15 @@ export const PRO_LESSONS: Lesson[] = [
     title: 'BACnet and BMS vs PLC',
     minutes: 9,
     summary: 'How building automation thinks — essential for data center techs.',
+    why: 'Data centers and big buildings run on BMS controllers, not machine PLCs. Most "it won\'t follow the schedule" calls are a priority-array problem.',
+    prereqs: ['modbus', 'alarm-ack'],
+    realWorld: { site: 'datacenter', text: 'A CRAH in a data center runs at 100 % all night. On the BMS, its fan speed point shows a value at priority 8 (manual operator) left from a test last week. Relinquishing it lets the automatic control at a lower priority take over again.' },
+    mistakes: [
+      'Overriding a point and forgetting to relinquish it.',
+      'Duplicate MS/TP MAC addresses or mismatched baud rates on an RS-485 trunk.',
+      'Assuming a BMS reacts like a machine PLC — it\'s supervisory and much slower.',
+    ],
+    safety: { note: 'Overriding cooling or power equipment from the BMS can take critical systems out of automatic. Follow the site\'s change process — in a data center, a method of procedure (MOP) — before commanding anything.' },
     blocks: [
       { t: 'p', text: 'A building management system (BMS) supervises chillers, CRAHs/CRACs, AHUs, pumps and generators. It\'s slower and more supervisory than a machine PLC: schedules, setpoints, trends and alarms across a whole site.' },
       { t: 'p', text: '[[bacnet|BACnet]] organizes data as **objects** inside a **device** (each device has a unique instance number):' },
@@ -222,6 +302,11 @@ export const PRO_LESSONS: Lesson[] = [
       { t: 'p', text: 'Commandable points have a 16-level [[priority-array]]. The highest-priority non-empty slot wins. If a point "won\'t follow the schedule," someone may have left a manual override at a higher priority — release (relinquish) it.' },
       { t: 'list', items: ['**BACnet/IP** runs on Ethernet (UDP port 47808 by default).', '**BACnet MS/TP** runs on RS-485 daisy chains: MAC addresses, matching baud rate, termination at the ends.', 'Electrical power monitoring (EPMS) and gensets often speak **Modbus** too.'] },
       { t: 'callout', tone: 'brand', title: 'Common platforms', text: 'Johnson Controls Metasys, Siemens Desigo, Honeywell, Schneider EcoStruxure Building, Tridium Niagara-based systems — names differ, BACnet ideas are the same.' },
+      { t: 'sort', prompt: 'Which BACnet object type?', bins: ['Analog Input', 'Analog Value', 'Binary Output'], items: [
+        { text: 'Measured supply air temperature', bin: 0, why: 'A measured analog value is an AI.' },
+        { text: 'A temperature setpoint', bin: 1, why: 'Setpoints are usually Analog Values.' },
+        { text: 'The fan start command', bin: 2, why: 'A commanded on/off is a Binary Output.' },
+      ] },
     ],
     quiz: [
       { id: 'q1', q: 'A CRAH fan ignores its schedule and runs 24/7. A likely BACnet cause?', choices: ['Bad sensor', 'A manual command left at a higher priority in the priority array', 'Wrong baud', 'Firmware'], answer: 1, why: 'Higher priority wins until relinquished.' },

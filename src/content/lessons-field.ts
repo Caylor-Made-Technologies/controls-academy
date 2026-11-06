@@ -130,6 +130,15 @@ export const FIELD_LESSONS: Lesson[] = [
     title: 'Modbus: the off-by-one trap',
     minutes: 6,
     summary: 'Registers, offsets and swapped floats.',
+    why: 'Meters, chillers, gensets and drives all speak Modbus. Most "wrong value" problems are the same two traps.',
+    prereqs: ['ip-basics', 'numbers'],
+    realWorld: { site: 'datacenter', text: 'A data center\'s power monitoring reads a UPS over Modbus TCP. Output kW reads 1.2e-38 instead of 72.5: the two registers of the 32-bit float are in the wrong order. Swapping word order in the driver fixes every float at once.' },
+    mistakes: [
+      'Off by one: register 40001 is holding-register offset 0 on the wire. Some software wants 40001, some 0, some 1 — if every value looks like its neighbor\'s, you\'re one off.',
+      'Swapped floats: a 32-bit float spans two registers and devices disagree on which comes first. Garbage floats with good integers → try swapping words.',
+      'Writing to a holding register without knowing what it controls — some are setpoints or start commands.',
+    ],
+    safety: { note: 'Writing a Modbus register can change a setpoint or start equipment. Read first; write only with approval and with the operators aware.' },
     blocks: [
       { t: 'p', text: '[[modbus|Modbus]] is everywhere: meters, drives, chillers, gensets. Data lives in four tables:' },
       { t: 'table', head: ['Table', 'Classic number', 'Read/write'], rows: [
@@ -138,9 +147,13 @@ export const FIELD_LESSONS: Lesson[] = [
         ['Input registers', '3xxxx', 'Read-only 16-bit words'],
         ['Holding registers', '4xxxx', 'Read/write 16-bit words'],
       ] },
-      { t: 'callout', tone: 'gotcha', title: 'Off by one', text: 'Register **40001** is holding register **offset 0** on the wire. Some software wants 40001, some wants 0, some wants 1. If every value looks like its neighbor\'s, you\'re off by one.' },
-      { t: 'callout', tone: 'gotcha', title: 'Swapped floats', text: 'A 32-bit float uses two registers. Devices disagree on which comes first (word swap) and sometimes byte order. If you read 1.2e-38 instead of 72.5, try swapping words.' },
       { t: 'p', text: 'Common function codes: 01 read coils, 02 read discrete inputs, 03 read holding registers, 04 read input registers, 05 write single coil, 06 write single register, 16 write multiple registers.' },
+      { t: 'sort', prompt: 'Which Modbus table?', bins: ['Coils (0x)', 'Discrete inputs (1x)', 'Input registers (3x)', 'Holding registers (4x)'], items: [
+        { text: 'A read-only measured value like kW', bin: 2, why: 'Read-only 16-bit words are input registers (many devices also put readings in holding registers — check the map).' },
+        { text: 'A setpoint you can change', bin: 3, why: 'Read/write words are holding registers.' },
+        { text: 'A breaker-closed status bit', bin: 1, why: 'Read-only bits are discrete inputs.' },
+        { text: 'A remote start/stop bit you can write', bin: 0, why: 'Writable bits are coils.' },
+      ] },
     ],
     quiz: [
       { id: 'q1', q: 'Holding register 40001 is offset…', choices: ['0', '1', '40000', '40001'], answer: 0, why: '4xxxx numbering is 1-based; the protocol offset is 0-based.' },
