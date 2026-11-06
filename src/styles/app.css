@@ -190,6 +190,17 @@
   /* ---------- Callouts ---------- */
   .callout { border-radius: 12px; padding: 12px 14px; border: 1px solid var(--border); background: var(--surface-raised); }
   .callout-safety { border-color: var(--alarm); background: var(--alarm-soft); }
+  .skill-map { overflow: auto; max-height: 70vh; padding: 0; overscroll-behavior: contain; }
+  .skill-node { stroke-width: 1.5; }
+  .skill-label { fill: var(--text-heading); }
+  .skill-locked.skill-node { fill: var(--surface-sunk); stroke: var(--border); }
+  .skill-unlocked.skill-node { fill: var(--surface-raised); stroke: var(--blue-glow); }
+  .skill-done.skill-node { fill: var(--live-soft); stroke: var(--live); }
+  .skill-mastered.skill-node { fill: var(--warn-soft); stroke: var(--warn); }
+  .skill-chip.skill-locked { color: var(--text-muted); }
+  .skill-chip.skill-unlocked { border-color: var(--blue-glow); color: var(--text-heading); background: var(--blue-soft); }
+  .skill-chip.skill-done { border-color: var(--live); color: var(--text-heading); background: var(--live-soft); }
+  .skill-chip.skill-mastered { border-color: var(--warn); color: var(--text-heading); background: var(--warn-soft); }
   .why-line { font-size: 0.95rem; padding: 10px 12px; border-radius: 10px; border-left: 3px solid var(--live); background: var(--live-soft); color: var(--text-body); }
   .why-line strong { color: var(--text-heading); }
   .real-world { border-left: 3px solid var(--blue-glow); }

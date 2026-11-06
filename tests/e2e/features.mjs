@@ -118,6 +118,15 @@ const LESSON_IDS = ['z-electricity', 'z-ohms-power', 'z-ac-dc', 'z-series-parall
     await go(page, 'learn');
     await page.getByText(`${LESSON_IDS.length}/${LESSON_IDS.length} lessons`).waitFor();
   });
+  await check('Skill map: map and list views, every lesson listed, finished lessons marked', async () => {
+    await go(page, 'skills');
+    await page.locator('.skill-map svg').waitFor();
+    await page.getByRole('button', { name: 'List' }).click();
+    const items = page.locator('main section li a');
+    if ((await items.count()) !== LESSON_IDS.length) throw new Error(`list shows ${await items.count()} lessons`);
+    if (!(await page.locator('main .skill-chip.skill-done, main .skill-chip.skill-mastered').count())) throw new Error('no finished lessons marked');
+    await page.getByRole('button', { name: 'Map' }).click();
+  });
   await check('Drills: order drill explains a wrong tap, then completes; sort drill scores', async () => {
     await go(page, 'lesson/z-safety');
     const order = page.locator('[data-drill=order]');
