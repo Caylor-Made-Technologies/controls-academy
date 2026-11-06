@@ -1,10 +1,19 @@
 # Changelog
 
-## Unreleased (Phase 1 in progress → 0.6.0)
-- **Track 0 — Start from Zero:** 11 new lessons for people who have never done electrical work: what electricity is, Ohm's law and power, AC/DC and US plant voltages (120/208/240/277/480, single- vs three-phase), series and parallel, open/short/ground faults, grounding and bonding, safety foundations, tools/PPE/meter, symbols and drawings, what a control panel is, jobs in controls. Every one meets the 8-item quality bar; 27 new glossary terms; every number is re-computed by a unit test. Reviewed by an independent technical pass (4 must-fix and 15 should-fix items found and fixed, e.g. PPE caveats on live measurements, stored-energy step in lockout, high-resistance-grounded systems, GFCI).
-- **New interactive pieces:** series/parallel lamp figure; "put the steps in order" and "sort it" drills (any lesson can use them).
-- **Lesson pages** show "Why this matters on the job", prerequisites (linked), an on-the-job example (flour mill, data center or water plant), common mistakes and a safety note in the same place every time.
-- **Faster start-up:** lesson text moved out of the main bundle (157.5 → 124.2 KB gzip); the bundle ceiling is now 125 KB.
+## 0.6.0 — 2026-11-06 (Phase 1: teach from scratch)
+- **Track 0 — Start from Zero:** 11 new beginner lessons (electricity, Ohm's law and power, AC/DC and US plant voltages, series/parallel, open/short/ground faults, grounding and bonding, safety foundations, tools/PPE/meter, symbols and drawings, control panels, jobs in controls). 60 lessons in 12 tracks.
+- **Every lesson meets the 8-item quality bar**, enforced by the type system and a test: why it matters on the job, a plain explainer with tap-to-define terms, an interactive figure/drill/sim task, a flour-mill / data-center / water-plant example, common mistakes, a safety note, a 3–5 question check with explanations, and linked prerequisites.
+- **New interactive pieces:** "put the steps in order" and "sort it" drills in 50+ lessons; a series/parallel lamp figure.
+- **Accuracy:** an independent technical review after every track found and fixed ~30 must-fix items (e.g. PPE on live measurements, stored-energy step in lockout, high-resistance-grounded systems, 32-bit REAL rounding, Logix RPI I/O timing, force install vs enable, reset never starts motion, megger safety) plus many smaller ones; a final pass confirmed all resolved. Every number in a lesson is re-computed by a unit test. 30+ new VERIFY items listed in `docs/VERIFY.md`.
+- **Continuity:** a prerequisite graph (one root, no cycles, no orphans) and a test that no glossary term is used before a lesson teaches it (~150 first-use links added).
+- **Skill map** (`#/skills`): zoomable prerequisite map and a screen-reader list view, with locked / ready / done / mastered states.
+- **Practice exams** (`#/exam`): one per level plus the **Controls Technician Readiness** assessment — randomized from a tagged question bank (≥ 3× each sitting), optional timer, explanations at the end, per-topic breakdown, lessons to revisit. Labeled "Practice record — not a qualification or license."
+- **Spaced review** is now SM-2 per question: weak topics come back sooner, missed items are re-asked at the end of the session; old review data migrates automatically.
+- **Study summaries** (`#/summary`): printable (print → PDF) and Markdown export per track: why, formulas, key terms, safety points, common mistakes.
+- **Certificates:** the practice-record label is now prominent on screen, on the PNG and in exports; new Readiness practice record (unlocks at 80 %).
+- **Faster start:** lesson text and onboarding are lazy-loaded; main bundle 157.5 → 117.5 KB gzip (ceiling now 118 KB).
+- **Bugs fixed:** B-005 a quick tap on Start/Stop could be missed on a slow device (the Phase 0 "flaky" test); B-006 161 of 192 correct answers were choice B — choices now shown in a stable shuffled order.
+- **Known issues:** B-001 (simulator 3D renders continuously; Lighthouse Performance on `#/sim`) — Phase 3.1/6.1.
 
 ## 0.5.1 — 2026-11-05 (Phase 0: baseline and audit)
 - **Audit, bug list and roadmap:** `docs/AUDIT.md` (every route, the 49 lessons against the 8-item quality bar, machines/faults/tasks, reference, tests, baseline numbers), `docs/BUGS.md`, `docs/ROADMAP.md`.
