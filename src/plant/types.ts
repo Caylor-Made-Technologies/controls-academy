@@ -51,11 +51,12 @@ export interface MeterPoint {
 }
 
 /** Operator controls a generic machine panel can draw. `field` is a key of the machine's state. */
-export type PanelControl =
+/** `settings: true` puts a control in the collapsible settings box (drive parameters, tuning) instead of the operator station. */
+export type PanelControl = { settings?: boolean } & (
   | { kind: 'momentary'; field: string; label: string; color: 'green' | 'red' | 'white'; hint: string }
   | { kind: 'toggle'; field: string; label: string; on: string; off: string; hint: string }
   | { kind: 'selector'; field: string; label: string; options: { value: string; label: string }[]; hint: string }
-  | { kind: 'slider'; field: string; label: string; min: number; max: number; step: number; unit: string; hint: string };
+  | { kind: 'slider'; field: string; label: string; min: number; max: number; step: number; unit: string; hint: string });
 
 /** Readouts: pilot lights follow a DO point; gauges and text read the machine state. */
 export type PanelIndicator<S = unknown> =
@@ -69,6 +70,8 @@ export interface MachineUI<S = unknown> {
   /** Trend lines drawn under the panel (e.g. PV and SP). */
   trend?: { label: string; color: string; value: (s: S, io: FieldIO) => number }[];
   trendMax?: number;
+  /** Title of the settings box (e.g. "Drive parameters"). */
+  settingsTitle?: string;
   /** Buttons on the machine itself, e.g. "Reset overload" (returns false when refused). */
   actions?: { id: string; label: string; run: (scene: PlantScene<S>) => boolean | void; disabled?: (s: S) => string | null }[];
 }

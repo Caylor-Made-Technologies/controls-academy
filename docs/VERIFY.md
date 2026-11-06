@@ -87,3 +87,6 @@ All in `src/content/hardware.ts` and `src/content/brands.ts`. The 3D shapes are 
 - `ip-basics`: DHCP/BOOTP defaults per device.
 - `capstone-mixer`: NFPA 61 → NFPA 660 consolidation status.
 - `analog-alarming`: limits on alarm delays for regulatory (e.g. filter turbidity) alarms per plant permit.
+
+## Added 0.7.0 (Phase 2 — machines)
+- `vfd` machine: all drive numbers are illustrative generic values, not a product — DC bus nominal 650 V, OV trip 810 V, chopper 760 V, bus capacitance 4.7 mF, overcurrent trip 2× FLA, current limit 150 %, losses 600 W, min 6 Hz. Fault names (OC, OV, LOSS OF REF, MOTOR OL, STO status) differ by brand. Whether STO shows as a status or a fault, and the loss-of-reference action (fault vs preset speed), are drive parameters.

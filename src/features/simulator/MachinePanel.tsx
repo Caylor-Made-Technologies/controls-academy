@@ -91,6 +91,8 @@ export function MachinePanel({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id:
   const scene = rt.scene;
   const ui = scene.ui!;
   const set = (field: string, v: unknown) => { (scene.state as Record<string, unknown>)[field] = v; rt.notify(); };
+  const ops = ui.controls.filter((c) => !c.settings);
+  const settings = ui.controls.filter((c) => c.settings);
   const lights = ui.indicators.filter((x) => x.kind === 'light');
   const other = ui.indicators.filter((x) => x.kind !== 'light');
   const analog = scene.devices.filter((d) => d.io && (d.io.kind === 'AI' || d.io.kind === 'AO'));
@@ -103,14 +105,20 @@ export function MachinePanel({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id:
       <div className="rounded-2xl border border-line bg-sunk p-3 mt-3">
         <p className="text-[0.68rem] font-bold tracking-widest uppercase text-muted m-0 mb-2">Operator station</p>
         <div className="flex flex-wrap gap-3 items-end">
-          {ui.controls.filter((c) => c.kind !== 'slider').map((c) => <Control key={c.field} c={c} rt={rt} set={set} />)}
+          {ops.filter((c) => c.kind !== 'slider').map((c) => <Control key={c.field} c={c} rt={rt} set={set} />)}
         </div>
-        {ui.controls.some((c) => c.kind === 'slider') && (
-          <div className="grid gap-1 mt-2">{ui.controls.filter((c) => c.kind === 'slider').map((c) => <Control key={c.field} c={c} rt={rt} set={set} />)}</div>
+        {ops.some((c) => c.kind === 'slider') && (
+          <div className="grid gap-1 mt-2">{ops.filter((c) => c.kind === 'slider').map((c) => <Control key={c.field} c={c} rt={rt} set={set} />)}</div>
         )}
         {lights.length > 0 && <div className="flex flex-wrap gap-3 mt-3">{lights.map((x) => <Readout key={x.label} x={x} rt={rt} />)}</div>}
       </div>
 
+      {settings.length > 0 && (
+        <details className="rounded-2xl border border-line bg-sunk p-3 mt-3">
+          <summary className="font-semibold text-heading cursor-pointer min-h-[44px] flex items-center">{ui.settingsTitle ?? 'Settings'}</summary>
+          <div className="grid gap-3 mt-2">{settings.map((c) => <Control key={c.field} c={c} rt={rt} set={set} />)}</div>
+        </details>
+      )}
       {other.length > 0 && <div className="flex flex-wrap gap-2 mt-3">{other.map((x) => <Readout key={x.label} x={x} rt={rt} />)}</div>}
       {ui.trend && <Trend rt={rt} />}
 

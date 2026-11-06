@@ -1,5 +1,6 @@
 /** Machine registry. Every machine follows the PlantScene interface (docs/SIM-ARCHITECTURE.md). */
 import { createMotorScene } from './motor';
+import { createVfdScene } from './vfd';
 import type { FaultDef, PlantScene } from './types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -15,6 +16,7 @@ export interface MachineEntry {
 
 export const MACHINES: MachineEntry[] = [
   { id: 'motor', title: 'Motor start/stop station', summary: '3-wire control, seal-in, overload, hardwired E-stop.', site: 'general', create: createMotorScene },
+  { id: 'vfd', title: 'Fan on a VFD', summary: 'Speed control, ramps, analog reference, STO and drive faults.', site: 'datacenter', create: createVfdScene },
 ];
 
 export const MACHINE_BY_ID = new Map(MACHINES.map((m) => [m.id, m]));

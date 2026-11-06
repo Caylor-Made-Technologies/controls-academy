@@ -140,6 +140,17 @@ const LESSON_IDS = ['z-electricity', 'z-ohms-power', 'z-ac-dc', 'z-series-parall
     const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Download (.md)' }).click()]);
     if (!/track-4-summary\.md$/.test(dl.suggestedFilename())) throw new Error(dl.suggestedFilename());
   });
+  await check('Machines: VFD station runs from the panel; a VFD fault hunt loads the VFD machine', async () => {
+    await go(page, 'sim?m=vfd');
+    await page.getByRole('heading', { name: 'Fan on a VFD' }).waitFor();
+    await press(page, 'Start');
+    await page.getByText(/\d+\.\d Hz · \d+\.\d A/).waitFor({ timeout: 8000 });
+    await page.getByText('Drive parameters (generic names)').click();
+    await page.getByRole('slider', { name: /Decel time/ }).waitFor();
+    await go(page, 'troubleshoot/vfd-sto');
+    await page.getByText(/STO/).first().waitFor();
+    await page.getByRole('button', { name: 'A drive parameter is wrong' }).waitFor();
+  });
   await check('Skill map: map and list views, every lesson listed, finished lessons marked', async () => {
     await go(page, 'skills');
     await page.locator('.skill-map svg').waitFor();

@@ -25,7 +25,8 @@ phase report and vault update. Items found in the Phase 0 audit are marked **(au
 
 ## Phase 2 — Machines and a VFD → v0.7.0
 - 2.1 `docs/SIM-ARCHITECTURE.md`; one `Machine` interface (program, I/O map, wiring, meter points, faults, physics, 2D view, 3D hook)
-- 2.2 VFD on the motor station (ramps, keypad/0–10 V/4–20 mA reference, terminal/keypad control, OC/OV/STO/lost-reference/motor-thermal faults, generic parameters, 3D drive keypad, J·α physics + DC bus)
+- [x] 2.1 Machine interface, registry, generic panel, kit, Fault Hunt across machines, SIM-ARCHITECTURE.md
+- [x] 2.2 VFD station (separate machine "Fan on a VFD" reusing the motor model): ramps, 4–20 mA / 0–10 V / keypad reference, terminal or keypad control, OC/OV/STO/lost-reference/motor-OL, generic parameters, J·α + DC bus physics. The live 3D drive keypad moves to 3.3 (machine 3D scenes).
 - 2.3 Machines: FWD/REV, conveyor + photo-eyes + counting, tank + 4–20 mA + PID, pump lead/lag, data-center CHW/CRAH/ATS, flour batch mixer
 - 2.4 30+ faults, each with symptom, meter readings, root cause, fix, safety note
 - 2.5 Fault Hunt on every machine; difficulty levels; scoring rewards logical order, penalizes blind swaps and wrong meter mode
