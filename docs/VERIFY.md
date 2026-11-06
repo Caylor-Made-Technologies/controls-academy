@@ -73,3 +73,17 @@ All in `src/content/hardware.ts` and `src/content/brands.ts`. The 3D shapes are 
 - `z-ac-dc` realWorld: rack voltage in data centers (208/120 V, 415/240 V and others are used) — confirm wording is general enough.
 - `z-jobs`: Texas electrician licensing (TDLR) and whether plant-maintenance work is exempt — check current TDLR rules.
 - `z-safety` realWorld: roller-mill roll-engage mechanism (pneumatic vs spring) by make — check an OEM lockout procedure.
+- `what-is-a-plc`: Logix RPI-based I/O update (inputs can change mid-scan) and buffering practice, per controller family.
+- `analog-420`: low/high fault thresholds (~3.6 / ~21 mA, NAMUR NE 43 style) per analog card.
+- `data-types`: array out-of-range behavior on non-Logix platforms (S7-1200/1500, FX and others).
+- `latch-unlatch`: retentive memory on power-up — Siemens retentive settings; Mitsubishi FX latched M range per model.
+- `compare-math`: integer division (Logix DIV truncates, SLC DIV rounds; REAL→DINT rounding) per instruction.
+- `forcing`: FORCE LED solid vs flashing (installed vs enabled) per controller model; Siemens force-table indication.
+- `upload-download`: online-edit wording (accept / test / assemble) per software version.
+- `fault-codes`: Logix fault routine behavior; Siemens error OBs per CPU family.
+- `legacy-networks`: terminator values and readings per network (DeviceNet ~60 Ω pair; Profibus active; ControlNet 75 Ω; DH+ 150/82 Ω).
+- `vfd-basics`: output-contactor switching rules per drive manual.
+- `hmi-basics`: how each HMI platform shows comms loss vs field overflow ("####").
+- `ip-basics`: DHCP/BOOTP defaults per device.
+- `capstone-mixer`: NFPA 61 → NFPA 660 consolidation status.
+- `analog-alarming`: limits on alarm delays for regulatory (e.g. filter turbidity) alarms per plant permit.
