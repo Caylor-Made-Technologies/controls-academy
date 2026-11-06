@@ -283,13 +283,27 @@ export const CORE2_LESSONS: Lesson[] = [
     title: 'Compare and math in real logic',
     minutes: 8,
     summary: 'Turn numbers into decisions: high level alarms, run hours, batch totals.',
+    why: 'Alarms, run hours, totals and setpoints are all compares and math. They\'re how a PLC turns numbers into decisions.',
+    prereqs: ['counters', 'data-types'],
+    realWorld: { site: 'water', text: 'A water plant\'s clearwell high-level alarm is GEQ(Level, 18.5) — in feet. A LIM keeps the transfer pump running only while the level is between 4 and 18 ft.' },
+    mistakes: [
+      'Integer division: DINT 7 ÷ 2 gives 3 on many controllers. Use REALs when you need the decimal.',
+      'Putting ADD on a rung that stays true — it runs every scan. Pulse it with a one-shot or timer.',
+      'Comparing REALs with EQU. Use a range (LIM, GEQ/LEQ).',
+    ],
+    safety: { note: 'Changing an alarm or interlock limit changes how the process is protected. Treat setpoint changes as changes: approval, a record, and the operators told.' },
     blocks: [
-      { t: 'p', text: 'Compare instructions are **inputs** — they condition a rung. Math and move instructions are **outputs** — they act when the rung is true.' },
+      { t: 'p', text: 'Compare instructions are **inputs** — they condition a [[rung]]. Math and move instructions are **outputs** — they act when the rung is true.' },
       { t: 'rung', text: 'GEQ(Level,90.0)OTE(High_Alarm)', tags: [{ name: 'Level', type: 'REAL' }, { name: 'High_Alarm', type: 'BOOL' }], caption: 'High level alarm at 90 %.' },
       { t: 'rung', text: 'LIM(40.0,Level,60.0)OTE(Level_OK)', tags: [{ name: 'Level', type: 'REAL' }, { name: 'Level_OK', type: 'BOOL' }], caption: 'LIM: true while 40 ≤ Level ≤ 60.' },
       { t: 'rung', text: 'XIC(Motor_Running)XIC(One_Sec_Pulse)ADD(Run_Secs,1,Run_Secs)', tags: [{ name: 'Motor_Running', type: 'BOOL' }, { name: 'One_Sec_Pulse', type: 'BOOL' }, { name: 'Run_Secs', type: 'DINT' }], caption: 'Run-hour counting: add 1 on a one-scan pulse every second (not every scan!).' },
       { t: 'p', text: '**CPT** lets you write a whole expression: `CPT(Gallons, (Raw - 4000) * 0.0125)`. Order of operations works like a calculator: × and ÷ before + and −, parentheses first.' },
-      { t: 'callout', tone: 'gotcha', title: 'Integer division', text: 'Divide two integers and many controllers drop the remainder: 7 ÷ 2 = 3. Use REALs when you need the decimal.' },
+      { t: 'sort', prompt: 'Condition or action?', bins: ['Condition (input side)', 'Action (output side)'], items: [
+        { text: 'GEQ(Level, 90.0)', bin: 0, why: 'Compares decide whether the rung is true.' },
+        { text: 'LIM(40.0, Level, 60.0)', bin: 0, why: 'LIM is a compare: true inside the band.' },
+        { text: 'ADD(Run_Secs, 1, Run_Secs)', bin: 1, why: 'Math acts when the rung is true.' },
+        { text: 'MOV(20, Step)', bin: 1, why: 'MOV writes a value when the rung is true.' },
+      ] },
     ],
     quiz: [
       { id: 'q1', q: 'ADD on a rung that stays true for 1 second with a 10 ms scan adds…', choices: ['1', 'About 100 times', '10', '0'], answer: 1, why: 'Math runs every scan the rung is true. Pulse it with a one-shot or timer.' },
@@ -303,6 +317,15 @@ export const CORE2_LESSONS: Lesson[] = [
     title: 'Alarm with acknowledge',
     minutes: 8,
     summary: 'The alarm pattern every operator expects: flash, silence, acknowledge, clear.',
+    why: 'Operators live by alarms. A clean flash-ack-clear pattern means real problems get seen, not ignored.',
+    prereqs: ['latch-unlatch', 'counters'],
+    realWorld: { site: 'datacenter', text: 'In a data center, a high-temperature alarm on a CRAH flashes on the building system until a technician acknowledges it, then stays steady until the temperature drops — so a brief spike overnight is still seen in the morning.' },
+    mistakes: [
+      'Setting "Unacked" without a one-shot, so acknowledging never sticks.',
+      'Letting an alarm clear itself before anyone acknowledged it — brief faults get missed.',
+      'Creating nuisance alarms that need no action; people learn to ignore the horn.',
+    ],
+    safety: { note: 'Never silence, inhibit or bypass a safety-related alarm to stop the noise. Find the cause, and follow your site\'s rules for disabling any alarm.' },
     blocks: [
       { t: 'p', text: 'A good alarm tells the operator three things: something happened, whether anyone has seen it, and whether it\'s still active. The classic [[alarm-ack]] sequence:' },
       { t: 'table', head: ['State', 'Light', 'Horn'], rows: [
@@ -335,6 +358,15 @@ export const CORE2_LESSONS: Lesson[] = [
     title: 'Sequencers and state machines',
     minutes: 10,
     summary: 'Stepping a machine through fill → mix → drain without spaghetti logic.',
+    why: 'Batch and sequence machines are built as state machines. Read the step number and you know exactly where a machine is stuck.',
+    prereqs: ['compare-math', 'timers'],
+    realWorld: { site: 'mill', text: 'A flour mill\'s batch mixer runs states 10 (weigh flour), 20 (add water), 30 (mix), 40 (discharge). When it stalls, the operator screen shows Step = 20: the water meter never reached its target, so the tech checks the water valve and flow meter — nothing else.' },
+    mistakes: [
+      'Mixing outputs and transitions in one tangled rung. Keep "what this state does" and "when to leave it" separate.',
+      'No timeout per state — a stuck step just hangs silently.',
+      'Numbering states 1, 2, 3 so there\'s no room to insert one later.',
+    ],
+    safety: { note: 'Forcing or jumping a sequence step on a live machine can open valves or start motors out of order. Use the machine\'s manual/maintenance mode with the area clear, not a MOV typed into the step tag.' },
     blocks: [
       { t: 'p', text: 'A batch mixer runs in steps. The cleanest pattern is a [[state-machine]]: one DINT `Step` holds the current state; each state turns on its outputs; one transition rung per state moves to the next.' },
       { t: 'rung', text: 'EQU(Step,10)OTE(Fill_Valve)', tags: [{ name: 'Step', type: 'DINT' }, { name: 'Fill_Valve', type: 'BOOL' }], caption: 'State 10 = Filling.' },
@@ -349,6 +381,13 @@ export const CORE2_LESSONS: Lesson[] = [
         'Show the step number on the HMI. Operators and techs instantly know where it\'s stuck.',
       ] },
       { t: 'callout', tone: 'brand', title: 'Other ways to write it', text: 'IEC has Sequential Function Charts (SFC); Siemens has GRAPH; Logix has SFC routines. A CASE statement in Structured Text is the text version of the same idea.' },
+      { t: 'order', prompt: 'Put the mixer\'s states in order.', steps: [
+        'Step 0: idle, waiting for Start',
+        'Step 10: fill valve open until high level',
+        'Step 20: mix for 60 s',
+        'Step 30: drain until low level',
+        'Back to Step 0 for the next batch',
+      ], why: 'Each state does one job; each transition waits for one condition. A timeout on any state sends it to a fault state (900+).' },
     ],
     quiz: [
       { id: 'q1', q: 'A mixer is stuck. The HMI shows Step = 10. What is it waiting for?', choices: ['The mix timer', 'The condition that leaves state 10 — e.g. High_Level', 'Drain valve', 'Nothing'], answer: 1, why: 'The transition out of 10 is the high level switch. Check that input.' },
@@ -362,6 +401,15 @@ export const CORE2_LESSONS: Lesson[] = [
     title: 'Organizing a program',
     minutes: 7,
     summary: 'Tasks, routines, blocks and naming that make code readable at 3 AM.',
+    why: 'At 3 AM you\'ll be reading someone else\'s program. Good organization is what makes that possible.',
+    prereqs: ['sequencers'],
+    realWorld: { site: 'water', text: 'A water plant\'s PLC program has one routine per area — Raw Water, Filters, Chemical Feed, High Service — plus Alarms and HMI. Tags match the P&ID: LT101_Level, P201_Run. A new tech finds the filter backwash logic in minutes.' },
+    mistakes: [
+      'Unscheduled code: a routine nothing calls (no JSR) or a program not in a task never runs. If logic "looks right but nothing happens", check that it\'s called.',
+      'Running PID in the continuous task, where its timing changes with scan time.',
+      'Comments that say what ("Timer 5") instead of why ("Delay so the screw clears before the gate closes").',
+    ],
+    safety: { na: 'Program structure and naming only — no hands-on equipment work.' },
     blocks: [
       { t: 'table', head: ['Idea', 'Logix-style', 'Siemens-style'], rows: [
         ['When code runs', '[[task|Tasks]]: continuous, periodic, event', 'OBs: OB1 cyclic, cyclic-interrupt OBs (e.g. OB30-series), OB100 startup // VERIFY exact OB numbers per CPU family'],
@@ -375,7 +423,12 @@ export const CORE2_LESSONS: Lesson[] = [
         '**PID and analog in a periodic task** so the timing (Δt) is steady.',
         '**Comment why,** not what: "Delay so the screw clears before the gate closes" beats "Timer 5".',
       ] },
-      { t: 'callout', tone: 'gotcha', title: 'Unscheduled code doesn\'t run', text: 'A routine that isn\'t called (no JSR) or a program not in a task is never scanned. If logic "looks right but nothing happens," check that it\'s actually called.' },
+      { t: 'sort', prompt: 'Logix-style or Siemens-style term?', bins: ['Logix-style', 'Siemens-style'], items: [
+        { text: 'Add-On Instruction', bin: 0, why: 'AOIs are Rockwell\'s reusable blocks.' },
+        { text: 'Instance DB', bin: 1, why: 'Siemens FBs keep their memory in an instance data block.' },
+        { text: 'JSR', bin: 0, why: 'Jump to Subroutine calls a routine in Logix.' },
+        { text: 'OB1', bin: 1, why: 'OB1 is the main cyclic organization block in Siemens.' },
+      ] },
     ],
     quiz: [
       { id: 'q1', q: 'Where should a PID loop usually run?', choices: ['Continuous task', 'Periodic task at a fixed interval', 'Startup only', 'Event task on button press'], answer: 1, why: 'PID math assumes a steady update interval.' },
