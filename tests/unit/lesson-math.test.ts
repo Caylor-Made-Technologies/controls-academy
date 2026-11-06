@@ -75,6 +75,15 @@ describe('every number in the lessons is checked', () => {
     expect(text('data-types')).toContain('1.0000001');
   });
 
+  it('Modbus word-swapped float (modbus)', () => {
+    const v = new DataView(new ArrayBuffer(4));
+    v.setFloat32(0, 72.5);
+    const hi = v.getUint16(0), lo = v.getUint16(2);
+    v.setUint16(0, lo); v.setUint16(2, hi);
+    expect(v.getFloat32(0)).toBeCloseTo(2.388e-41, 44);
+    expect(text('modbus')).toContain('2.4e-41');
+  });
+
   it('volts-amps-ohms (Track 1)', () => {
     expect(ohm.current(24, 240)).toBeCloseTo(0.1);
     expect(answer('volts-amps-ohms', 'q1')).toContain('0.1 A');

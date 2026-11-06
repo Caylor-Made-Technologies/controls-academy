@@ -133,7 +133,7 @@ export const FIELD_LESSONS: Lesson[] = [
     summary: 'Registers, offsets and swapped floats.',
     why: 'Meters, chillers, gensets and drives all speak Modbus. Most "wrong value" problems are the same two traps.',
     prereqs: ['ip-basics', 'numbers'],
-    realWorld: { site: 'datacenter', text: 'A data center\'s power monitoring reads a UPS over Modbus TCP. Output kW reads 1.2e-38 instead of 72.5: the two registers of the 32-bit float are in the wrong order. Swapping word order in the driver fixes every float at once.' },
+    realWorld: { site: 'datacenter', text: 'A data center\'s power monitoring reads a UPS over Modbus TCP. Output kW reads a tiny nonsense number (about 2.4e-41) instead of 72.5: the two registers of the 32-bit float are in the wrong order. Swapping word order in the driver fixes every float at once.' },
     mistakes: [
       'Off by one: register 40001 is holding-register offset 0 on the wire. Some software wants 40001, some 0, some 1 — if every value looks like its neighbor\'s, you\'re one off.',
       'Swapped floats: a 32-bit float spans two registers and devices disagree on which comes first. Garbage floats with good integers → try swapping words.',
@@ -148,7 +148,7 @@ export const FIELD_LESSONS: Lesson[] = [
         ['Input registers', '3xxxx', 'Read-only 16-bit words'],
         ['Holding registers', '4xxxx', 'Read/write 16-bit words'],
       ] },
-      { t: 'p', text: 'Common function codes: 01 read coils, 02 read discrete inputs, 03 read holding registers, 04 read input registers, 05 write single coil, 06 write single register, 16 write multiple registers.' },
+      { t: 'p', text: 'Modbus TCP uses port 502; Modbus RTU runs on RS-485 with a unit (slave) ID 1–247 and matching baud, parity and stop bits. Common function codes: 01 read coils, 02 read discrete inputs, 03 read holding registers, 04 read input registers, 05 write single coil, 06 write single register, 15 write multiple coils, 16 write multiple registers. An exception code 02 (illegal address) is often the off-by-one clue.' },
       { t: 'sort', prompt: 'Which Modbus table?', bins: ['Coils (0x)', 'Discrete inputs (1x)', 'Input registers (3x)', 'Holding registers (4x)'], items: [
         { text: 'A read-only measured value like kW', bin: 2, why: 'Read-only 16-bit words are input registers (many devices also put readings in holding registers — check the map).' },
         { text: 'A setpoint you can change', bin: 3, why: 'Read/write words are holding registers.' },

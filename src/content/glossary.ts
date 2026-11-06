@@ -95,7 +95,7 @@ export const GLOSSARY: GlossaryTerm[] = [
   { id: 'incident-energy', term: 'Incident energy', def: 'How much heat an arc flash could put on a surface at a working distance, in cal/cm². 1.2 cal/cm² is about the onset of a second-degree burn on bare skin.' },
   { id: 'arc-rated', term: 'Arc-rated (AR)', def: 'Clothing or gear tested to resist an arc flash up to a stated incident energy (its arc rating, in cal/cm²). Ordinary clothes are not arc-rated.' },
   { id: 'inrush', term: 'Inrush current', def: 'The big burst of current when a motor or transformer is first switched on — for a motor, several times its running current for a few seconds.' },
-  { id: 'terminator', term: 'Terminating resistor', def: 'A resistor at each END of a serial network cable (RS-485, DeviceNet, Profibus). It stops signals bouncing back off the cable end. Missing or extra terminators cause communication errors.', aka: ['termination'] },
+  { id: 'terminator', term: 'Terminating resistor', def: 'A resistor (or, on Profibus, a powered resistor network) at each END of a network cable — RS-485, DeviceNet, Profibus, ControlNet, DH+. It stops signals bouncing back off the cable end. Missing or extra terminators cause communication errors.', aka: ['termination'] },
   // ── Start from Zero (Track 0) ──
   { id: 'charge', term: 'Electric charge', def: 'The property of electrons (negative) and protons (positive) that makes them push and pull on each other. Moving charge is electric current.' },
   { id: 'voltage', term: 'Voltage', def: 'Electrical pressure: the difference in "push" between two points. Measured in volts (V), always between two points.', aka: ['potential difference', 'volts'] },
