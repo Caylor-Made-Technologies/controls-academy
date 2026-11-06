@@ -47,7 +47,7 @@ export interface MeterPoint {
   id: string;
   label: string;
   /** Returns volts (DC or AC as labeled). */
-  read(): { value: number; unit: 'VDC' | 'VAC' | 'mA' };
+  read(): { value: number; unit: 'VDC' | 'VAC' | 'mA' | 'A' };
 }
 
 /** Operator controls a generic machine panel can draw. `field` is a key of the machine's state. */

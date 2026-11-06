@@ -56,8 +56,10 @@ export interface MotorDrive {
   jammed?: boolean;
   /** Shaft inertia, kg·m². */
   inertia?: number;
-  /** Full-load amps for the overload model. */
+  /** Motor full-load amps (nameplate). */
   fla?: number;
+  /** Overload relay setting in amps (defaults to the motor FLA). */
+  olFla?: number;
 }
 
 /**
@@ -95,8 +97,7 @@ export function motorStep(m: MotorSim, d: MotorDrive, dt: number): MotorSim {
     w = sgn !== 0 && Math.sign(wNext) !== sgn && d.dir === 0 ? 0 : wNext;
     w = clamp(w, -wSyncMag, wSyncMag);
   }
-  const fla = d.fla ?? MOTOR_FLA;
-  const ratio = amps / fla;
+  const ratio = amps / (d.olFla ?? d.fla ?? MOTOR_FLA);
   const th = m.heat * OL_TRIP;
   const target2 = ratio * ratio;
   const next = th + (target2 - th) * Math.min(1, dt / (target2 > th ? OL_TAU_HEAT : OL_TAU_COOL));
