@@ -51,24 +51,26 @@ export interface MeterPoint {
 }
 
 /** Operator controls a generic machine panel can draw. `field` is a key of the machine's state. */
-/** `settings: true` puts a control in the collapsible settings box (drive parameters, tuning) instead of the operator station. */
+/** A control's `field` is a state key, or `tag:Name.Member` to read/write a PLC tag (setpoints, PID tuning).
+ * `settings: true` puts a control in the collapsible settings box (drive parameters, tuning) instead of the operator station. */
 export type PanelControl = { settings?: boolean } & (
   | { kind: 'momentary'; field: string; label: string; color: 'green' | 'red' | 'white'; hint: string }
   | { kind: 'toggle'; field: string; label: string; on: string; off: string; hint: string }
   | { kind: 'selector'; field: string; label: string; options: { value: string; label: string }[]; hint: string }
   | { kind: 'slider'; field: string; label: string; min: number; max: number; step: number; unit: string; hint: string });
 
-/** Readouts: pilot lights follow a DO point; gauges and text read the machine state. */
+/** Readouts: pilot lights follow a DO point; gauges and text read the machine state (or a PLC tag through `tag`). */
+export type TagReader = (name: string) => number;
 export type PanelIndicator<S = unknown> =
-  | { kind: 'light'; label: string; color: 'green' | 'amber' | 'red'; on: (s: S, io: FieldIO) => boolean }
-  | { kind: 'gauge'; label: string; unit: string; max: number; value: (s: S, io: FieldIO) => number; warn?: number; digits?: number }
-  | { kind: 'text'; label: string; value: (s: S, io: FieldIO) => string };
+  | { kind: 'light'; label: string; color: 'green' | 'amber' | 'red'; on: (s: S, io: FieldIO, tag: TagReader) => boolean }
+  | { kind: 'gauge'; label: string; unit: string; max: number; value: (s: S, io: FieldIO, tag: TagReader) => number; warn?: number; digits?: number }
+  | { kind: 'text'; label: string; value: (s: S, io: FieldIO, tag: TagReader) => string };
 
 export interface MachineUI<S = unknown> {
   controls: PanelControl[];
   indicators: PanelIndicator<S>[];
   /** Trend lines drawn under the panel (e.g. PV and SP). */
-  trend?: { label: string; color: string; value: (s: S, io: FieldIO) => number }[];
+  trend?: { label: string; color: string; value: (s: S, io: FieldIO, tag: TagReader) => number }[];
   trendMax?: number;
   /** Title of the settings box (e.g. "Drive parameters"). */
   settingsTitle?: string;

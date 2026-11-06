@@ -1,6 +1,7 @@
 /** Machine registry. Every machine follows the PlantScene interface (docs/SIM-ARCHITECTURE.md). */
 import { createMotorScene } from './motor';
 import { createVfdScene } from './vfd';
+import { createFwdRevScene } from './fwdrev';
 import type { FaultDef, PlantScene } from './types';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
@@ -16,6 +17,7 @@ export interface MachineEntry {
 
 export const MACHINES: MachineEntry[] = [
   { id: 'motor', title: 'Motor start/stop station', summary: '3-wire control, seal-in, overload, hardwired E-stop.', site: 'general', create: createMotorScene },
+  { id: 'fwdrev', title: 'Forward/reverse screw conveyor', summary: 'Reversing starter, three interlock layers, zero-speed switch.', site: 'mill', create: createFwdRevScene },
   { id: 'vfd', title: 'Fan on a VFD', summary: 'Speed control, ramps, analog reference, STO and drive faults.', site: 'datacenter', create: createVfdScene },
 ];
 

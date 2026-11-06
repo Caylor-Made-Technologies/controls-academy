@@ -6,8 +6,11 @@ import type { SimRuntime } from './runtime';
 
 const fmt = (x: number, d = 1) => (Number.isFinite(x) ? x.toFixed(d) : '—');
 
+const tagOf = (field: string) => (field.startsWith('tag:') ? field.slice(4) : null);
+
 function Control({ c, rt, set }: { c: PanelControl; rt: SimRuntime; set: (field: string, v: unknown) => void }) {
-  const s = rt.scene.state as Record<string, unknown>;
+  const state = rt.scene.state as Record<string, unknown>;
+  const s = new Proxy(state, { get: (o, k: string) => { const t = tagOf(k); return t ? rt.plc.tags.readNum(t) : o[k]; } });
   switch (c.kind) {
     case 'momentary':
       return <PushButton label={c.label} color={c.color} pressed={Boolean(s[c.field])} onChange={(v) => set(c.field, v)} hint={c.hint} />;
@@ -42,9 +45,10 @@ function Control({ c, rt, set }: { c: PanelControl; rt: SimRuntime; set: (field:
 
 function Readout({ x, rt }: { x: PanelIndicator; rt: SimRuntime }) {
   const s = rt.scene.state;
-  if (x.kind === 'light') return <Lamp on={x.on(s, rt.io)} color={x.color} label={x.label} />;
-  if (x.kind === 'text') return <div className="rounded-xl border border-line bg-sunk p-2.5 min-w-[120px]"><p className="m-0 text-[0.68rem] font-bold uppercase tracking-widest text-muted">{x.label}</p><p className="m-0 font-bold text-heading">{x.value(s, rt.io)}</p></div>;
-  const v = x.value(s, rt.io);
+  const tag = (n: string) => rt.plc.tags.readNum(n);
+  if (x.kind === 'light') return <Lamp on={x.on(s, rt.io, tag)} color={x.color} label={x.label} />;
+  if (x.kind === 'text') return <div className="rounded-xl border border-line bg-sunk p-2.5 min-w-[120px]"><p className="m-0 text-[0.68rem] font-bold uppercase tracking-widest text-muted">{x.label}</p><p className="m-0 font-bold text-heading">{x.value(s, rt.io, tag)}</p></div>;
+  const v = x.value(s, rt.io, tag);
   const pct = Math.max(0, Math.min(1, v / x.max));
   const warn = x.warn !== undefined && v >= x.warn;
   return (
@@ -65,7 +69,7 @@ function Trend({ rt }: { rt: SimRuntime }) {
   const now = performance.now();
   const last = buf.current[buf.current.length - 1];
   if (!last || now - last.t > 200) {
-    buf.current.push({ t: now, v: ui.trend!.map((l) => l.value(rt.scene.state, rt.io)) });
+    buf.current.push({ t: now, v: ui.trend!.map((l) => l.value(rt.scene.state, rt.io, (n) => rt.plc.tags.readNum(n))) });
     if (buf.current.length > 300) buf.current.shift();
   }
   const W = 300, H = 90, max = ui.trendMax ?? 100;
@@ -90,7 +94,12 @@ function Trend({ rt }: { rt: SimRuntime }) {
 export function MachinePanel({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => void }) {
   const scene = rt.scene;
   const ui = scene.ui!;
-  const set = (field: string, v: unknown) => { (scene.state as Record<string, unknown>)[field] = v; rt.notify(); };
+  const set = (field: string, v: unknown) => {
+    const t = tagOf(field);
+    if (t) rt.plc.tags.write(t, Number(v));
+    else (scene.state as Record<string, unknown>)[field] = v;
+    rt.notify();
+  };
   const ops = ui.controls.filter((c) => !c.settings);
   const settings = ui.controls.filter((c) => c.settings);
   const lights = ui.indicators.filter((x) => x.kind === 'light');
