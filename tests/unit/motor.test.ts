@@ -22,6 +22,29 @@ describe('motor start/stop scene', () => {
     expect(verifyProgram(createMotorScene().program()).filter((i) => i.level === 'error')).toEqual([]);
   });
 
+  it('a tap that starts and ends between two sim steps is still seen (slow phone, busy page)', () => {
+    const { s, plc, tick } = rig();
+    tick(100);
+    s.startPressed = true;
+    s.startPressed = false; // released before the next step ran
+    tick(3000);
+    expect(s.contactor).toBe(true);
+    expect(plc.fieldDO[1]).toBe(true);
+    s.stopPressed = true;
+    s.stopPressed = false;
+    tick(100);
+    expect(s.contactor).toBe(false);
+  });
+
+  it('a held press is not stretched: input drops once the minimum time has passed after release', () => {
+    const { s, plc, tick } = rig();
+    s.startPressed = true;
+    tick(500);
+    s.startPressed = false;
+    tick(70);
+    expect(plc.fieldDI[0]).toBe(false);
+  });
+
   it('starts, seals in, runs up to speed and stops', () => {
     const { s, plc, tick } = rig();
     tick(100);

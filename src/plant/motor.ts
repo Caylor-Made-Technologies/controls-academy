@@ -94,11 +94,37 @@ export const OL_TRIP = 1.15 * 1.15;
 /** The relay can be reset only once it has cooled below this fraction of the trip level. */
 export const OL_RESET_BELOW = 0.8;
 
-const fresh = (): MotorState => ({
-  startPressed: false, stopPressed: false, resetPressed: false, estopIn: false,
-  olTripped: false, olHeat: 0, contactor: false, pull: 0, rpm: 0, amps: 0, jammed: false,
-  torque: 0, loadTorque: 0, slip: 1, volts: 1,
-});
+/**
+ * Shortest press the machine sees, in simulated ms. A tap that starts and ends between two sim steps (a slow
+ * phone, a busy page) would otherwise never reach the inputs; the press is held for this long in sim time.
+ */
+export const MIN_PRESS_MS = 60;
+
+type Momentary = 'startPressed' | 'stopPressed' | 'resetPressed';
+const MOMENTARY: Momentary[] = ['startPressed', 'stopPressed', 'resetPressed'];
+
+const fresh = (): MotorState => {
+  const raw: Record<Momentary, boolean> = { startPressed: false, stopPressed: false, resetPressed: false };
+  const hold: Record<Momentary, number> = { startPressed: 0, stopPressed: 0, resetPressed: 0 };
+  const st = {
+    estopIn: false,
+    olTripped: false, olHeat: 0, contactor: false, pull: 0, rpm: 0, amps: 0, jammed: false,
+    torque: 0, loadTorque: 0, slip: 1, volts: 1,
+  } as MotorState;
+  for (const k of MOMENTARY) {
+    Object.defineProperty(st, k, {
+      enumerable: true,
+      get: () => raw[k],
+      set: (v: boolean) => { if (v && !raw[k]) hold[k] = MIN_PRESS_MS; raw[k] = v; },
+    });
+  }
+  Object.defineProperty(st, 'held', { enumerable: false, value: (k: Momentary) => raw[k] || hold[k] > 0 });
+  Object.defineProperty(st, 'tickHold', { enumerable: false, value: (dtMs: number) => { for (const k of MOMENTARY) hold[k] = Math.max(0, hold[k] - dtMs); } });
+  return st;
+};
+
+/** Pressed now, or released so recently that the minimum press time hasn't run out. */
+const held = (s: MotorState, k: Momentary) => (s as unknown as { held(k: Momentary): boolean }).held(k);
 
 export function motorProgram(): Program {
   return program(
@@ -206,11 +232,12 @@ export function createMotorScene(): PlantScene<MotorState> {
 
       // ---- Inputs (24 VDC sinking card; contact closed = input ON) ----
       const di = io.DI;
-      di[0] = ctrlPower && s.startPressed && f !== 'startworn';
-      di[1] = ctrlPower && !s.stopPressed && f !== 'stopwire';
+      di[0] = ctrlPower && held(s, 'startPressed') && f !== 'startworn';
+      di[1] = ctrlPower && !held(s, 'stopPressed') && f !== 'stopwire';
       di[2] = ctrlPower && !s.olTripped;
       di[3] = ctrlPower && s.contactor && f !== 'auxfail';
-      di[4] = ctrlPower && s.resetPressed;
+      di[4] = ctrlPower && held(s, 'resetPressed');
+      (s as unknown as { tickHold(dt: number): void }).tickHold(dtMs);
       di[5] = ctrlPower && !s.estopIn;
 
       // ---- Coil circuit (hardwired): output → E-stop → OL 95-96 → coil ----
