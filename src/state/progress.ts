@@ -2,6 +2,7 @@ import { create } from 'zustand';
 import { LESSON_META as LESSONS, TRACKS } from '../content/catalog';
 import type { SkinId } from '../skins';
 import { debouncedSaver, load, remove } from './persist';
+import { dueQueue, fromLeitner, newCard, review as srsReview, type SrsCard } from './srs';
 
 export interface LessonRecord {
   /** Best quiz score (correct answers). */
@@ -11,11 +12,8 @@ export interface LessonRecord {
   at: string;
 }
 
-export interface ReviewCard {
-  /** Leitner box 0–4. Due dates: 1, 2, 4, 7, 14 days. */
-  box: number;
-  due: string;
-}
+/** A spaced-repetition card (SM-2, see srs.ts). */
+export type ReviewCard = SrsCard;
 
 export interface HuntRecord {
   bestMs: number;
@@ -51,7 +49,6 @@ export const EMPTY: ProgressData = {
   version: 1, xp: 0, lessons: {}, review: {}, hunts: {}, days: [], skinsSeen: [], stepped: false, perfectQuizzes: 0, lastRoute: '', exams: {},
 };
 
-const BOX_DAYS = [1, 2, 4, 7, 14];
 
 export function today(d = new Date()): string {
   const y = d.getFullYear();
@@ -192,7 +189,11 @@ export function validateProgress(d: unknown): ProgressData | null {
   for (const [k, v] of Object.entries(review)) {
     const r = obj(v);
     if (!r || !/^[\w.-]{1,80}$/.test(k)) continue;
-    cleanReview[k] = { box: Math.max(0, Math.min(4, Number(r.box) || 0)), due: String(r.due ?? '').slice(0, 10) };
+    const due = /^\d{4}-\d{2}-\d{2}$/.test(String(r.due)) ? String(r.due) : today();
+    const num = (x: unknown, lo: number, hi: number, d: number) => { const n = Number(x); return Number.isFinite(n) ? Math.min(hi, Math.max(lo, n)) : d; };
+    cleanReview[k] = 'ef' in r
+      ? { ef: num(r.ef, 1.3, 5, 2.5), interval: Math.round(num(r.interval, 1, 365, 1)), reps: Math.round(num(r.reps, 0, 100, 0)), lapses: Math.round(num(r.lapses, 0, 1000, 0)), due }
+      : fromLeitner(num(r.box, 0, 4, 0), due);
   }
   const cleanHunts: Record<string, HuntRecord> = {};
   for (const [k, v] of Object.entries(hunts)) {
@@ -237,7 +238,7 @@ export const useProgress = create<ProgressStore>((set, get) => {
       const perfect = score === total;
       if (perfect && (!prev || prev.score < prev.total)) gain += 25;
       const review = { ...get().review };
-      for (const q of missed) review[q] = { box: 0, due: addDays(today(), 1) };
+      for (const q of missed) review[q] = review[q] ? srsReview(review[q], false, today())! : newCard(today());
       commit({
         xp: get().xp + gain,
         lessons: { ...get().lessons, [id]: { score: Math.max(score, prev?.score ?? 0), total, taskDone: prev?.taskDone ?? false, at: new Date().toISOString() } },
@@ -259,11 +260,9 @@ export const useProgress = create<ProgressStore>((set, get) => {
       const card = get().review[qid];
       if (!card) return;
       const review = { ...get().review };
-      if (correct && card.box >= 4) delete review[qid];
-      else {
-        const box = correct ? card.box + 1 : 0;
-        review[qid] = { box, due: addDays(today(), BOX_DAYS[box]) };
-      }
+      const next = srsReview(card, correct, today(), topicAccuracy(get().lessons)[topicOf(qid) ?? '']);
+      if (next) review[qid] = next;
+      else delete review[qid];
       commit({ review, xp: get().xp + (correct ? 10 : 0) });
     },
     recordHunt(faultId, ms, safe, points) {
@@ -276,7 +275,7 @@ export const useProgress = create<ProgressStore>((set, get) => {
     recordExam(examId, right, total, missed) {
       const prev = get().exams[examId];
       const review = { ...get().review };
-      for (const q of missed) if (!review[q]) review[q] = { box: 0, due: addDays(today(), 1) };
+      for (const q of missed) review[q] = review[q] ? srsReview(review[q], false, today())! : newCard(today());
       const gain = !prev ? 50 : right > prev.best ? 25 : 0;
       commit({
         xp: get().xp + gain,
@@ -315,6 +314,28 @@ export const useProgress = create<ProgressStore>((set, get) => {
   };
 });
 
+const TRACK_OF = new Map(LESSONS.map((l) => [l.id, l.track as string]));
+
+/** Topic (track) of a question id like "lessonId.q2". */
+export function topicOf(qid: string): string | undefined {
+  return TRACK_OF.get(qid.slice(0, qid.lastIndexOf('.')));
+}
+
+/** Accuracy per topic (track) from lesson checks: right ÷ asked. Topics with no checks yet are absent. */
+export function topicAccuracy(lessons: Record<string, LessonRecord>): Record<string, number> {
+  const sums: Record<string, [number, number]> = {};
+  for (const [id, r] of Object.entries(lessons)) {
+    const t = TRACK_OF.get(id);
+    if (!t || !r.total) continue;
+    const x = (sums[t] ??= [0, 0]);
+    x[0] += r.score;
+    x[1] += r.total;
+  }
+  return Object.fromEntries(Object.entries(sums).map(([t, [a, b]]) => [t, a / b]));
+}
+
+/** Questions due today, weakest topics first. */
 export function dueReviews(p: ProgressData, now = today()): string[] {
-  return Object.entries(p.review).filter(([, c]) => c.due <= now).map(([id]) => id);
+  const acc = topicAccuracy(p.lessons);
+  return dueQueue(p.review, now, topicOf, (t) => (t ? acc[t] : undefined));
 }

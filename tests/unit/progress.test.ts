@@ -34,7 +34,7 @@ describe('progress helpers', () => {
     })!;
     expect(v.xp).toBe(120);
     expect(Object.keys(v.lessons)).toEqual(['three-wire']);
-    expect(v.review['meter.q1'].box).toBe(4);
+    expect(v.review['meter.q1']).toMatchObject({ reps: 4, interval: 14, ef: 2.5, due: '2026-11-05' }); // old Leitner box (clamped to 4) migrates to SM-2
     expect(Object.keys(v.review)).toEqual(['meter.q1']);
     expect(v.days).toEqual(['2026-11-04']);
     expect(dueReviews(v, '2026-11-05')).toEqual(['meter.q1']);

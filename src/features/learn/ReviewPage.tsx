@@ -8,7 +8,9 @@ import { QuestionCard } from './Quiz';
 
 export default function ReviewPage() {
   const p = useProgress();
-  const [ids] = useState(() => dueReviews(p));
+  const [ids, setIds] = useState(() => dueReviews(p));
+  const [first] = useState(() => new Set(dueReviews(p)));
+  const [requeued, setRequeued] = useState<Set<string>>(() => new Set());
   const [i, setI] = useState(0);
   const [answered, setAnswered] = useState(false);
   const qs = useMemo(() => {
@@ -19,7 +21,7 @@ export default function ReviewPage() {
   return (
     <div className="max-w-[68ch]">
       <PageHead eyebrow="Review" title="Spaced repetition">
-        Questions you missed come back after 1 day, then 2, 4, 7 and 14 as you get them right.
+        Missed questions come back tomorrow, then further apart each time you get them right (SM-2 spaced repetition). Weak topics come back sooner, and anything you miss today is asked once more at the end.
       </PageHead>
       {!q ? (
         <div className="card card-pad text-center">
@@ -30,7 +32,13 @@ export default function ReviewPage() {
         </div>
       ) : (
         <div className="space-y-3">
-          <QuestionCard key={q.id} q={q} n={i + 1} of={qs.length} onAnswer={(c) => { p.reviewAnswer(q.id, c); setAnswered(true); }} />
+          <QuestionCard key={`${q.id}-${i}`} q={q} n={i + 1} of={qs.length} onAnswer={(c) => {
+            // The first answer today schedules the card; a re-ask at the end of the session is practice only.
+            if (i < first.size) p.reviewAnswer(q.id, c);
+            if (!c && !requeued.has(q.id)) { setRequeued(new Set(requeued).add(q.id)); setIds([...ids, q.id]); }
+            setAnswered(true);
+          }} />
+          {i >= first.size && <p className="text-xs text-muted m-0">One more try — missed earlier in this session.</p>}
           <button type="button" className="btn btn-primary" disabled={!answered} onClick={() => { setI(i + 1); setAnswered(false); }}>
             {i + 1 < qs.length ? 'Next question' : 'Finish'} <Icon name="chevron" size={16} />
           </button>
