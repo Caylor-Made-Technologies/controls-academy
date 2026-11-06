@@ -28,6 +28,7 @@ export interface TankState {
   overflowed: number; // m³ lost over the top
   /** Damped transmitter reading, m. */
   measured: number;
+  lslMade: boolean;
   /** Recent inflows for the transport delay. */
   delayLine: number[];
 }
@@ -56,6 +57,7 @@ export function tankProgram() {
       { text: 'SCP(LT101_mA,4.0,20.0,0.0,100.0,Level_Pct)', comment: 'Scale 4–20 mA to 0–100 % of the tank.' },
       { text: '[LES(LT101_mA,3.6),GRT(LT101_mA,21.0)]OTE(LT_Bad)', comment: 'Out-of-range signal = bad transmitter or broken wire, not a real level.' },
       { text: '[XIC(LT_Bad),XIO(LSHH_OK)]OTE(Close_Valve)', comment: 'Fail safe: no trustworthy level, or the high-high switch opened → close the fill valve.' },
+      { text: 'XIC(Close_Valve)OTE(Level_PID.MAN)', comment: 'While the valve is forced shut, put the PID in manual at 0 % so its integral doesn\'t wind up — then it returns bumplessly.' },
       { text: 'MOV(SP_Pct,Level_PID.SP)', comment: 'Setpoint and tuning come from tags the HMI writes.' },
       { text: 'MOV(Tune_KP,Level_PID.KP)' },
       { text: 'MOV(Tune_KI,Level_PID.KI)' },
@@ -73,8 +75,8 @@ export function tankProgram() {
 
 export const TANK_DEVICES: FieldDevice[] = [
   { id: 'lt', label: 'LT-101 level', kind: 'analog', io: { kind: 'AI', point: 0 }, wiring: '2-wire, loop-powered level transmitter: +24 V → transmitter → analog input 0. 4 mA = empty, 20 mA = 4 m.' },
-  { id: 'lsl', label: 'LSL low switch', kind: 'sensor', io: { kind: 'DI', point: 0 }, wiring: 'Float switch at 0.3 m, closed while the level is above it, to input I0.' },
-  { id: 'lshh', label: 'LSHH high-high', kind: 'sensor', io: { kind: 'DI', point: 1 }, wiring: 'Float switch at 3.8 m wired fail-safe: closed when OK, opens on high level (or a broken wire), to input I1.' },
+  { id: 'lsl', label: 'LSL low switch', kind: 'sensor', io: { kind: 'DI', point: 0 }, wiring: 'Float switch: opens below 0.3 m, closes again above about 0.4 m (its natural deadband), to input I0.' },
+  { id: 'lshh', label: 'LSHH high-high', kind: 'sensor', io: { kind: 'DI', point: 1 }, wiring: 'Float switch at 3.8 m wired fail-safe: closed when OK, opens on high level (or a broken wire), to input I1. Here it acts through the same PLC; a truly independent overfill protection is hardwired to close the valve or stop the supply without the PLC.' },
   { id: 'fv', label: 'FV-101 fill valve', kind: 'analog', io: { kind: 'AO', point: 0 }, wiring: 'Analog output 0 (4–20 mA) to the valve positioner. 4 mA = closed (the valve fails closed on loss of air or signal).' },
   { id: 'badlt', label: 'Bad signal', kind: 'light', io: { kind: 'DO', point: 0 }, color: 'amber', wiring: 'Pilot light on output O0.' },
   { id: 'hhlt', label: 'High-high', kind: 'light', io: { kind: 'DO', point: 1 }, color: 'red', wiring: 'Pilot light on output O1.' },
@@ -86,7 +88,7 @@ export const TANK_FAULTS: FaultDef[] = [
     complaint: 'The screen says the tank is at setpoint, but the operator\'s sight glass shows it much lower.',
     cause: 'LT-101 has drifted: it reads about 0.8 m (20 %) high. The PID is happily holding the WRONG level.',
     howToFind: 'Compare the transmitter with an independent reading (sight glass, a tape). The loop is doing exactly what the PV tells it.',
-    readings: 'Loop current about 3.2 mA higher than the real level should give (e.g. 16.4 mA where 13.2 mA is right).',
+    readings: 'At setpoint (60 %) the loop reads 13.6 mA, but the sight glass level corresponds to only about 10.4 mA (40 %).',
     fix: 'Recalibrate (or replace) the transmitter against a known level, then return the loop to auto. Log the as-found and as-left values.',
     safety: 'Calibration means taking the loop out of automatic: tell the operators, put the PID in manual, and watch the level while you work.' },
   { id: 'tk-wire', title: 'Broken transmitter wire', difficulty: 1, evidence: ['ai0', 'lttx'], culprit: 'lt',
@@ -106,14 +108,14 @@ export const TANK_FAULTS: FaultDef[] = [
   { id: 'tk-tune', title: 'Gain set far too high', difficulty: 2, culprit: 'logic',
     complaint: 'The fill valve slams open and closed every few seconds and the level wobbles.',
     cause: 'Someone set the proportional gain to 200 "to make it faster". With the valve, transmitter damping and transport delay, the loop goes unstable: the valve slams between closed and open.',
-    howToFind: 'Put the loop in manual: the level steadies, so it\'s not the process. Trend SP, PV and CV — CV swings full scale. Check the tuning tags.',
+    howToFind: 'Put the loop in manual: the oscillation stops (the level just ramps slowly, as tanks do), so it\'s not the process. Trend SP, PV and CV — CV swings full scale in auto. Check the tuning tags.',
     readings: 'Valve signal swinging 4 → 20 mA every few seconds; transmitter signal steady in manual.',
     fix: 'Restore sensible tuning (here KP 6, KI 0.05), change one thing at a time while watching a trend, then document it.',
     safety: 'A slamming valve can cause water hammer — put the loop in manual at a safe output first, then retune with operations aware.' },
 ];
 
 export function createTankScene(): PlantScene<TankState> {
-  const init = (): TankState => ({ level: 1.2, valve: 0, demand: 0.008, overflowed: 0, measured: 1.2, delayLine: [] });
+  const init = (): TankState => ({ level: 1.2, valve: 0, demand: 0.008, overflowed: 0, measured: 1.2, delayLine: [], lslMade: true });
   const scene: PlantScene<TankState> = {
     id: 'tank',
     title: 'Tank level with PID',
@@ -144,7 +146,8 @@ export function createTankScene(): PlantScene<TankState> {
       s.measured = lag(s.measured, s.level, LT_DAMPING, dt);
       const reads = f === 'tk-drift' ? s.measured + 0.8 : s.measured;
       io.AI[0] = f === 'tk-wire' ? 0 : mA(reads / TANK_H);
-      io.DI[0] = s.level > LSL_AT;
+      s.lslMade = s.level > LSL_AT + 0.1 || (s.lslMade && s.level > LSL_AT);
+      io.DI[0] = s.lslMade;
       io.DI[1] = s.level < LSHH_AT;
     },
     meterPoints(io) {

@@ -1,7 +1,7 @@
 /**
  * Machine — Forward/reverse starter on a flour-mill screw conveyor.
  *
- *   DI0 Forward PB (NO)  DI1 Reverse PB (NO)  DI2 Stop PB (NC)  DI3 Overload 95-96 (NC)
+ *   DI0 Forward PB (NO)  DI1 Reverse PB (NO)  DI2 Stop PB (NC)  DI3 Overload aux (NC)
  *   DI4 F aux 13-14      DI5 R aux 13-14      DI6 Zero-speed switch (closed when the screw is stopped)
  *   DO0 F contactor coil DO1 R contactor coil DO2 Forward light DO3 Reverse light
  * Hardwired: an NC aux of R is in series with F's coil and vice versa (electrical interlock), and a lever
@@ -31,7 +31,7 @@ export function fwdRevProgram() {
       { name: 'Fwd_PB', type: 'BOOL', io: { kind: 'DI', point: 0 }, description: 'Forward pushbutton (NO)' },
       { name: 'Rev_PB', type: 'BOOL', io: { kind: 'DI', point: 1 }, description: 'Reverse pushbutton (NO)' },
       { name: 'Stop_PB', type: 'BOOL', io: { kind: 'DI', point: 2 }, description: 'Stop pushbutton (NC)' },
-      { name: 'OL_OK', type: 'BOOL', io: { kind: 'DI', point: 3 }, description: 'Overload 95-96 (NC)' },
+      { name: 'OL_OK', type: 'BOOL', io: { kind: 'DI', point: 3 }, description: 'Overload aux contact (NC)' },
       { name: 'F_Aux', type: 'BOOL', io: { kind: 'DI', point: 4 }, description: 'Forward contactor aux 13-14' },
       { name: 'R_Aux', type: 'BOOL', io: { kind: 'DI', point: 5 }, description: 'Reverse contactor aux 13-14' },
       { name: 'Zero_Speed', type: 'BOOL', io: { kind: 'DI', point: 6 }, description: 'Zero-speed switch: ON when the screw has stopped' },
@@ -53,7 +53,7 @@ export const FWDREV_DEVICES: FieldDevice[] = [
   { id: 'fwd', label: 'Forward', kind: 'pb-no', io: { kind: 'DI', point: 0 }, color: 'green', wiring: 'Normally-open pushbutton to input I0.' },
   { id: 'rev', label: 'Reverse', kind: 'pb-no', io: { kind: 'DI', point: 1 }, color: 'green', wiring: 'Normally-open pushbutton to input I1.' },
   { id: 'stop', label: 'Stop', kind: 'pb-nc', io: { kind: 'DI', point: 2 }, color: 'red', wiring: 'Normally-closed pushbutton to input I2 (fails safe).' },
-  { id: 'ol', label: 'Overload', kind: 'contact', io: { kind: 'DI', point: 3 }, wiring: 'Overload 95-96 (NC) in series with both coils, and to input I3.' },
+  { id: 'ol', label: 'Overload', kind: 'contact', io: { kind: 'DI', point: 3 }, wiring: 'Overload relay: 95-96 (NC) in series with both 120 VAC coils; a separate NC auxiliary contact feeds 24 VDC input I3.' },
   { id: 'faux', label: 'F aux', kind: 'contact', io: { kind: 'DI', point: 4 }, wiring: 'Forward contactor aux 13-14 (NO) to input I4 — proof F pulled in.' },
   { id: 'raux', label: 'R aux', kind: 'contact', io: { kind: 'DI', point: 5 }, wiring: 'Reverse contactor aux 13-14 (NO) to input I5 — proof R pulled in.' },
   { id: 'zss', label: 'Zero speed', kind: 'sensor', io: { kind: 'DI', point: 6 }, wiring: 'Zero-speed switch on the screw shaft: closed when stopped, to input I6. Prevents reversing a turning screw.' },
@@ -89,9 +89,9 @@ export const FWDREV_FAULTS: FaultDef[] = [
     complaint: 'The screw ran a few seconds, groaned and stopped. Neither direction will start now.',
     cause: 'Product packed into the screw (a choke). The motor stalled and the overload tripped.',
     howToFind: 'OL_OK (I3) is off and the overload flag is showing. Find out why before resetting: clear the choke first.',
-    readings: 'Input I3 terminal: 0 VDC (95-96 open). Motor current before the trip: about 6× FLA.',
+    readings: 'Input I3 terminal: 0 VDC (overload aux open). Motor current before the trip: about 6× FLA.',
     fix: 'Lock out, clear the choke, check the screw turns, let the overload cool, reset, restart.',
-    safety: 'Screw conveyors are a classic amputation hazard. Lock out, try out and block the screw before opening a cover — never reach in while it can move.' },
+    safety: 'Screw conveyors are a classic amputation hazard. Lock out, try out and block the screw before opening a cover — never reach in while it can move. Flour dust is combustible: clean up without blowing it around and keep ignition sources away.' },
 ];
 
 export function createFwdRevScene(): PlantScene<FwdRevState> {
@@ -141,7 +141,7 @@ export function createFwdRevScene(): PlantScene<FwdRevState> {
       return [
         { id: 'psu', label: '24 VDC supply (+ to −)', read: () => ({ value: 24, unit: 'VDC' }) },
         { id: 'i0', label: 'Input I0 (Forward PB)', read: () => v(io.DI[0]) },
-        { id: 'i3', label: 'Input I3 (OL 96)', read: () => v(io.DI[3]) },
+        { id: 'i3', label: 'Input I3 (overload aux)', read: () => v(io.DI[3]) },
         { id: 'i4', label: 'Input I4 (F aux)', read: () => v(io.DI[4]) },
         { id: 'i5', label: 'Input I5 (R aux)', read: () => v(io.DI[5]) },
         { id: 'i6', label: 'Input I6 (zero speed)', read: () => v(io.DI[6]) },
@@ -162,7 +162,7 @@ export function createFwdRevScene(): PlantScene<FwdRevState> {
         { kind: 'light', label: 'Forward', color: 'green', on: (_s, io) => io.DO[2] },
         { kind: 'light', label: 'Reverse', color: 'green', on: (_s, io) => io.DO[3] },
         { kind: 'text', label: 'Contactors', value: (s) => `F ${s.f ? 'IN' : 'out'} · R ${s.r ? 'IN' : 'out'}` },
-        { kind: 'gauge', label: 'Screw speed', unit: 'rpm', max: 1800, value: (s) => s.motor.rpm, digits: 0 },
+        { kind: 'gauge', label: 'Motor speed (screw turns ~1/20 of this through the gearbox)', unit: 'rpm', max: 1800, value: (s) => s.motor.rpm, digits: 0 },
         { kind: 'gauge', label: 'Motor current', unit: 'A', max: MOTOR_FLA * 7, value: (s) => s.motor.amps, warn: MOTOR_FLA * 1.15 },
         { kind: 'gauge', label: 'Overload heat', unit: '%', max: 100, value: (s) => s.motor.heat * 100, warn: 80, digits: 0 },
       ],

@@ -38,8 +38,8 @@ describe('bag conveyor', () => {
     expect(h.io.DO[0]).toBe(false);
   });
 
-  it('fault cv-pe2-aligned: bags delivered, count stays 0', () => {
-    const h = rig(); h.scene.setFault('cv-pe2-aligned');
+  it('fault cv-pe2-wire: bags delivered, count stays 0', () => {
+    const h = rig(); h.scene.setFault('cv-pe2-wire');
     h.press('startPressed'); h.tick(40000);
     expect(h.s.delivered).toBeGreaterThan(5);
     expect(h.plc.tags.readNum('Bag_Ctr.ACC')).toBe(0);

@@ -3,7 +3,7 @@
  *
  * Field wiring (24 VDC inputs, 120 VAC coil circuit):
  *   DI0 Start PB (NO)           DI1 Stop PB (NC — input is ON when NOT pressed)
- *   DI2 Overload 95-96 (NC)     DI3 Contactor M1 aux 13-14 (NO)
+ *   DI2 Overload aux (NC)     DI3 Contactor M1 aux 13-14 (NO)
  *   DI4 Fault reset PB (NO)     DI5 E-stop monitor contact (NC)
  *   DO0 M1 coil (through the E-stop and OL contacts, hardwired)
  *   DO1 Green "running" light   DO2 Amber "fault" light
@@ -89,7 +89,8 @@ export function loadTorque(rpm: number, jammed: boolean): number {
  * 1.15² × FLA² (service-factor pickup). From cold, 600 % current trips in about 5 s.
  */
 export const OL_TAU_HEAT = 134;
-export const OL_TAU_COOL = 28;
+/** Cooling is slower than heating, as with a real bimetal overload (illustrative). */
+export const OL_TAU_COOL = 150;
 export const OL_TRIP = 1.15 * 1.15;
 /** The relay can be reset only once it has cooled below this fraction of the trip level. */
 export const OL_RESET_BELOW = 0.8;
@@ -156,7 +157,7 @@ export function motorProgram(): Program {
 export const MOTOR_DEVICES: FieldDevice[] = [
   { id: 'start', label: 'Start', kind: 'pb-no', io: { kind: 'DI', point: 0 }, color: 'green', wiring: 'Normally-open pushbutton. +24 V → button → input I0. Pressing it closes the contact and turns the input ON.' },
   { id: 'stop', label: 'Stop', kind: 'pb-nc', io: { kind: 'DI', point: 1 }, color: 'red', wiring: 'Normally-CLOSED pushbutton. Input I1 is ON when nobody is touching it. A broken wire looks exactly like someone pressing Stop — that\'s the point: it fails safe.' },
-  { id: 'ol', label: 'Overload', kind: 'contact', io: { kind: 'DI', point: 2 }, wiring: 'Overload relay contact 95-96 (normally closed). Opens when the motor draws too much current for too long. Wired in series with the coil AND to input I2 so the PLC knows.' },
+  { id: 'ol', label: 'Overload', kind: 'contact', io: { kind: 'DI', point: 2 }, wiring: 'Overload relay contact 95-96 (normally closed). Opens when the motor draws too much current for too long. Its 95-96 contact is in series with the 120 VAC coil; a separate NC auxiliary contact on the overload feeds 24 VDC input I2 so the PLC knows (one contact can\'t serve both voltages).' },
   { id: 'aux', label: 'M1 aux', kind: 'contact', io: { kind: 'DI', point: 3 }, wiring: 'Auxiliary contact 13-14 on the contactor. Closes when the contactor actually pulls in — proof, not just a command.' },
   { id: 'reset', label: 'Reset', kind: 'pb-no', io: { kind: 'DI', point: 4 }, color: 'white', wiring: 'Fault reset pushbutton, normally open, to input I4.' },
   { id: 'estop', label: 'E-stop', kind: 'estop', io: { kind: 'DI', point: 5 }, color: 'red', wiring: 'Mushroom-head E-stop with two normally-closed contacts. One is hardwired in series with the contactor coil (removes power no matter what the PLC does). The second goes to input I5 so the program drops its seal-in.' },
@@ -198,7 +199,7 @@ export const MOTOR_FAULTS: FaultDef[] = [
     complaint: 'Motor ran a few seconds then stopped. Amber light is on.',
     cause: 'The driven load is jammed. The motor drew locked-rotor current and the overload relay tripped to protect it.',
     howToFind: 'OL_OK input is off and the trip indicator on the overload is showing. Don\'t just reset it — find out WHY it tripped (jam, bad bearing, single-phasing) before restarting.',
-    readings: 'OL contact 95-96: open (Input I2 terminal 0 V). Motor current before the trip: near locked-rotor (about 6× FLA).',
+    readings: 'Overload tripped: 95-96 open in the coil circuit, and its aux contact open (Input I2 terminal 0 V). Motor current before the trip: near locked-rotor (about 6× FLA).',
     fix: 'Lock out, clear the jam, check the load turns freely, let the overload cool, then reset it and restart.',
     safety: 'Never reach into a jammed conveyor or reset the overload until the machine is locked out and the cause is found.' },
   { id: 'forced', title: 'Output left forced OFF', difficulty: 3, evidence: ['o0'], culprit: 'force',
@@ -320,7 +321,7 @@ export function createMotorScene(): PlantScene<MotorState> {
         { id: 'i0', label: 'Input I0 terminal (Start)', read: () => v(io.DI[0]) },
         { id: 'i1', label: 'Input I1 terminal (Stop)', read: () => v(io.DI[1]) },
         { id: 'stopsupply', label: 'Stop button supply side', read: () => v(ctrl) },
-        { id: 'i2', label: 'Input I2 terminal (OL 96)', read: () => v(io.DI[2]) },
+        { id: 'i2', label: 'Input I2 terminal (OL aux)', read: () => v(io.DI[2]) },
         { id: 'i3', label: 'Input I3 terminal (aux 14)', read: () => v(io.DI[3]) },
         { id: 'i5', label: 'Input I5 terminal (E-stop)', read: () => v(io.DI[5]) },
         { id: 'o0', label: 'Output O0 terminal', read: () => ({ value: ctrl && io.DO[0] ? 120 : 0, unit: 'VAC' }) },

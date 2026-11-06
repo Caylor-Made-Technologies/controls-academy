@@ -56,11 +56,13 @@ describe('lift station lead/lag', () => {
     expect(h.s.p1.tripped || h.s.p2.tripped).toBe(false); // no short-cycling: the TOF holds the pumps on
   });
 
-  it('fault pp-float: both pumps run with the well nearly empty', () => {
+  it('fault pp-float: both pumps called with the well nearly empty; the low cutout stops dry running', () => {
     const h = rig(); h.scene.setFault('pp-float');
-    h.tick(60000);
-    expect(h.io.DO[0] && h.io.DO[1]).toBe(true);
+    let both = false;
+    h.tick(120000, () => { if (h.io.DO[0] && h.io.DO[1]) both = true; if (h.s.level < 0.35) expect(h.io.DO[0] || h.io.DO[1]).toBe(false); });
+    expect(both).toBe(true);
     expect(h.io.DO[2]).toBe(true);
-    expect(h.s.level).toBeLessThan(0.5);
+    expect(h.s.level).toBeGreaterThan(0.35);
+    expect(h.s.level).toBeLessThan(1.0);
   });
 });

@@ -78,7 +78,8 @@ describe('VFD station', () => {
     r.tick(3000, () => { maxBus = Math.max(maxBus, r.s.bus); });
     const busGain = 0.5 * BUS_C * (maxBus * maxBus - BUS_NOM * BUS_NOM);
     expect(busGain).toBeLessThan(ke0);
-    expect(maxBus).toBeGreaterThanOrEqual(BUS_OV_TRIP);
+    expect(maxBus).toBeGreaterThan(BUS_OV_TRIP - 5);
+    expect(r.s.fault).toBe('OV');
   });
 
   it('fault: open guard (STO) — no run command, no torque, keypad shows STO', () => {
@@ -103,13 +104,14 @@ describe('VFD station', () => {
     expect(b.s.hz).toBeCloseTo(6, 0);
   });
 
-  it('fault: dragging bearing → current above FLA → motor overload trips; reset refused until it cools', () => {
+  it('fault: failing bearing → drive in current limit below commanded speed → motor overload trips; reset refused until it cools', () => {
     const { s, scene, tick, press } = rig();
     scene.setFault('vfd-ol');
     press('startPressed');
     let t = 0;
     while (s.fault !== 'MOTOR OL' && t < 120000) { tick(500); t += 500; }
     expect(s.fault).toBe('MOTOR OL');
+    expect(s.hz === 0 || s.hz < 52).toBe(true);
     press('resetPressed');
     expect(s.fault).toBe('MOTOR OL');
   });

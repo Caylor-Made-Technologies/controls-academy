@@ -15,12 +15,12 @@ import { clamp, mA, momentary } from './kit';
 import { MOTOR_FLA, MOTOR_T_RATED, OL_TAU_COOL, OL_TAU_HEAT, OL_TRIP, currentPU, torquePU } from './motor';
 import type { FaultDef, FieldDevice, PlantScene } from './types';
 
-/** Nominal DC bus for a 460 V supply: √2 × 460 ≈ 650 V. */
-export const BUS_NOM = 650;
+/** Nominal DC bus for a 480 V supply: √2 × 480 ≈ 680 V. */
+export const BUS_NOM = 680;
 /** Overvoltage trip level (illustrative). */
-export const BUS_OV_TRIP = 810;
+export const BUS_OV_TRIP = 840;
 /** Braking chopper turn-on level (illustrative). */
-export const BUS_CHOPPER = 760;
+export const BUS_CHOPPER = 790;
 /** DC bus capacitance, farads (illustrative). */
 export const BUS_C = 0.0047;
 /** Fan + motor inertia, kg·m² (a heavy fan wheel). */
@@ -146,18 +146,18 @@ export const VFD_DEVICES: FieldDevice[] = [
 export const VFD_FAULTS: FaultDef[] = [
   { id: 'vfd-oc', title: 'Accel time far too short', difficulty: 2, culprit: 'params',
     complaint: 'The fan drive trips on "OC" (overcurrent) every time it starts.',
-    cause: 'Someone set the acceleration time to 0.5 s and turned the current limit off. A heavy fan can\'t follow, slip and current shoot past the overcurrent trip.',
+    cause: 'Someone set the acceleration time to 0.5 s and raised the current limit to its maximum. A heavy fan can\'t follow; slip and current shoot past the overcurrent trip before the limit can act.',
     howToFind: 'The drive fault log says OC during acceleration. The motor and cable test fine. Look at the accel time and current limit parameters.',
-    readings: 'Motor current spikes past 2× FLA within a second of starting; the DC bus is normal (~650 VDC).',
-    fix: 'Set accel back to a sensible time for the fan (here 10 s) and turn the current limit back on, then test a start. Record the parameter change.',
+    readings: 'Motor current spikes past 2× FLA within a second of starting; the DC bus is normal (~680 VDC).',
+    fix: 'Set accel back to a sensible time for the fan (here 10 s) and the current limit back to its normal value (here 150 %), then test a start. Record the parameter change.',
     safety: 'Read and change parameters from the keypad or software with the drive stopped; never open the drive cover while powered.' },
   { id: 'vfd-ov', title: 'Decel too fast with no braking resistor', difficulty: 2, evidence: ['bus'], culprit: 'params',
     complaint: 'The fan drive trips on "OV" (overvoltage) every time someone presses Stop.',
     cause: 'Decel time was cut from 30 s to 2 s. The heavy fan drives the motor as a generator and pushes energy back onto the DC bus faster than the drive can get rid of it.',
     howToFind: 'Trips only on stopping. Watch the DC bus voltage while stopping: it climbs past the trip level. Starting and running are fine.',
-    readings: 'DC bus rises from ~650 VDC to over ~800 VDC during the stop; motor current is moderate.',
-    fix: 'Lengthen the decel time (here 30 s), use coast-to-stop for a fan, or add a braking resistor if the drive has a chopper.',
-    safety: 'The DC bus can be 650–800 VDC and stays charged after power is removed. Verify it is near zero with a rated meter before touching the drive\'s terminals.' },
+    readings: 'DC bus rises from ~680 VDC to over ~840 VDC during the stop; motor current is moderate.',
+    fix: 'Lengthen the decel time (here 30 s), or use coast-to-stop for a fan (then turn on flying start so a restart can catch the still-spinning wheel), or add a braking resistor if the drive has a brake chopper.',
+    safety: 'The DC bus is around 680–840 VDC and stays charged after power is removed. Lock out, wait the discharge time on the drive label (often 5–15 minutes), and remember the CHARGE light is not proof: measure DC+ to DC−, and each to ground, with a rated meter (live-dead-live) before touching the terminals.' },
   { id: 'vfd-sto', title: 'Safety circuit open (STO)', difficulty: 1, evidence: ['stoin'], culprit: 'sto',
     complaint: 'The fan won\'t start. The drive keypad says "STO".',
     cause: 'A guard switch on the fan housing is open, so the safety relay removed power from the drive\'s Safe Torque Off inputs.',
@@ -172,13 +172,13 @@ export const VFD_FAULTS: FaultDef[] = [
     readings: 'PLC AO0 terminal: normal mA. Drive reference input: 0 mA.',
     fix: 'Lock out, repair the conductor or termination, check the shield, then confirm the drive sees the right reference.',
     safety: 'Reference wiring runs in the drive cabinet next to 480 V: lock out before working at the drive terminals.' },
-  { id: 'vfd-ol', title: 'Dragging fan bearing', difficulty: 2, culprit: 'motor',
-    complaint: 'The fan runs a while, then the drive trips on "motor overload".',
-    cause: 'A failing fan bearing adds drag, so the motor draws more than its full-load current until the drive\'s motor overload protection trips.',
-    howToFind: 'Motor current at full speed is well above nameplate FLA. Parameters are fine. Check the mechanics: bearing, belt tension, a rubbing wheel.',
-    readings: 'Motor current ~1.5× FLA at full speed; DC bus normal; overload meter on the keypad climbing.',
+  { id: 'vfd-ol', title: 'Failing fan bearing (heavy drag)', difficulty: 2, culprit: 'motor',
+    complaint: 'The fan never gets up to speed, then the drive trips on "motor overload".',
+    cause: 'A failing fan bearing adds heavy drag. The drive hits its current limit and holds the frequency below the commanded speed, running the motor at about 1.5× FLA until its motor-overload protection trips.',
+    howToFind: 'The drive is in current limit: frequency stuck around 49 Hz when the reference asks for more, current pinned at the limit. Parameters are fine — check the mechanics: bearing, belt tension, a rubbing wheel.',
+    readings: 'Drive output stuck near 49 Hz (below the commanded speed); motor current ~1.5× FLA; DC bus normal; overload meter on the keypad climbing.',
     fix: 'Lock out, repair the bearing, check the fan turns freely by hand, then let the overload cool and reset.',
-    safety: 'Lock out and wait for the fan to stop completely — a big fan wheel coasts for minutes — before opening the housing.' },
+    safety: 'Lock out, wait for the fan to stop completely (a big wheel coasts for minutes) and block it — wind through the duct can windmill a fan — before opening the housing.' },
 ];
 
 export function createVfdScene(): PlantScene<VfdState> {
@@ -204,7 +204,7 @@ export function createVfdScene(): PlantScene<VfdState> {
     setFault(id) {
       scene.activeFault = id;
       const s = scene.state;
-      if (id === 'vfd-oc') { s.accelS = 0.5; s.currentLimit = 0; }
+      if (id === 'vfd-oc') { s.accelS = 0.5; s.currentLimit = 3; }
       if (id === 'vfd-ov') { s.decelS = 2; s.brakeResistor = false; s.stopMode = 'ramp'; }
       if (id === 'vfd-sto') s.stoClosed = false;
       if (id === 'vfd-ol') { s.drag = 0.9; s.heat = 0.85; }
@@ -299,9 +299,9 @@ export function createVfdScene(): PlantScene<VfdState> {
       const v = (on: boolean) => ({ value: on ? 24 : 0, unit: 'VDC' as const });
       return [
         { id: 'psu', label: '24 VDC supply (+ to −)', read: () => ({ value: 24, unit: 'VDC' }) },
-        { id: 'line', label: 'Drive input L1-L2 (480 V, energized work)', read: () => ({ value: 480, unit: 'VAC' }) },
+        { id: 'line', label: 'Drive input L1-L2 (energized work)', read: () => ({ value: 480, unit: 'VAC' }) },
         { id: 'bus', label: 'Drive DC bus DC+ to DC− (energized work)', read: () => ({ value: Math.round(s.bus), unit: 'VDC' }) },
-        { id: 'motor', label: 'Drive output T1-T2', read: () => ({ value: Math.round((460 * s.hz) / 60), unit: 'VAC' }) },
+        { id: 'motor', label: 'Drive output T1-T2 (meter in VFD / low-pass mode)', read: () => ({ value: Math.round((460 * s.hz) / 60), unit: 'VAC' }) },
         { id: 'ao0', label: 'PLC analog output AO0', read: () => ({ value: Number((4 + 0.16 * clamp(io.AO[0], 0, 100)).toFixed(2)), unit: 'mA' }) },
         { id: 'refin', label: 'Drive reference input', read: () => ({ value: Number(refMa.toFixed(2)), unit: 'mA' }) },
         { id: 'stoin', label: 'Drive STO input terminals', read: () => v(s.stoClosed) },
@@ -329,14 +329,14 @@ export function createVfdScene(): PlantScene<VfdState> {
         { kind: 'text', label: 'Drive keypad', value: (s) => (s.fault ? `FAULT: ${s.fault}` : !s.stoClosed ? 'STO — safe torque off' : s.running ? `${s.hz.toFixed(1)} Hz · ${s.amps.toFixed(1)} A` : 'READY · 0.0 Hz') },
         { kind: 'gauge', label: 'Output frequency', unit: 'Hz', max: 60, value: (s) => s.hz },
         { kind: 'gauge', label: 'Motor current', unit: 'A', max: MOTOR_FLA * 2.2, value: (s) => s.amps, warn: MOTOR_FLA * 1.15 },
-        { kind: 'gauge', label: 'DC bus', unit: 'V', max: 850, value: (s) => s.bus, warn: BUS_CHOPPER, digits: 0 },
+        { kind: 'gauge', label: 'DC bus', unit: 'V', max: 880, value: (s) => s.bus, warn: BUS_CHOPPER, digits: 0 },
         { kind: 'gauge', label: 'Fan speed', unit: 'rpm', max: 1800, value: (s) => Math.abs(s.rpm), digits: 0 },
         { kind: 'gauge', label: 'Motor overload', unit: '%', max: 100, value: (s) => s.heat * 100, warn: 80, digits: 0 },
       ],
       trend: [
         { label: 'Hz × 1.67', color: 'var(--blue-glow)', value: (s) => s.hz * (100 / 60) },
         { label: 'Amps % of 2× FLA', color: 'var(--warn)', value: (s) => (s.amps / (MOTOR_FLA * 2)) * 100 },
-        { label: 'DC bus (600–850 V)', color: 'var(--alarm)', value: (s) => ((s.bus - 600) / 250) * 100 },
+        { label: 'DC bus (640–880 V)', color: 'var(--alarm)', value: (s) => ((s.bus - 640) / 240) * 100 },
       ],
       trendMax: 100,
       settingsTitle: 'Drive parameters (generic names)',

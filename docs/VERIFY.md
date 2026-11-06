@@ -61,7 +61,7 @@ All in `src/content/hardware.ts` and `src/content/brands.ts`. The 3D shapes are 
 - Rockwell HMI product names (PanelView / Optix); Schneider HMI names; Emerson SCADA product ownership; AutomationDirect EtherNet/IP per model.
 
 ## Added 0.5.0
-- Motor model constants are illustrative (10 HP / 460 V / 14 A FLA / 1770 rpm, J = 0.22 kg·m², NEMA B–like curve, Class 10 thermal with τ heat 134 s / cool 28 s, reset below 80 %). Not a specific motor or relay; real overload reset rules vary by device.
+- Motor model constants are illustrative (10 HP / 460 V / 14 A FLA / 1770 rpm, J = 0.22 kg·m², NEMA B–like curve, Class 10 thermal with τ heat 134 s / cool 150 s (cooling slower than heating since 0.7.0), reset below 80 %). Not a specific motor or relay; real overload reset rules vary by device.
 - Drive details: parameter naming per Yaskawa/ABB/Danfoss model, Yaskawa fault code examples, DriveWizard Mobile, ABB/Danfoss built-in BACnet, Danfoss multiple set-ups, PowerFlex 4/40 and MICROMASTER lifecycle, Eaton and Delta software names, Altivar web server.
 - HMI software names (FactoryTalk View ME vs Optix on PanelView Plus 7; Harmony tool names).
 - Safety relays: Pilz terminal names and reset configuration per model; Guardmaster rotary function switch and configuration software.
@@ -89,6 +89,6 @@ All in `src/content/hardware.ts` and `src/content/brands.ts`. The 3D shapes are 
 - `analog-alarming`: limits on alarm delays for regulatory (e.g. filter turbidity) alarms per plant permit.
 
 ## Added 0.7.0 (Phase 2 — machines)
-- `vfd` machine: all drive numbers are illustrative generic values, not a product — DC bus nominal 650 V, OV trip 810 V, chopper 760 V, bus capacitance 4.7 mF, overcurrent trip 2× FLA, current limit 150 %, losses 600 W, min 6 Hz. Fault names (OC, OV, LOSS OF REF, MOTOR OL, STO status) differ by brand. Whether STO shows as a status or a fault, and the loss-of-reference action (fault vs preset speed), are drive parameters.
+- `vfd` machine: all drive numbers are illustrative generic values, not a product — DC bus nominal 680 V (√2 × 480), OV trip 840 V, chopper 790 V, bus capacitance 4.7 mF, overcurrent trip 2× FLA, current limit 150 %, losses 600 W, min 6 Hz. Fault names (OC, OV, LOSS OF REF, MOTOR OL, STO status) differ by brand. Whether STO shows as a status or a fault, and the loss-of-reference action (fault vs preset speed), are drive parameters.
 - `datacenter` machine: generator start-to-ready time (10 s), utility-loss delay (2 s), retransfer delay (30 s here; real sites commonly use minutes), cooldown (20 s here; often ~5 min), ATS transfer time, coil UA and room heat capacity are illustrative and shortened for the simulator. 27 °C high-temperature alarm follows the commonly cited top of the recommended inlet range — site limits vary.
 - `tank`, `pumps`, `conveyor`, `fwdrev`: dimensions, flows, timers and set levels are illustrative teaching values.

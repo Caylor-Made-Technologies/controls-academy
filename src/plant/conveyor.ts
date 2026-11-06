@@ -1,7 +1,7 @@
 /**
  * Machine — Flour-mill bag conveyor with two photo-eyes, bag counting and jam detection.
  *
- *   DI0 Start (NO)  DI1 Stop (NC)  DI2 Overload 95-96 (NC)  DI3 PE1 entry eye (ON = beam blocked)
+ *   DI0 Start (NO)  DI1 Stop (NC)  DI2 Overload aux (NC)  DI3 PE1 entry eye (ON = beam blocked)
  *   DI4 PE2 exit eye (ON = beam blocked)  DI5 Reset (NO)
  *   DO0 Conveyor contactor  DO1 Running light  DO2 Jam light  DO3 Pallet-full light
  * Belt 6 m long; 0.5 m/s at full motor speed; bags 0.4 m long fed every 3 s. PE1 at 1.0 m, PE2 at 5.5 m.
@@ -73,7 +73,7 @@ export function conveyorProgram() {
 export const CONVEYOR_DEVICES: FieldDevice[] = [
   { id: 'start', label: 'Start', kind: 'pb-no', io: { kind: 'DI', point: 0 }, color: 'green', wiring: 'Normally-open pushbutton to input I0.' },
   { id: 'stop', label: 'Stop', kind: 'pb-nc', io: { kind: 'DI', point: 1 }, color: 'red', wiring: 'Normally-closed pushbutton to input I1.' },
-  { id: 'ol', label: 'Overload', kind: 'contact', io: { kind: 'DI', point: 2 }, wiring: 'Overload 95-96 (NC) in series with the coil and to input I2. The dial sets the trip current.' },
+  { id: 'ol', label: 'Overload', kind: 'contact', io: { kind: 'DI', point: 2 }, wiring: 'Overload relay: 95-96 (NC) in series with the 120 VAC coil; a separate NC auxiliary contact feeds input I2. The dial sets the trip current.' },
   { id: 'pe1', label: 'PE1 entry', kind: 'sensor', io: { kind: 'DI', point: 3 }, wiring: 'Retroreflective photo-eye (PNP, dark-operate: output ON when the beam is blocked) to input I3. Brown +24 V, blue 0 V, black signal.' },
   { id: 'pe2', label: 'PE2 exit', kind: 'sensor', io: { kind: 'DI', point: 4 }, wiring: 'Same type as PE1, at the discharge end, to input I4.' },
   { id: 'reset', label: 'Reset', kind: 'pb-no', io: { kind: 'DI', point: 5 }, color: 'white', wiring: 'Reset pushbutton to input I5: clears the jam alarm and the bag count.' },
@@ -91,20 +91,20 @@ export const CONVEYOR_FAULTS: FaultDef[] = [
     readings: 'Input I3 terminal: 24 VDC with the belt empty. Eye supply (brown–blue): 24 VDC.',
     fix: 'Clean the lens and reflector, check alignment, consider an air knife or a dust hood, then test with a bag.',
     safety: 'Stop the conveyor and lock it out before reaching over the belt to clean an eye.' },
-  { id: 'cv-pe2-aligned', title: 'Exit photo-eye knocked out of line', difficulty: 2, evidence: ['i4', 'pe2sup'], culprit: 'pe2',
+  { id: 'cv-pe2-wire', title: 'Exit photo-eye signal wire open', difficulty: 2, culprit: 'pe2', evidence: ['i4', 'pe2out'],
     complaint: 'Bags are going out but the pallet counter never moves.',
-    cause: 'PE2 was knocked out of alignment, so its beam misses the reflector and it never sees a bag.',
-    howToFind: 'Watch input I4 while bags pass: it never turns on. The counter rung is fine — it just never gets an edge.',
-    readings: 'Input I4 terminal: 0 V as bags pass. Eye supply: 24 VDC.',
-    fix: 'Re-align the eye and reflector (use the eye\'s stability LED), tighten the bracket, test with a bag.',
-    safety: 'Align eyes with the conveyor stopped where possible; if it must run, stay clear of nip points and pinch rollers.' },
+    cause: 'The PE2 signal (black) wire is broken at the eye\'s quick-disconnect cable. The eye still sees every bag — its own LED blinks — but the signal never reaches input I4.',
+    howToFind: 'Watch input I4 while bags pass: it never turns on, yet the eye\'s LED blinks. Measure the black wire at the eye (toggles 24 V) and at the input terminal (stays 0 V): the break is between.',
+    readings: 'PE2 black wire at the eye: 24 VDC each time a bag passes. Input I4 terminal: 0 VDC always. Eye supply: 24 VDC.',
+    fix: 'Lock out, replace the damaged cord set (or repair the conductor), route it away from moving parts, test with a bag.',
+    safety: 'Stop and lock out the conveyor before working at the eye: discharge ends have nip points. Flour dust: clean up before opening junction boxes and keep ignition sources away.' },
   { id: 'cv-jam', title: 'Bag wedged at the transfer', difficulty: 1, evidence: ['i4'], culprit: 'jam',
     complaint: 'Jam light. Bags are piling up at the end of the belt.',
     cause: 'A torn bag wedged at the transfer plate. The exit eye stayed blocked for 3 s and the jam logic stopped the belt — doing its job.',
     howToFind: 'PE2 (I4) is ON and staying on; the PE2 timer is done. Go look at the discharge end.',
     readings: 'Input I4 terminal: 24 VDC continuously. Motor current was normal until the stop.',
     fix: 'Lock out, clear the bag and spilled product, check the transfer plate gap, reset and restart.',
-    safety: 'Lock out before clearing a jam — a jammed belt can lurch when it frees. Flour dust in the air: clean up, don\'t blow it around.' },
+    safety: 'Lock out before clearing a jam — a jammed belt can lurch when it frees. Flour dust is combustible: clean up with approved methods (no compressed-air blowing) and keep ignition sources away.' },
   { id: 'cv-ol', title: 'Overload dial set too low', difficulty: 3, evidence: ['amps'], culprit: 'ol',
     complaint: 'The conveyor runs for a while, then stops by itself. Overload flag is showing. No jam.',
     cause: 'After a motor change, the overload dial was left at the old smaller motor\'s current, so normal running current slowly trips it.',
@@ -168,7 +168,7 @@ export function createConveyorScene(): PlantScene<ConveyorState> {
       s.bags = s.bags.filter((b) => b.x < BELT_M);
       s.delivered += before - s.bags.length;
       io.DI[3] = f === 'cv-pe1-dirty' ? true : blocks(s.bags, PE1_AT);
-      io.DI[4] = f === 'cv-pe2-aligned' ? false : blocks(s.bags, PE2_AT);
+      io.DI[4] = f === 'cv-pe2-wire' ? false : blocks(s.bags, PE2_AT);
     },
     meterPoints(io) {
       const s = scene.state;
@@ -178,8 +178,9 @@ export function createConveyorScene(): PlantScene<ConveyorState> {
         { id: 'pe1sup', label: 'PE1 supply (brown to blue)', read: () => v(true) },
         { id: 'i3', label: 'Input I3 (PE1 signal)', read: () => v(io.DI[3]) },
         { id: 'pe2sup', label: 'PE2 supply (brown to blue)', read: () => v(true) },
+        { id: 'pe2out', label: 'PE2 black (signal) wire at the eye', read: () => v(blocks(s.bags, PE2_AT)) },
         { id: 'i4', label: 'Input I4 (PE2 signal)', read: () => v(io.DI[4]) },
-        { id: 'i2', label: 'Input I2 (OL 96)', read: () => v(io.DI[2]) },
+        { id: 'i2', label: 'Input I2 (overload aux)', read: () => v(io.DI[2]) },
         { id: 'o0', label: 'Output O0 (contactor)', read: () => ({ value: io.DO[0] ? 120 : 0, unit: 'VAC' }) },
         { id: 'amps', label: 'Clamp meter on T1 (motor current)', read: () => ({ value: Number(s.motor.amps.toFixed(1)), unit: 'A' }) },
       ];

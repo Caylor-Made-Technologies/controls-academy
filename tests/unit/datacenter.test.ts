@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { GEN_READY_S, HEAT_CAP, createDatacenterScene } from '../../src/plant/datacenter';
+import { ATS_MOVE_S, GEN_READY_S, HEAT_CAP, createDatacenterScene } from '../../src/plant/datacenter';
 import { harness } from './machine-harness';
 
 const rig = () => harness(createDatacenterScene());
@@ -24,7 +24,7 @@ describe('data center ATS + CRAH', () => {
     h.tick(60000, () => { t += 10; if (tStart < 0 && h.io.DO[0]) tStart = t; if (tXfer < 0 && h.io.DI[3]) tXfer = t; peak = Math.max(peak, h.s.temp); });
     expect(tStart / 1000).toBeCloseTo(2, 0);
     expect(tXfer / 1000).toBeGreaterThan(2 + GEN_READY_S);
-    expect(tXfer / 1000).toBeLessThan(2 + GEN_READY_S + 1.5);
+    expect(tXfer / 1000).toBeLessThan(2 + GEN_READY_S + ATS_MOVE_S + 0.5);
     expect(peak).toBeGreaterThan(20.5);
     expect(peak).toBeLessThan(27);
     expect(h.io.DI[4]).toBe(true);
@@ -42,6 +42,16 @@ describe('data center ATS + CRAH', () => {
     expect(h.io.DO[0]).toBe(true); // cooling down
     h.tick(25000);
     expect(h.io.DO[0]).toBe(false);
+  });
+
+  it('generator fails while carrying load and utility is back → retransfer at once (no 30 s wait)', () => {
+    const h = rig();
+    h.s.utility = false; h.tick(25000);
+    expect(h.io.DI[3]).toBe(true);
+    h.s.utility = true; h.tick(1000);
+    h.scene.setFault('dc-gen'); // generator drops out
+    h.tick(4000);
+    expect(h.io.DI[2]).toBe(true);
   });
 
   it('fault dc-gen: no transfer, fail alarm after 15 s, room heats', () => {

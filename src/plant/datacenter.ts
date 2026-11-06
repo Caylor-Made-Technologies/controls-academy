@@ -11,13 +11,16 @@
  *   DO3 Generator / ATS fail alarm  DO4 High temperature alarm  DO5 CRAH fan run
  *   AO0 Chilled-water valve, 0–100 % open
  * IT load rides through on its UPS (not modeled); the CRAH is on the mechanical bus, so it stops in an outage.
+ * At most sites the ATS controller itself senses, starts the engine and transfers; the PLC/BMS mostly monitors.
+ * The ladder here does the sequencing so you can see the logic — it's illustrative, not a site design.
  */
 import { program } from '../engine/text';
 import { clamp, lag, mA, momentary } from './kit';
 import type { FaultDef, FieldDevice, PlantScene } from './types';
 
 export const GEN_READY_S = 10; // start to rated voltage/frequency (illustrative)
-export const ATS_MOVE_S = 0.5;
+/** Delayed (open) transition: the switch pauses in a center-off position so motor residual voltage decays. */
+export const ATS_MOVE_S = 2;
 export const UA = 20; // kW per K across the cooling coil at 100 % valve
 export const T_CHW = 10; // °C chilled water supply
 export const HEAT_CAP = 600; // kJ/K, air + equipment thermal mass (illustrative)
@@ -31,6 +34,8 @@ export interface DcState {
   ats: 'N' | 'E' | 'moving-N' | 'moving-E';
   atsTimer: number;
   fanSpin: number; // 0–1
+  /** Chilled-water availability 0–1: chillers take minutes to restart after the bus comes back. */
+  chw: number;
   valve: number; // %
   temp: number; // °C supply air
 }
@@ -57,7 +62,7 @@ export function dcProgram() {
       { name: 'Util_Stable', type: 'TIMER', initial: 30000, description: 'Retransfer delay: utility must be steady 30 s (real sites use minutes)' },
       { name: 'Cooldown', type: 'TIMER', initial: 20000, description: 'Generator runs unloaded before stopping' },
       { name: 'Gen_FTS', type: 'TIMER', initial: 15000, description: 'Generator fail-to-start' },
-      { name: 'Xfer_Tmr', type: 'TIMER', initial: 3000, description: 'ATS fail-to-transfer' },
+      { name: 'Xfer_Tmr', type: 'TIMER', initial: 5000, description: 'ATS fail-to-transfer' },
       { name: 'Gen_Fail', type: 'BOOL' },
       { name: 'ATS_Fail', type: 'BOOL' },
       { name: 'SAT_C', type: 'REAL' },
@@ -72,16 +77,16 @@ export function dcProgram() {
       { text: '[XIC(Util_Lost.DN),XIC(Gen_Start)]XIO(Cooldown.DN)OTE(Gen_Start)', comment: 'Start the generator on utility loss; keep it running until cooldown is done.' },
       { text: 'XIC(Gen_Start)XIO(Gen_Ready)TON(Gen_FTS)' },
       { text: 'XIC(Gen_FTS.DN)OTL(Gen_Fail)' },
-      { text: 'XIO(Util_OK)XIC(Gen_Ready)XIO(ATS_Emerg)OTE(Xfer_Emerg)', comment: 'Transfer to the generator once it is ready (open transition).' },
-      { text: 'XIC(Util_Stable.DN)XIO(ATS_Normal)OTE(Xfer_Normal)', comment: 'Retransfer to utility after the stable delay.' },
-      { text: '[XIC(Xfer_Emerg),XIC(Xfer_Normal)]TON(Xfer_Tmr)', comment: 'A transfer that doesn\'t finish in 3 s = ATS failed.' },
+      { text: 'XIO(Util_OK)XIC(Gen_Ready)XIO(ATS_Emerg)OTE(Xfer_Emerg)', comment: 'Transfer to the generator once it is ready (delayed open transition: a center-off pause lets running motors\' residual voltage decay).' },
+      { text: '[XIC(Util_Stable.DN),XIC(Util_OK)XIC(ATS_Emerg)XIO(Gen_Ready)]XIO(ATS_Normal)OTE(Xfer_Normal)', comment: 'Retransfer after the stable delay — or at once if the generator fails while carrying the load and utility is back.' },
+      { text: '[XIC(Xfer_Emerg),XIC(Xfer_Normal)]TON(Xfer_Tmr)', comment: 'A transfer that doesn\'t finish in 5 s = ATS failed.' },
       { text: 'XIC(Xfer_Tmr.DN)OTL(ATS_Fail)' },
       { text: 'XIC(Reset_PB)OTU(Gen_Fail)' },
       { text: 'XIC(Reset_PB)OTU(ATS_Fail)' },
       { text: '[XIC(Gen_Fail),XIC(ATS_Fail)]OTE(Fail_Light)' },
       { text: 'OTE(Fan_Run)', comment: 'The CRAH fan is always called; it runs whenever its bus has power.' },
       { text: 'SCP(SAT_mA,4.0,20.0,0.0,40.0,SAT_C)' },
-      { text: '[LES(SAT_mA,3.6),GRT(SAT_mA,21.0)]OTE(SAT_Bad)', comment: 'Bad sensor → fail to full cooling (safer for IT than no cooling).' },
+      { text: '[LES(SAT_mA,3.6),GRT(SAT_mA,21.0)]OTE(SAT_Bad)', comment: 'Bad sensor → full cooling (safer for IT than no cooling); the valve itself also fails open.' },
       { text: 'OTE(CHW_PID.DIRECT)', comment: 'Direct acting: temperature above setpoint → open the valve more.' },
       { text: 'MOV(SAT_SP,CHW_PID.SP)' },
       { text: 'MOV(SAT_C,CHW_PID.PV)' },
@@ -109,7 +114,7 @@ export const DC_DEVICES: FieldDevice[] = [
   { id: 'faillt', label: 'Gen/ATS fail', kind: 'light', io: { kind: 'DO', point: 3 }, color: 'red', wiring: 'Alarm light (and a BMS alarm point) on output O3.' },
   { id: 'hitemp', label: 'High temp', kind: 'light', io: { kind: 'DO', point: 4 }, color: 'amber', wiring: 'Alarm light on output O4.' },
   { id: 'fan', label: 'CRAH fan', kind: 'coil', io: { kind: 'DO', point: 5 }, wiring: 'Output O5 to the CRAH fan starter (on the mechanical bus fed by the ATS).' },
-  { id: 'valve', label: 'CHW valve', kind: 'analog', io: { kind: 'AO', point: 0 }, wiring: 'Analog output 0 to the chilled-water valve actuator (4–20 mA, fails closed).' },
+  { id: 'valve', label: 'CHW valve', kind: 'analog', io: { kind: 'AO', point: 0 }, wiring: 'Analog output 0 to the chilled-water valve actuator (4–20 mA). It fails OPEN on loss of signal or power, so a control failure never removes cooling.' },
 ];
 
 export const DC_FAULTS: FaultDef[] = [
@@ -124,19 +129,19 @@ export const DC_FAULTS: FaultDef[] = [
     complaint: 'The generator started fine on the test, but the load never moved over. Fail alarm.',
     cause: 'The ATS motor operator failed: the PLC commands a transfer, but the switch never leaves Normal.',
     howToFind: 'Gen ready (I1) is ON and Transfer-to-Emergency (O1) is ON, but neither position switch changes. The fail-to-transfer timer latches the alarm.',
-    readings: 'Output O1: on. ATS position switches: Normal closed, Emergency open — no change.',
+    readings: 'Output O1: on. ATS position switches: Normal closed, Emergency open — no change. Generator side of the ATS: 480 VAC.',
     fix: 'With the ATS isolated, repair the operator (motor, limit switches, fuses) per the maker\'s manual; test transfer and retransfer under supervision.',
-    safety: 'An ATS has two live sources. Both must be isolated and locked out — and proven dead — before working inside. Follow the site\'s MOP.' },
+    safety: 'An ATS has two live sources. Put the generator controller in OFF and lock it out, disable its remote-start circuit (opening the utility source can signal the engine to start), isolate and lock out the utility, and prove both dead before working inside. Watch for backfeed on bypass-isolation units. Follow the site\'s MOP.' },
   { id: 'dc-valve', title: 'Chilled-water valve stuck closed', difficulty: 2, evidence: ['ao0'], culprit: 'valve',
-    complaint: 'Hot aisle complaint: CRAH supply air keeps climbing, though the fan runs.',
+    complaint: 'Cold-aisle (server inlet) temperatures are climbing: CRAH supply air keeps rising, though the fan runs.',
     cause: 'The valve actuator failed with the valve closed. The PID drives its output to 100 % but no chilled water flows.',
     howToFind: 'CV and the AO signal are at 100 % (20 mA), the fan is proven, but supply air rises. The control system is fine; the final element isn\'t.',
     readings: 'AO0 at the actuator: 20 mA. Valve position indicator: closed. Coil leaving-air temperature ≈ entering air.',
     fix: 'Repair or replace the actuator, stroke-test 0–100 %, return to auto. Meanwhile, bring up a standby CRAH.',
     safety: 'Raised-floor and CRAH work happens next to live IT: follow the site MOP and change window, and never isolate a unit without a standby running.' },
   { id: 'dc-sat', title: 'Supply-air sensor failed high', difficulty: 1, evidence: ['ai0'], culprit: 'sat',
-    complaint: 'Supply air is ice-cold and the chilled-water valve is wide open.',
-    cause: 'The supply-air transmitter failed (driving over 21 mA). The program treats it as a bad signal and fails to full cooling — safe for the IT, wasteful, and too cold.',
+    complaint: 'Supply air is well below setpoint and the chilled-water valve is wide open.',
+    cause: 'The supply-air transmitter failed (driving over 21 mA). The program treats it as a bad signal and fails to full cooling — safe for the IT, but wasteful, and overcooled air near the dew point can cause condensation.',
     howToFind: 'SAT_Bad is on and the AI reads above 21 mA. The valve is at 100 % by design. Check the transmitter and its wiring.',
     readings: 'AI0: about 22 mA (impossible for 0–40 °C). Real air temperature well below setpoint.',
     fix: 'Replace or recalibrate the transmitter and confirm a sane reading; the PID takes back over automatically.',
@@ -146,7 +151,7 @@ export const DC_FAULTS: FaultDef[] = [
 export function createDatacenterScene(): PlantScene<DcState> {
   let mo: ReturnType<typeof momentary<'resetPressed'>>;
   const init = (): DcState => {
-    const s = { utility: true, itLoad: 100, genTime: -1, genReady: false, ats: 'N', atsTimer: 0, fanSpin: 1, valve: 50, temp: 20 } as unknown as DcState;
+    const s = { utility: true, itLoad: 100, genTime: -1, genReady: false, ats: 'N', atsTimer: 0, fanSpin: 1, chw: 1, valve: 50, temp: 20 } as unknown as DcState;
     mo = momentary(s, ['resetPressed']);
     return s;
   };
@@ -184,8 +189,10 @@ export function createDatacenterScene(): PlantScene<DcState> {
       s.fanSpin = lag(s.fanSpin, busPowered && io.DO[5] ? 1 : 0, busPowered ? 3 : 6, dt);
       const cmd = f === 'dc-valve' ? 0 : clamp(io.AO[0], 0, 100);
       s.valve = lag(s.valve, cmd, 4, dt);
-      const chwOK = busPowered ? 1 : 0.3; // chilled-water pumps on the same bus; some thermal storage in the loop
-      const qCool = Math.max(0, (s.valve / 100) * UA * (s.temp - T_CHW) * s.fanSpin * chwOK);
+      // Chillers and pumps are on the same bus: with it down, only the cold water already in the loop helps;
+      // when it returns, chillers restart over minutes (time constant ~90 s here, illustrative).
+      s.chw = lag(s.chw, busPowered ? 1 : 0.3, busPowered ? 90 : 30, dt);
+      const qCool = Math.max(0, (s.valve / 100) * UA * (s.temp - T_CHW) * s.fanSpin * s.chw);
       s.temp += ((s.itLoad - qCool) / HEAT_CAP) * dt;
       s.temp = clamp(s.temp, 5, 50);
       // Inputs

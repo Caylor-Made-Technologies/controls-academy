@@ -181,7 +181,7 @@ describe('motor physics', () => {
     tick(9000);
     expect(s.olTripped).toBe(true);
     expect(scene.resetOverload!()).toBe(false);
-    tick(12000);
+    tick(60000); // a bimetal overload cools slower than it heats
     expect(scene.resetOverload!()).toBe(true);
     expect(s.olTripped).toBe(false);
   });
