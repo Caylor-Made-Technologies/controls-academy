@@ -40,6 +40,8 @@ export interface FaultDef {
   culprit: string;
   /** Points awarded / difficulty. */
   difficulty: 1 | 2 | 3;
+  /** Meter point ids whose reading proves this fault (Fault Hunt rewards measuring one before naming the culprit). */
+  evidence?: string[];
 }
 
 /** A meter reading the learner can take in Fault-Hunt mode. */

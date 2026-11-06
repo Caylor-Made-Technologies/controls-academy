@@ -151,6 +151,28 @@ const LESSON_IDS = ['z-electricity', 'z-ohms-power', 'z-ac-dc', 'z-series-parall
     await page.getByText(/STO/).first().waitFor();
     await page.getByRole('button', { name: 'A drive parameter is wrong' }).waitFor();
   });
+  await check('Fault Hunt: meter modes (ohms on a live point is unsafe), evidence, difficulty filter', async () => {
+    await go(page, 'troubleshoot');
+    const diff = page.getByRole('group', { name: 'Difficulty' });
+    await diff.getByRole('button', { name: 'Hard' }).click();
+    if (await page.getByText('"Nothing works. No lights, motor won\'t start."').count()) throw new Error('easy fault shown under Hard');
+    await diff.getByRole('button', { name: 'All' }).click();
+    await go(page, 'troubleshoot/coilopen');
+    await page.getByText('Work order').waitFor();
+    const meter = page.getByRole('region', { name: 'Multimeter' }).or(page.locator('section[aria-label=Multimeter]'));
+    await meter.getByRole('button', { name: 'V⎓' }).click();
+    await meter.locator('select').selectOption('psu');
+    await meter.getByRole('button', { name: 'Measure' }).click();
+    await meter.getByText('24 VDC').first().waitFor();
+    await meter.getByRole('button', { name: 'Ω / ))))' }).click();
+    await meter.locator('select').selectOption('o0');
+    await meter.getByRole('button', { name: 'Measure' }).click();
+    await page.getByRole('alert').getByText(/Ohms\/continuity on a live circuit/).waitFor();
+    await page.getByRole('alert').getByRole('button', { name: 'OK' }).click();
+    await meter.getByRole('button', { name: 'V~' }).click();
+    await meter.locator('select').selectOption('coil');
+    await meter.getByRole('button', { name: 'Measure' }).click();
+  });
   await check('Skill map: map and list views, every lesson listed, finished lessons marked', async () => {
     await go(page, 'skills');
     await page.locator('.skill-map svg').waitFor();

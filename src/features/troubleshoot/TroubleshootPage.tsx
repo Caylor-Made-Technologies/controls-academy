@@ -10,8 +10,8 @@ import { buzz, sfx } from '../../lib/sound';
 import { useProgress } from '../../state/progress';
 import type { SimRuntime } from '../simulator/runtime';
 import { Workbench } from '../simulator/Workbench';
+import { MODE_LABEL, huntScore, meterResult, type MeterMode, type Penalty } from './scoring';
 
-interface Penalty { why: string; pts: number }
 
 function fmtTime(ms: number) {
   const s = Math.floor(ms / 1000);
@@ -24,6 +24,8 @@ const FAULTS: HuntFault[] = allFaults();
 export default function TroubleshootPage({ huntId }: { huntId?: string }) {
   const hunts = useProgress((s) => s.hunts);
   const fault = huntId ? FAULTS.find((f) => f.id === huntId) ?? null : null;
+  const [level, setLevel] = useState<0 | 1 | 2 | 3>(0);
+  const shown = FAULTS.filter((f) => !level || f.difficulty === level);
   const [round, setRound] = useState(0);
 
   // Each hunt has its own URL, so the Back button and the Troubleshoot tab return to the list.
@@ -33,8 +35,8 @@ export default function TroubleshootPage({ huntId }: { huntId?: string }) {
     navigate(`troubleshoot/${f.id}`);
   };
   const surprise = () => {
-    const unsolved = FAULTS.filter((f) => !hunts[f.id] && f.id !== huntId);
-    const pool = unsolved.length ? unsolved : FAULTS.filter((f) => f.id !== huntId);
+    const unsolved = shown.filter((f) => !hunts[f.id] && f.id !== huntId);
+    const pool = unsolved.length ? unsolved : shown.filter((f) => f.id !== huntId);
     start(pool[Math.floor(Math.random() * pool.length)]);
   };
 
@@ -52,15 +54,22 @@ export default function TroubleshootPage({ huntId }: { huntId?: string }) {
         </div>
         <button type="button" className="btn btn-primary" onClick={surprise}><Icon name="bolt" size={18} /> Start a hunt</button>
       </div>
+      <div className="flex flex-wrap items-center gap-2 mb-4">
+        <span className="text-sm font-semibold text-heading">Difficulty</span>
+        <div className="seg" role="group" aria-label="Difficulty">
+          {([[0, 'All'], [1, 'Easy'], [2, 'Medium'], [3, 'Hard']] as const).map(([v, l]) => <button key={v} type="button" aria-pressed={level === v} onClick={() => setLevel(v)}>{l}</button>)}
+        </div>
+      </div>
       <div className="callout callout-tip text-sm mb-4">
         <strong className="text-heading">The method:</strong> talk to the operator → check the obvious → I/O LEDs → find the output in logic and work backward → half-split with your meter → fix, test, document. <a href={href('lesson/troubleshooting-method')}>Lesson</a>
       </div>
       {MACHINES.map((m) => {
-        const list = FAULTS.filter((f) => f.machine === m.id);
+        const list = shown.filter((f) => f.machine === m.id);
+        if (!list.length) return null;
         return (
           <section key={m.id} className="mb-5" aria-labelledby={`fh-${m.id}`}>
             <h2 id={`fh-${m.id}`} className="text-lg font-bold mb-1">{m.title}</h2>
-            <p className="text-sm text-muted mt-0 mb-2">{m.summary} · {list.filter((f) => hunts[f.id]).length}/{list.length} solved</p>
+            <p className="text-sm text-muted mt-0 mb-2">{m.summary} · {list.filter((f) => hunts[f.id]).length}/{list.length} solved{level ? ' at this level' : ''}</p>
             <div className="grid gap-2 sm:grid-cols-2">
               {list.map((f) => {
                 const h = hunts[f.id];
@@ -94,11 +103,13 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
   const [meterPoint, setMeterPoint] = useState('');
   const [reading, setReading] = useState<string | null>(null);
   const [proved, setProved] = useState(false);
+  const [mode, setMode] = useState<MeterMode>('VDC');
+  const [evidence, setEvidence] = useState(false);
   const [wrong, setWrong] = useState<string | null>(null);
   const machine = MACHINE_BY_ID.get(fault.machine)!;
   const initial = useMemo(() => createMachine(fault.machine).program(), [fault.machine]);
-  const penalize = useCallback((why: string, pts: number) => {
-    setPenalties((p) => [...p, { why, pts }]);
+  const penalize = useCallback((why: string, pts: number, unsafe = false) => {
+    setPenalties((p) => [...p, { why, pts, unsafe }]);
     setMoment(why);
     sfx.horn();
     buzz(40);
@@ -126,9 +137,7 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
     if (solved) return;
     if (id === fault.culprit) {
       const ms = performance.now() - t0;
-      const lost = penalties.reduce((a, p) => a + p.pts, 0);
-      const timeBonus = Math.max(0, 50 - Math.floor(ms / 6000));
-      const score = Math.max(10, 50 + timeBonus - lost);
+      const score = huntScore(ms, penalties, evidence, Boolean(fault.evidence?.length));
       setSolved({ ms, score });
       recordHunt(fault.id, ms, penalties.length === 0, 40 + Math.round(score / 5));
       sfx.tick();
@@ -147,9 +156,12 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
     if (!proved && meterPoint !== 'psu') {
       penalize('Prove your meter first: check it on a known live source (the 24 VDC supply) before trusting any reading. That\'s the first "live" in live-dead-live.', 5);
     }
-    if (meterPoint === 'psu') setProved(true);
+    if (meterPoint === 'psu' && mode === 'VDC') setProved(true);
     const r = p.read();
-    setReading(`${r.value.toFixed(r.value % 1 ? 1 : 0)} ${r.unit}`);
+    const res = meterResult(mode, r.unit, r.value);
+    setReading(res.display);
+    if (res.penalty) penalize(res.penalty.why, res.penalty.pts, res.penalty.unsafe);
+    else if (fault.evidence?.includes(meterPoint) && proved) setEvidence(true);
     buzz(6);
   };
 
@@ -185,12 +197,14 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
             <span className="chip chip-live">Score {solved.score}</span>
             <span className="chip">Time {fmtTime(solved.ms)}</span>
             <span className={`chip ${penalties.length ? 'chip-warn' : 'chip-live'}`}>{penalties.length ? `${penalties.length} unsafe / wasted move${penalties.length > 1 ? 's' : ''}` : 'Zero unsafe moves'}</span>
+            {evidence && <span className="chip chip-live">Proved with the meter</span>}
           </div>
           <p className="m-0"><strong className="text-heading">Cause:</strong> <Rich text={fault.cause} /></p>
           <p className="mt-2 mb-0"><strong className="text-heading">How a pro finds it:</strong> <Rich text={fault.howToFind} /></p>
           <p className="mt-2 mb-0"><strong className="text-heading">What the meter shows:</strong> <Rich text={fault.readings} /></p>
           <p className="mt-2 mb-0"><strong className="text-heading">The fix:</strong> <Rich text={fault.fix} /></p>
           <p className="mt-2 mb-0 flex gap-1.5"><Icon name="shield" size={16} className="flex-none mt-1 text-warn" /><span><strong className="text-heading">Safety first:</strong> <Rich text={fault.safety} /></span></p>
+          <p className="text-sm m-0 mt-2"><strong className="text-heading">Method:</strong> {evidence ? 'You proved it with the meter before naming it (+10).' : fault.evidence?.length ? 'You named it without measuring the proof point (−10). Measure first, then decide.' : 'This one is found in the settings/logic, not with the meter.'}</p>
           {penalties.length > 0 && <ul className="text-sm text-muted mt-2 mb-0 pl-5 list-disc">{penalties.map((p, i) => <li key={i}>−{p.pts}: {p.why}</li>)}</ul>}
           <p className="text-sm text-muted mt-2 mb-0">Then: fix, test, document — and remove any forces.</p>
           <div className="flex gap-2 mt-3 flex-wrap">
@@ -208,6 +222,12 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
           <div className="rounded-xl px-4 py-2 font-mono text-2xl tabular-nums min-w-[9rem] text-center" style={{ background: '#0c1a12', color: '#7dffbe', boxShadow: 'inset 0 0 0 2px #1f3a2b' }} role="status" aria-live="polite" aria-label={`Meter reading ${reading ?? 'none'}`}>
             {reading ?? '----'}
           </div>
+          <div className="w-full">
+            <span className="text-sm font-semibold text-heading">Meter mode</span>
+            <div className="seg mt-1 flex-wrap" role="group" aria-label="Meter mode">
+              {(Object.keys(MODE_LABEL) as MeterMode[]).map((m) => <button key={m} type="button" aria-pressed={mode === m} onClick={() => { setMode(m); setReading(null); }}>{MODE_LABEL[m]}</button>)}
+            </div>
+          </div>
           <label className="flex-1 min-w-[12rem]">
             <span className="text-sm font-semibold text-heading flex items-center gap-1.5"><Icon name="meter" size={16} /> Meter — put your leads on</span>
             <select className="input mt-1" value={meterPoint} onChange={(e) => { setMeterPoint(e.target.value); setReading(null); }}>
@@ -217,7 +237,7 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
           </label>
           <button type="button" className="btn btn-primary" disabled={!meterPoint} onClick={measure}>Measure</button>
         </div>
-        <p className="text-xs text-muted mb-0 mt-2">{proved ? 'Meter proved on a known source. Prove it again before you call anything dead.' : 'Tip: prove the meter on the 24 VDC supply first (live-dead-live). Readings are to 0 V / neutral unless the point says "across".'} Training sim: on real gear, measuring live needs the right PPE, a CAT-rated meter, and authorization.</p>
+        <p className="text-xs text-muted mb-0 mt-2">{proved ? 'Meter proved on a known source. Prove it again before you call anything dead.' : 'Tip: set the mode, then prove the meter on the 24 VDC supply first (live-dead-live). Readings are to 0 V / neutral unless the point says "across".'} Training sim: on real gear, measuring live needs the right PPE, a CAT-rated meter, and authorization.</p>
       </section>
 
       <Workbench initial={initial} machine={fault.machine} editable={false} onRuntime={onRuntime} onUnsafe={(w) => penalize(`${w}. Forcing can start equipment with someone in the machine. Find the cause with your meter and the logic instead — forcing is a last resort with authorization and everyone clear.`, 20)} onDevicePick={pick} devicePickLabel="This is the problem" />

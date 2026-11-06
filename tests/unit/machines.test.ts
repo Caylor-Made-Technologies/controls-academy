@@ -37,3 +37,17 @@ describe('every machine follows the machine interface', () => {
     });
   }
 });
+
+describe('fault hunt evidence', () => {
+  it('every evidence point exists on its machine', () => {
+    for (const m of MACHINES) {
+      const scene = m.create();
+      const ids = new Set(scene.meterPoints({ DI: [], DO: [], AI: [], AO: [] }).map((p) => p.id));
+      for (const f of scene.faults) for (const e of f.evidence ?? []) expect(ids.has(e), `${f.id} → ${e}`).toBe(true);
+    }
+  });
+  it('most faults can be proved with the meter', () => {
+    const all = allFaults();
+    expect(all.filter((f) => f.evidence?.length).length).toBeGreaterThanOrEqual(30);
+  });
+});
