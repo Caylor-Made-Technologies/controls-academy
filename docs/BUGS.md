@@ -6,12 +6,17 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 
 | ID | Severity | Found | Status |
 |---|---|---|---|
+| B-007 | High | Phase 2 (unit test) | Fixed before release |
 | B-006 | High | Phase 1 (exam screenshot) | Fixed in 0.6.0 |
 | B-005 | Medium | Phase 0 flake → Phase 1 | Fixed in 0.6.0 |
 | B-004 | High | Phase 0 | Fixed in 0.5.1 |
 | B-003 | High | Phase 0 | Fixed in 0.5.1 |
 | B-002 | Low | Phase 0 (Lighthouse) | Fixed in 0.5.1 |
 | B-001 | Medium | Phase 0 (Lighthouse) | Scheduled: Phase 3.1 / 6.1 |
+
+## B-007 — New lift-station program short-cycled pumps on the backup float (caught before release)
+- **Found by:** the frozen-transmitter test. With the float as the only control, both pumps chattered on/off every second at 4.2 m until their overloads tripped from repeated inrush — then the well flooded.
+- **Fix:** the float has its natural tether deadband (4.2 m on, 4.0 m off) and the program holds both pumps on 60 s after it drops (TOF). **Test:** `tests/unit/pumps.test.ts` → no overload trips, no flooding with the transmitter frozen.
 
 ## B-006 — The right answer was almost always "B"
 - **Steps:** take any quiz or exam and always pick the second choice.
