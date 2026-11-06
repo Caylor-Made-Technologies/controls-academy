@@ -69,15 +69,15 @@ export interface Lesson {
   task?: SimTask;
   quiz: Question[];
   /** Quality bar 1: one line, "Why this matters on the job". */
-  why?: string;
+  why: string;
   /** Quality bar 8: lesson ids that should come first. Empty array = starts from zero. */
-  prereqs?: string[];
+  prereqs: string[];
   /** Quality bar 4: a flour mill, data center or water plant example. */
-  realWorld?: RealWorld;
+  realWorld: RealWorld;
   /** Quality bar 5: common mistakes (2–4). */
-  mistakes?: string[];
+  mistakes: string[];
   /** Quality bar 6: safety note where energized work is involved. */
-  safety?: SafetyNote;
+  safety: SafetyNote;
 }
 
 export interface Track {

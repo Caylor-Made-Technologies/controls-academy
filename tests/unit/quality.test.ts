@@ -3,33 +3,15 @@ import { COURSE_ORDER, LESSONS, TRACKS } from '../../src/content';
 import { qualityFailures } from '../../src/content/quality';
 import { stableShuffle } from '../../src/features/learn/Drills';
 
-/**
- * Lessons not yet upgraded to the 8-item quality bar (Phase 1.3 works through these track by track).
- * This list may only SHRINK: the test fails if a listed lesson already passes, so remove it when you upgrade it.
- * When it is empty, the quality fields become required in `Lesson` (types.ts).
- */
-export const NOT_YET_UPGRADED = new Set<string>([
-                    'capstone-build', 'capstone-mixer',
-  'pid-tuning', 'analog-alarming', 'structured-text', 'reusable-logic', 'network-troubleshooting', 'commissioning', 'safety-systems', 'change-management',
-]);
-
 const ids = new Set(LESSONS.map((l) => l.id));
 
 describe('lesson quality bar (8 items)', () => {
+  // Every lesson must meet the bar. The fields are required by the Lesson type; this checks their content.
   for (const l of LESSONS) {
-    if (NOT_YET_UPGRADED.has(l.id)) continue;
     it(`${l.id} meets all 8`, () => {
       expect(qualityFailures(l, ids, COURSE_ORDER)).toEqual({});
     });
   }
-
-  it('the not-yet-upgraded list only shrinks (no lesson on it already passes, no unknown ids)', () => {
-    for (const id of NOT_YET_UPGRADED) {
-      const l = LESSONS.find((x) => x.id === id);
-      expect(l, `unknown lesson ${id}`).toBeTruthy();
-      expect(Object.keys(qualityFailures(l!, ids, COURSE_ORDER)).length, `${id} passes now — remove it from NOT_YET_UPGRADED`).toBeGreaterThan(0);
-    }
-  });
 });
 
 describe('course order', () => {
