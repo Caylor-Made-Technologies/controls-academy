@@ -90,3 +90,5 @@ All in `src/content/hardware.ts` and `src/content/brands.ts`. The 3D shapes are 
 
 ## Added 0.7.0 (Phase 2 — machines)
 - `vfd` machine: all drive numbers are illustrative generic values, not a product — DC bus nominal 650 V, OV trip 810 V, chopper 760 V, bus capacitance 4.7 mF, overcurrent trip 2× FLA, current limit 150 %, losses 600 W, min 6 Hz. Fault names (OC, OV, LOSS OF REF, MOTOR OL, STO status) differ by brand. Whether STO shows as a status or a fault, and the loss-of-reference action (fault vs preset speed), are drive parameters.
+- `datacenter` machine: generator start-to-ready time (10 s), utility-loss delay (2 s), retransfer delay (30 s here; real sites commonly use minutes), cooldown (20 s here; often ~5 min), ATS transfer time, coil UA and room heat capacity are illustrative and shortened for the simulator. 27 °C high-temperature alarm follows the commonly cited top of the recommended inlet range — site limits vary.
+- `tank`, `pumps`, `conveyor`, `fwdrev`: dimensions, flows, timers and set levels are illustrative teaching values.
