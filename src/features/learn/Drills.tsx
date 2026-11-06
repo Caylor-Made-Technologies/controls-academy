@@ -1,18 +1,10 @@
 import { useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
+import { stableShuffle } from '../../lib/shuffle';
 import { buzz } from '../../lib/sound';
 
-/** Stable shuffle (same order every visit, never the answer order) so drills don't jump around. */
-export function stableShuffle<T>(items: T[], seed: string): T[] {
-  let h = 2166136261;
-  for (const c of seed) h = Math.imul(h ^ c.charCodeAt(0), 16777619);
-  const rand = () => { h = Math.imul(h ^ (h >>> 15), 2246822507); h = Math.imul(h ^ (h >>> 13), 3266489909); return ((h ^= h >>> 16) >>> 0) / 4294967296; };
-  const idx = items.map((_, i) => i);
-  for (let i = idx.length - 1; i > 0; i--) { const j = Math.floor(rand() * (i + 1)); [idx[i], idx[j]] = [idx[j], idx[i]]; }
-  if (idx.length > 1 && idx.every((v, i) => v === i)) idx.push(idx.shift()!);
-  return idx.map((i) => items[i]);
-}
+export { stableShuffle };
 
 /** Tap the steps in order. A wrong tap is explained, not punished. */
 export function OrderDrill({ prompt, steps, why }: { prompt: string; steps: string[]; why?: string }) {
