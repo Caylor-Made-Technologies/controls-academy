@@ -39,6 +39,8 @@ export interface Question {
   choices: string[];
   answer: number;
   why: string;
+  /** 1 easy · 2 medium · 3 hard. Defaults to the lesson's level (see content/bank.ts). */
+  difficulty?: 1 | 2 | 3;
 }
 
 /** What the sim task checks for. Implemented in features/learn/tasks.ts. */

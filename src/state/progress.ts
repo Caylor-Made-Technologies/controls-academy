@@ -23,6 +23,14 @@ export interface HuntRecord {
   at: string;
 }
 
+export interface ExamRecord {
+  /** Best score and the latest attempt (questions right / total). */
+  best: number;
+  last: number;
+  total: number;
+  at: string;
+}
+
 export interface ProgressData {
   version: 1;
   xp: number;
@@ -35,10 +43,12 @@ export interface ProgressData {
   stepped: boolean;
   perfectQuizzes: number;
   lastRoute: string;
+  /** Practice exam and readiness results (practice records, not qualifications). */
+  exams: Record<string, ExamRecord>;
 }
 
 export const EMPTY: ProgressData = {
-  version: 1, xp: 0, lessons: {}, review: {}, hunts: {}, days: [], skinsSeen: [], stepped: false, perfectQuizzes: 0, lastRoute: '',
+  version: 1, xp: 0, lessons: {}, review: {}, hunts: {}, days: [], skinsSeen: [], stepped: false, perfectQuizzes: 0, lastRoute: '', exams: {},
 };
 
 const BOX_DAYS = [1, 2, 4, 7, 14];
@@ -128,6 +138,8 @@ interface ProgressStore extends ProgressData {
   completeTask(id: string): number;
   reviewAnswer(qid: string, correct: boolean): void;
   recordHunt(faultId: string, ms: number, safe: boolean, points: number): void;
+  /** Save an exam sitting; missed questions are scheduled for review. Returns XP gained. */
+  recordExam(examId: string, right: number, total: number, missed: string[]): number;
   sawSkin(s: SkinId): void;
   markStepped(): void;
   setLastRoute(r: string): void;
@@ -139,8 +151,24 @@ interface ProgressStore extends ProgressData {
 const saver = debouncedSaver<ProgressData>('progress', 150);
 
 function pick(s: ProgressStore): ProgressData {
-  const { version, xp, lessons, review, hunts, days, skinsSeen, stepped, perfectQuizzes, lastRoute } = s;
-  return { version, xp, lessons, review, hunts, days, skinsSeen, stepped, perfectQuizzes, lastRoute };
+  const { version, xp, lessons, review, hunts, days, skinsSeen, stepped, perfectQuizzes, lastRoute, exams } = s;
+  return { version, xp, lessons, review, hunts, days, skinsSeen, stepped, perfectQuizzes, lastRoute, exams };
+}
+
+const EXAM_IDS = new Set(['beginner', 'intermediate', 'advanced', 'expert', 'readiness']);
+
+function cleanExams(o: Record<string, unknown> | null): Record<string, ExamRecord> {
+  const out: Record<string, ExamRecord> = {};
+  if (!o) return out;
+  for (const [k, v] of Object.entries(o)) {
+    if (!EXAM_IDS.has(k) || !v || typeof v !== 'object') continue;
+    const r = v as Record<string, unknown>;
+    const total = Math.max(0, Math.min(200, Math.floor(Number(r.total) || 0)));
+    if (!total) continue;
+    const clamp = (x: unknown) => Math.max(0, Math.min(total, Math.floor(Number(x) || 0)));
+    out[k] = { best: clamp(r.best), last: clamp(r.last), total, at: String(r.at ?? '').slice(0, 30) };
+  }
+  return out;
 }
 
 /** Validate untrusted imported data (a file someone picked). */
@@ -183,6 +211,7 @@ export function validateProgress(d: unknown): ProgressData | null {
     stepped: o.stepped === true,
     perfectQuizzes: Math.max(0, Number(o.perfectQuizzes) || 0),
     lastRoute: '',
+    exams: cleanExams(obj(o.exams)),
   };
 }
 
@@ -243,6 +272,18 @@ export const useProgress = create<ProgressStore>((set, get) => {
         xp: get().xp + points,
         hunts: { ...get().hunts, [faultId]: { bestMs: prev ? Math.min(prev.bestMs, ms) : ms, safe: safe || Boolean(prev?.safe), at: new Date().toISOString() } },
       });
+    },
+    recordExam(examId, right, total, missed) {
+      const prev = get().exams[examId];
+      const review = { ...get().review };
+      for (const q of missed) if (!review[q]) review[q] = { box: 0, due: addDays(today(), 1) };
+      const gain = !prev ? 50 : right > prev.best ? 25 : 0;
+      commit({
+        xp: get().xp + gain,
+        review,
+        exams: { ...get().exams, [examId]: { best: Math.max(right, prev?.best ?? 0), last: right, total, at: new Date().toISOString() } },
+      });
+      return gain;
     },
     sawSkin(s) {
       if (get().skinsSeen.includes(s)) return;

@@ -118,6 +118,21 @@ const LESSON_IDS = ['z-electricity', 'z-ohms-power', 'z-ac-dc', 'z-series-parall
     await go(page, 'learn');
     await page.getByText(`${LESSON_IDS.length}/${LESSON_IDS.length} lessons`).waitFor();
   });
+  await check('Exams: a full sitting, results by topic with explanations, practice-record label, best score saved', async () => {
+    await go(page, 'exam/intermediate');
+    await page.getByRole('button', { name: 'Start' }).click();
+    for (let i = 0; i < 12; i++) {
+      await page.locator('[role=radiogroup] [role=radio]').first().click();
+      const next = page.getByRole('button', { name: /^Next/ });
+      if (await next.count()) await next.click(); else await page.getByRole('button', { name: /^Finish/ }).click();
+    }
+    await page.getByRole('heading', { name: /% · \d+ of 12/ }).waitFor();
+    await page.getByText('By topic').waitFor();
+    await page.getByText('Every question, explained').waitFor();
+    if (!(await page.getByText(/Practice record — not a qualification or license/).count())) throw new Error('missing practice-record label');
+    await go(page, 'exam');
+    await page.getByText(/Best \d+ %/).first().waitFor();
+  });
   await check('Skill map: map and list views, every lesson listed, finished lessons marked', async () => {
     await go(page, 'skills');
     await page.locator('.skill-map svg').waitFor();

@@ -6,10 +6,22 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 
 | ID | Severity | Found | Status |
 |---|---|---|---|
+| B-006 | High | Phase 1 (exam screenshot) | Fixed in 0.6.0 |
+| B-005 | Medium | Phase 0 flake → Phase 1 | Fixed in 0.6.0 |
 | B-004 | High | Phase 0 | Fixed in 0.5.1 |
 | B-003 | High | Phase 0 | Fixed in 0.5.1 |
 | B-002 | Low | Phase 0 (Lighthouse) | Fixed in 0.5.1 |
 | B-001 | Medium | Phase 0 (Lighthouse) | Scheduled: Phase 3.1 / 6.1 |
+
+## B-006 — The right answer was almost always "B"
+- **Steps:** take any quiz or exam and always pick the second choice.
+- **Expected:** a normal score. **Actual:** 161 of 192 correct answers were in position B; a practice exam scored 100 % by picking B every time.
+- **Fix:** choices are shown in a stable shuffled order per question (same order every visit). **Test:** `tests/unit/bank.test.ts` → displayed answer positions stay between 15 % and 40 % each.
+
+## B-005 — A quick tap on Start/Stop could be missed
+- **Steps:** on a slow or busy device, tap Stop quickly while the motor runs. Seen as the intermittent e2e failure "Sim: motor starts, seals in, stops" (Phase 0 "flake").
+- **Cause:** inputs are sampled when the simulation steps; if the page stalled longer than the tap, press and release both happened between steps and no scan saw it.
+- **Fix:** momentary buttons are held for at least 60 ms of simulated time after a press (pulse stretching), so every tap reaches the PLC. **Test:** `tests/unit/motor.test.ts` → "a tap that starts and ends between two sim steps is still seen".
 
 ## B-004 — "Up next" never recommends Track 11
 - **Steps:** finish every lesson in Tracks 1–10 (any goal). Learn home.
@@ -36,4 +48,4 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 ## Not bugs (checked)
 - Sweep showed many simulator buttons "not clickable" with a 0.6 s timeout: the page is busy with software 3D in headless Chromium. With a 2 s timeout every button clicks; `features.mjs` covers them.
 - "GPU stall due to ReadPixels" console lines come from headless SwiftShader during screenshots, not the app.
-- One every-feature run (right after the 3D gate) reported 103/104; the failing check didn't reproduce in 3 straight reruns (104/104). Watching for it; if it recurs, the failing check's name goes here.
+- The intermittent every-feature failure from Phase 0 turned out to be a real bug: B-005.

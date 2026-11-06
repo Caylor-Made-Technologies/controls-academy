@@ -16,6 +16,7 @@ const CommandPalette = lazy(() => import('./features/CommandPalette').then((m) =
 const LessonPage = lazy(() => import('./features/learn/LessonPage'));
 const ReviewPage = lazy(() => import('./features/learn/ReviewPage'));
 const SkillMapPage = lazy(() => import('./features/learn/SkillMapPage'));
+const ExamPage = lazy(() => import('./features/learn/ExamPage'));
 const SimulatorPage = lazy(() => import('./features/simulator/SimulatorPage'));
 const TroubleshootPage = lazy(() => import('./features/troubleshoot/TroubleshootPage'));
 const ReferencePage = lazy(() => import('./features/reference/ReferencePage'));
@@ -49,6 +50,7 @@ function Page({ route }: { route: string[] }) {
     case 'lesson': return <LessonPage id={b ?? ''} />;
     case 'review': return <ReviewPage />;
     case 'skills': return <SkillMapPage />;
+    case 'exam': return <ExamPage id={b} />;
     case 'sim': return <SimulatorPage />;
     case 'troubleshoot': return <TroubleshootPage huntId={b} />;
     case 'reference': return <ReferencePage section={b} item={route[2]} />;

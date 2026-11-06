@@ -41,3 +41,15 @@ describe('progress helpers', () => {
     expect(dueReviews(v, '2026-11-04')).toEqual([]);
   });
 });
+
+describe('exam records', () => {
+  it('imports clean exam records and drops junk', () => {
+    const d = validateProgress({ ...EMPTY, exams: { readiness: { best: 30, last: 999, total: 36, at: '2026-11-06' }, hacker: { best: 1, total: 1 }, beginner: { best: 5, total: 0 } } });
+    expect(d?.exams).toEqual({ readiness: { best: 30, last: 36, total: 36, at: '2026-11-06' } });
+  });
+  it('old saves without exams still load', () => {
+    const { exams: _ignored, ...old } = EMPTY;
+    void _ignored;
+    expect(validateProgress(old)?.exams).toEqual({});
+  });
+});

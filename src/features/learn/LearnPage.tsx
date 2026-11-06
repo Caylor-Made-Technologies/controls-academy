@@ -92,6 +92,11 @@ export default function LearnPage() {
             <p className="text-sm text-muted m-0 mt-1">Spaced repetition: the ones you missed come back until they stick.</p>
           </a>
         )}
+        <a href={href('exam')} className="card card-link card-pad">
+          <p className="eyebrow m-0">Test yourself</p>
+          <h2 className="text-lg font-bold mt-1">Practice exams</h2>
+          <p className="text-sm text-muted m-0 mt-1">One per level, plus the Controls Technician Readiness check. New questions every time.</p>
+        </a>
         <a href={href('troubleshoot')} className="card card-link card-pad">
           <p className="eyebrow m-0">Practice</p>
           <h2 className="text-lg font-bold mt-1">Fault Hunt</h2>
