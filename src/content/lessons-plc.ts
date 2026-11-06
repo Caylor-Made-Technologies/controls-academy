@@ -29,7 +29,7 @@ export const PLC_LESSONS: Lesson[] = [
         '**CPU** (processor) — holds and runs the program. Has a mode switch and status lights (RUN, FAULT, FORCE…).',
         '**Input cards** — turn 24 VDC or 120 VAC field signals into bits. Each point has an LED.',
         '**Output cards** — turn bits into voltage to coils, lights and valves.',
-        '**Analog cards** — read/write 4–20 mA or 0–10 V.',
+        '**Analog cards** — read/write [[four-twenty|4–20 mA]] or 0–10 V.',
         '**Comms** — Ethernet to the [[hmi|HMI]] (operator screen), drives and other PLCs. **Remote I/O** puts cards out near the machine, connected by a network cable.',
       ] },
       { t: 'h', text: 'The scan' },
@@ -95,7 +95,7 @@ export const PLC_LESSONS: Lesson[] = [
     realWorld: { site: 'water', text: 'A water plant\'s clearwell level transmitter is ranged 0–20 ft. The operator says the level is wrong. The transmitter\'s display shows 16.0 mA: (16 − 4) ÷ 16 × 20 = 15 ft — exactly what the PLC shows. The PLC side checks out; next, compare the transmitter with a local reading (sight glass or staff gauge) before blaming the level.' },
     mistakes: [
       'Assuming 0 mA means empty. Empty is 4 mA; 0 mA is a broken loop or dead transmitter.',
-      'Breaking into a live loop without warning. The PLC will see 0 mA — that can trip alarms, interlocks or send PID loops to their fail action. Tell the operator and put the loop in manual (or get the approved bypass) first; a loop-current clamp avoids breaking it at all.',
+      'Breaking into a live loop without warning. The PLC will see 0 mA — that can trip alarms, interlocks or send [[pid|PID]] loops to their fail action. Tell the operator and put the loop in manual (or get the approved bypass) first; a loop-current clamp avoids breaking it at all.',
       'Clipping a meter across terminals on the mA setting. Across the PLC input it steals the signal (PLC reads ~0); across the transmitter it can over-range the card or blow the meter fuse.',
       'Scaling with the wrong raw range for the card (for example 0–32767 instead of the card\'s real 4–20 mA counts).',
     ],
@@ -164,13 +164,13 @@ export const PLC_LESSONS: Lesson[] = [
     summary: 'The three instructions behind most ladder logic — and the NC stop-button trap.',
     why: 'XIC, XIO and OTE are most of every ladder program. Reading them right — especially on NC buttons — is day-one troubleshooting.',
     prereqs: ['what-is-a-plc', 'three-wire'],
-    realWorld: { site: 'mill', text: 'A new conveyor at a flour mill "won\'t start" after commissioning. Online, the Stop rung shows XIO(Stop_PB) — and the NC Stop input is ON, so the rung is false. Stop is wired NC so a broken wire stops the conveyor (fail-safe), so the logic must use XIC. With approval and the operators told, a one-instruction online edit fixes it.' },
+    realWorld: { site: 'mill', text: 'A new conveyor at a flour mill "won\'t start" after commissioning. Online, the Stop rung shows XIO(Stop_PB) — and the NC Stop input is ON, so the rung is false. Stop is wired NC so a broken wire stops the conveyor (fail-safe), so the logic must use XIC. With approval and the operators told, a one-instruction [[online-edit|online edit]] fixes it.' },
     mistakes: [
       'Choosing XIO for a Stop button because it\'s a "stop". Pick by the bit\'s state when you want power to flow.',
       'Thinking XIC/XIO are the physical contacts. They examine bits in memory — the field device can be NO or NC.',
       'Expecting OTE to hold its bit after the rung goes false. OTE writes 0 every scan the rung is false.',
     ],
-    safety: { note: 'Changing logic on a running machine can start or stop equipment. Get approval, tell the operators, and know what each output does before you edit or download.' },
+    safety: { note: 'Changing logic on a running machine can start or stop equipment. Get approval, tell the operators, and know what each output does before you edit or [[download|download]].' },
     blocks: [
       { t: 'p', text: '[[xic|XIC]] asks "is this bit ON?" [[xio|XIO]] asks "is this bit OFF?" [[ote|OTE]] writes the answer to an output. That\'s it — they examine bits in memory, they are **not** the physical contacts.' },
       { t: 'rung', text: 'XIC(Start_PB)XIO(Jam)OTE(Motor_Run)', tags: [io.start, { name: 'Jam', type: 'BOOL' }, io.run], caption: 'Motor runs while Start is ON and Jam is OFF.' },

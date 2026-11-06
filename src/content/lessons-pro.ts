@@ -264,7 +264,7 @@ export const PRO_LESSONS: Lesson[] = [
       { t: 'sort', prompt: 'HMI or hardwired?', bins: ['Fine on the HMI', 'Must be hardwired / safety-rated'], items: [
         { text: 'Changing a tank level setpoint', bin: 0, why: 'Setpoints are normal HMI functions (with security).' },
         { text: 'Emergency stop', bin: 1, why: 'E-stops must not depend on a screen or network.' },
-        { text: 'Showing a trend of pump amps', bin: 0, why: 'Trends are information.' },
+        { text: 'Showing a [[trend|trend]] of pump amps', bin: 0, why: 'Trends are information.' },
         { text: 'Stopping a machine when its guard door opens', bin: 1, why: 'Guarding is a safety function.' },
       ] },
     ],

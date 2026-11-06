@@ -18,7 +18,7 @@ export const CORE2_LESSONS: Lesson[] = [
     summary: 'How close you can get to exposed live parts, and what you must wear.',
     why: 'The label on the panel door tells you how close you can get and what to wear. Misreading it is how burns happen.',
     prereqs: ['lototo', 'z-tools-ppe'],
-    realWorld: { site: 'water', text: 'At a lift station, every bucket of the 480 V motor control center has its own arc-flash label. A pump starter bucket might say PPE category 2; the main breaker section can show far more energy. Same voltage, different hazard — the tech dresses for the label in front of them.' },
+    realWorld: { site: 'water', text: 'At a lift station, every bucket of the 480 V motor control center has its own arc-flash label. A pump starter bucket might say [[ppe-category|PPE category]] 2; the main breaker section can show far more energy. Same voltage, different hazard — the tech dresses for the label in front of them.' },
     mistakes: [
       'Wearing the same PPE for every 480 V panel. The arc-flash label decides, not the voltage.',
       'Wearing synthetic clothing under arc-rated gear — it can melt onto skin.',
@@ -110,7 +110,7 @@ export const CORE2_LESSONS: Lesson[] = [
       { t: 'list', items: [
         'The **panel layout** is drawn to scale or dimensioned: back plate, DIN rails (metal mounting rails), wire duct, every device with its tag (CR3, FU12, TB1).',
         'The **terminal plan** lists each terminal block: number, [[wire-number|wire number]], where it goes inside, where it goes in the field.',
-        '**[[io|I/O]] pages** show each card point: address, tag, description, field device, wire numbers.',
+        '**[[io|I/O]] pages** show each card point: [[address|address]], tag, description, field device, wire numbers.',
         'Device tags often include the drawing page and line: `CR3` coil on page 12 line 7 might be written 12-7 or 1207. // VERIFY drafting standard',
       ] },
       { t: 'p', text: 'In the 3D panel, the terminal strip shows wire numbers L1–L3, T1–T3, 1–8, +24 and 0V — the same numbers you\'d trace on the print.' },
@@ -148,7 +148,7 @@ export const CORE2_LESSONS: Lesson[] = [
       { t: 'list', ordered: true, items: [
         '**The motor won\'t start.** Which devices are in series with coil M? Answer: Stop (NC), Start (NO) or the M [[seal-in]], and the [[overload|OL]] contact.',
         '**Where would you measure to see if Stop is open?** Across the Stop contact. Full voltage across it = open — if the rest of the rung is intact. Two opens in series (say Stop and OL) read about 0 V across each, so also check from X2.',
-        '**The run light never comes on, but the motor runs.** Line 3: the M aux contact or the lamp. Measure across the lamp: voltage present = bad lamp (or its socket or LED module).',
+        '**The run light never comes on, but the motor runs.** Line 3: the M [[aux|aux]] contact or the lamp. Measure across the lamp: voltage present = bad lamp (or its socket or LED module).',
         '**Which line numbers use M\'s contacts?** Lines 1 (seal-in) and 3 (run light) — that\'s the "3, 1" cross-reference under the coil.',
       ] },
       { t: 'callout', tone: 'tip', title: 'Voltage across an open contact', text: 'In a series circuit, the open device "drops" the whole supply voltage. Closed contacts read ~0 V across them. That\'s how you find the open spot with one probe moving.' },
@@ -288,7 +288,7 @@ export const CORE2_LESSONS: Lesson[] = [
     realWorld: { site: 'water', text: 'A water plant\'s clearwell high-level alarm is GEQ(Level, 18.5) — in feet. A short delay timer keeps it from chattering on ripples. The pump that fills the clearwell starts at 12 ft and stops at 18 ft — separate start and stop levels with a seal-in, so it doesn\'t short-cycle.' },
     mistakes: [
       'Integer division differs by brand: Logix DIV truncates 7 ÷ 2 to 3, SLC DIV rounds to 4. Use REALs when you need the decimal.',
-      'Alarming on a single compare with no deadband or delay — the alarm chatters on and off as the value wobbles.',
+      'Alarming on a single compare with no [[deadband|deadband]] or delay — the alarm chatters on and off as the value wobbles.',
       'Putting ADD on a rung that stays true — it runs every scan. Pulse it with a one-shot or timer.',
       'Comparing REALs with EQU. Use a range (LIM, GEQ/LEQ).',
     ],
@@ -382,7 +382,7 @@ export const CORE2_LESSONS: Lesson[] = [
         'A **0 = idle** and **900+ = fault** convention makes HMIs easy.',
         'Show the step number on the HMI. Operators and techs instantly know where it\'s stuck.',
       ] },
-      { t: 'callout', tone: 'brand', title: 'Other ways to write it', text: 'IEC has Sequential Function Charts (SFC); Siemens has GRAPH; Logix has SFC routines. A CASE statement in Structured Text is the text version of the same idea.' },
+      { t: 'callout', tone: 'brand', title: 'Other ways to write it', text: 'IEC has Sequential Function Charts (SFC); Siemens has GRAPH; Logix has SFC routines. A CASE statement in [[structured-text|Structured Text]] is the text version of the same idea.' },
       { t: 'order', prompt: 'Put the mixer\'s states in order.', steps: [
         'Step 0: idle, waiting for Start',
         'Step 10: fill valve open until high level',

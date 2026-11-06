@@ -169,7 +169,7 @@ export const FOUNDATION_LESSONS: Lesson[] = [
     summary: 'Rails, rungs, wire numbers and cross-references — the map of every panel.',
     why: 'Prints turn a two-hour hunt into a ten-minute check — if you can read them.',
     prereqs: ['z-symbols', 'relays-contactors'],
-    realWorld: { site: 'mill', text: 'A flour mill\'s bag packer stops. Under relay CR5 on the print, the cross-reference lists lines 12 and 31. Line 31 is the bag-present photo-eye (a light-beam sensor) interlock — and that\'s where the tech finds a dusty, blocked lens.' },
+    realWorld: { site: 'mill', text: 'A flour mill\'s bag packer stops. Under relay CR5 on the print, the cross-reference lists lines 12 and 31. Line 31 is the bag-present photo-eye (a light-beam sensor) [[interlock|interlock]] — and that\'s where the tech finds a dusty, blocked lens.' },
     mistakes: [
       'Trusting an old print over the panel. Panels get modified; when they disagree, trust your meter, then mark up the print so the next tech knows.',
       'Mixing up line numbers (down the left margin) with wire numbers (on the wires).',
@@ -201,7 +201,7 @@ export const FOUNDATION_LESSONS: Lesson[] = [
     summary: 'The most important circuit in industrial control. Build it, run it, break it.',
     why: 'Three-wire start/stop is in almost every machine you\'ll work on. Understand it and half of motor control makes sense.',
     prereqs: ['print-drills', 'relays-contactors'],
-    realWorld: { site: 'water', text: 'A raw-water pump at a water plant runs on 3-wire control. After a utility outage it stays off until an operator restarts it on purpose — instead of every pump slamming back on at once and hammering the pipeline. (Workers on the equipment are protected by lockout, not by this.)' },
+    realWorld: { site: 'water', text: 'A raw-water pump at a water plant runs on [[three-wire|3-wire control]]. After a utility outage it stays off until an operator restarts it on purpose — instead of every pump slamming back on at once and hammering the pipeline. (Workers on the equipment are protected by lockout, not by this.)' },
     mistakes: [
       'Wiring the seal-in in series with Start, so the motor runs only while you hold the button.',
       'Swapping in a maintained (stay-put) switch without an engineering review, so a machine that should stay off restarts by itself when power returns.',
@@ -215,10 +215,10 @@ export const FOUNDATION_LESSONS: Lesson[] = [
       { t: 'figure', fig: 'hardwired-3wire' },
       { t: 'h', text: 'Why "3-wire"?' },
       { t: 'p', text: 'Three wires run out to the pushbutton station. The big win: after a power failure, the seal-in drops out, so the motor does **not** restart by itself when power returns. That\'s called low-voltage protection. (A very short blink may not drop the contactor.) Compare [[two-wire]] — low-voltage *release* — where a switch that\'s still closed restarts the motor.' },
-      { t: 'p', text: 'In a PLC we program the same thing: the output bit seals in around the Start contact.' },
+      { t: 'p', text: 'In a PLC we program the same thing: the output [[bit|bit]] seals in around the Start contact.' },
       { t: 'rung', text: '[XIC(Start_PB),XIC(Motor_Run)]XIC(Stop_PB)OTE(Motor_Run)', tags: [
         { name: 'Start_PB', type: 'BOOL', io: { kind: 'DI', point: 0 } }, { name: 'Stop_PB', type: 'BOOL', io: { kind: 'DI', point: 1 } }, { name: 'Motor_Run', type: 'BOOL', io: { kind: 'DO', point: 0 } },
-      ], caption: 'The PLC version. Notice Stop is an XIC — more on that in Track 5.' },
+      ], caption: 'The PLC version. Notice which instruction Stop uses — more on that in Track 5.' },
     ],
     task: {
       goal: 'Start the motor, let go of Start, and confirm it keeps running on its seal-in.',
@@ -263,7 +263,7 @@ export const FOUNDATION_LESSONS: Lesson[] = [
     quiz: [
       { id: 'q1', q: 'Why is an E-stop wired to the coil circuit directly?', choices: ['It\'s cheaper', 'So it works even if the PLC is faulted or buggy', 'The PLC can\'t read red buttons', 'To save an input'], answer: 1, why: 'Hardware safety doesn\'t depend on software being right.' },
       { id: 'q2', q: 'What can happen if the PLC doesn\'t also see the E-stop?', choices: ['Nothing', 'The seal-in bit stays on and the motor restarts when the E-stop is released', 'The E-stop won\'t latch', 'The overload trips'], answer: 1, why: 'The logic still thinks it should run. Releasing the E-stop restores coil power — unexpected restart.' },
-      { id: 'q3', q: 'A machine "keeps tripping" its safety circuit. Correct move?', choices: ['Jumper it out until the end of shift', 'Force the safety input on', 'Find and fix the cause; get authorization for any safety work', 'Add a delay timer in logic'], answer: 2, why: 'Never bypass safety. Find the root cause with proper authorization.' },
+      { id: 'q3', q: 'A machine "keeps tripping" its safety circuit. Correct move?', choices: ['Jumper it out until the end of shift', '[[force|Force]] the safety input on', 'Find and fix the cause; get authorization for any safety work', 'Add a delay timer in logic'], answer: 2, why: 'Never bypass safety. Find the root cause with proper authorization.' },
     ],
   },
 ];
