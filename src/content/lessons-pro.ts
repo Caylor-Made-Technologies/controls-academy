@@ -17,10 +17,10 @@ export const PRO_LESSONS: Lesson[] = [
     realWorld: { site: 'datacenter', text: 'After a contractor\'s visit, a data center\'s chiller plant sequence behaves differently. Comparing today\'s upload against last month\'s backup shows no logic changes — but the chiller staging setpoint (data) was changed from 65 % to 85 % load.' },
     mistakes: [
       'Believing "the file on the share is current". Someone may have edited online and never saved — always compare against the controller before downloading.',
-      'Comparing logic only and missing changed data values like timer presets and setpoints.',
+      'Comparing logic only and missing changed data values like timer presets and setpoints. (Data compares also show live values — counters, accumulators — that change every second; look past that noise.)',
       'Keeping the only backup on one laptop.',
     ],
-    safety: { na: 'Comparing files is done offline on a laptop; it doesn\'t change the controller or touch equipment.' },
+    safety: { note: 'Uploading touches a live controller: read the go-online dialog carefully so Upload never becomes Download. A download also overwrites live data with the file\'s values.' },
     blocks: [
       { t: 'p', text: 'Before a change: **go online, upload, save a dated copy** (e.g. `Mixer_2026-11-05_before.ext`). After: save `…_after`. Now you can always answer "what did you change?"' },
       { t: 'list', items: [
@@ -31,7 +31,7 @@ export const PRO_LESSONS: Lesson[] = [
       ] },
       { t: 'sort', prompt: 'Logic change or data change?', bins: ['Logic', 'Data'], items: [
         { text: 'A new branch added to rung 12', bin: 0, why: 'Rungs and instructions are logic.' },
-        { text: 'A timer preset changed from 5000 to 3000', bin: 1, why: 'Presets are data values — a logic-only compare can miss them.' },
+        { text: 'A timer preset tag changed from 5000 to 3000', bin: 1, why: 'Values in tags are data — a logic-only compare can miss them. (A constant typed into an instruction is logic.)' },
         { text: 'A pump start setpoint changed from 12.0 to 14.0 ft', bin: 1, why: 'Setpoints are data.' },
       ] },
     ],
@@ -48,9 +48,9 @@ export const PRO_LESSONS: Lesson[] = [
     title: 'Controller faults and diagnostic buffers',
     minutes: 8,
     summary: 'When the CPU stops itself — read why before you reset.',
-    why: 'A faulted controller stops the whole machine. Reading the fault first tells you what broke and stops it happening again.',
+    why: 'A faulted controller stops running logic — and its outputs go to whatever fault state each module is set for. Reading the fault first tells you what broke.',
     prereqs: ['troubleshooting-method', 'data-types'],
-    realWorld: { site: 'water', text: 'A water plant\'s high-service pump PLC faults at 2 AM. The fault log points to a lost remote I/O rack at the pump building. The tech finds a tripped 24 VDC supply breaker there, fixes it, then clears the fault with the operators ready — the pumps restart on the operator\'s command.' },
+    realWorld: { site: 'water', text: 'A water plant\'s high-service pump PLC faults at 2 AM. The fault log points to a lost remote I/O rack at the pump building (that rack is configured to fault the controller). The tech finds a tripped 24 VDC supply breaker there, fixes it, then clears the fault with the operators ready — the pumps restart on the operator\'s command.' },
     mistakes: [
       'Clearing the fault before writing it down — the evidence is gone.',
       'Fixing the symptom (clear and run) and not the cause, so it faults again.',
@@ -58,23 +58,23 @@ export const PRO_LESSONS: Lesson[] = [
     ],
     safety: { note: 'Before clearing a fault or returning to RUN, make sure the machine is in a safe state and people are clear — outputs the logic calls for will turn on.' },
     blocks: [
-      { t: 'p', text: 'A **major fault** stops the controller (outputs go to their fault state, and the [[scan]] stops). A **minor fault** is logged but the program keeps running. Both have a type/code and often the routine and rung where it happened.' },
+      { t: 'p', text: 'A **major fault** stops the controller (the [[scan]] stops, and each output module goes to its configured fault state — off, hold last state, or a set value; a held output can keep a motor running). A **minor fault** is logged but the program keeps running. Both have a type/code and often the routine and rung where it happened.' },
       { t: 'table', head: ['Common cause', 'Example'], rows: [
         ['Array index out of range', 'Temps[Zone] with Zone = 12 on a 10-element array'],
-        ['Math problem', 'Divide by zero, overflow (often minor)'],
-        ['Missing routine / bad call', 'JSR to a routine that doesn\'t exist'],
-        ['I/O / communication', 'A required module or remote rack lost'],
+        ['Math problem', 'Divide by zero, overflow (minor on Logix; on SLC an overflow bit left set becomes a major fault at end of scan)'],
+        ['Bad call', 'JSR/SBR parameter mismatch, or (S7-300) a call to a missing block'],
+        ['I/O / communication', 'A module or remote rack lost — a major fault only if configured that way'],
         ['Watchdog', 'Scan took too long (endless loop)'],
       ] },
       { t: 'brands', rows: [
-        { skin: 'ab-logix', text: 'Controller Properties → Major/Minor Faults tab shows type, code, program, routine and rung. A fault routine can clear specific recoverable faults. // VERIFY' },
-        { skin: 'siemens-tia', text: 'Read the CPU diagnostic buffer first: newest event on top, with time and the block involved. Error-handling OBs and the CPU behavior differ between S7-300/400 and S7-1200/1500. // VERIFY' },
+        { skin: 'ab-logix', text: 'Controller Properties → Major/Minor Faults tab shows type, code, program, routine and rung. A fault routine can clear specific recoverable faults — but one that clears faults blindly hides real problems. After clearing a major fault the controller is in PROG; going back to RUN is a separate, deliberate step. // VERIFY' },
+        { skin: 'siemens-tia', text: 'Read the CPU diagnostic buffer first: newest event on top, with time and the block involved — and it keeps its history after the fault is cleared. Error-handling OBs and the CPU behavior differ between S7-300/400 and S7-1200/1500. // VERIFY' },
       ] },
       { t: 'list', ordered: true, items: ['Write down the fault (photo the screen).', 'Find the rung/block it points to.', 'Understand the cause (bad index? lost module?).', 'Fix the cause, then clear the fault and return to RUN — with operations aware outputs may start.'] },
       { t: 'callout', tone: 'safety', title: 'Clearing a fault can restart things', text: 'When the controller goes back to RUN, outputs that the logic calls for turn on. Make sure the machine is in a safe state and people are clear.' },
       { t: 'sort', prompt: 'Major or minor fault (typical behavior)?', bins: ['Major — controller stops', 'Minor — logged, keeps running'], items: [
         { text: 'Array index out of range (Logix)', bin: 0, why: 'On Logix this is a major fault; other platforms differ.' },
-        { text: 'A required remote I/O rack is lost', bin: 0, why: 'A module configured as required faults the controller when it\'s lost.' },
+        { text: 'A remote I/O rack set to "major fault on connection loss" drops off', bin: 0, why: 'Only because it was configured that way — by default most platforms log a module fault and keep running.' },
         { text: 'Math overflow in a calculation', bin: 1, why: 'Often only a minor fault — the program keeps running with a wrong value.' },
       ] },
     ],
