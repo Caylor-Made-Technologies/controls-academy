@@ -6,10 +6,10 @@ import { LESSON_BY_ID, TRACK_BY_ID } from '../../content';
 import { EXAMS, EXAM_BY_ID, bankFor, drawExam, scoreExam, type BankItem, type ExamDef, type ExamId } from '../../content/bank';
 import type { TrackId } from '../../content/types';
 import { href } from '../../lib/router';
+import { PRACTICE_RECORD } from '../../lib/practice';
 import { arrangeChoices } from '../../lib/shuffle';
 import { useProgress } from '../../state/progress';
 
-export const PRACTICE_RECORD = 'Practice record — not a qualification or license.';
 
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
 const mmss = (s: number) => `${Math.floor(s / 60)}:${String(Math.max(0, s) % 60).padStart(2, '0')}`;

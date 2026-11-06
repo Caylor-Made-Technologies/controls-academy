@@ -650,10 +650,15 @@ await check('Review: due questions appear, answer, finish', async () => {
   await go(page, 'learn');
   await page.getByText('2 questions to review').click();
   await page.getByText('Question 1 of 2').waitFor();
-  await page.locator('[role=radio]').first().click();
-  await page.getByRole('button', { name: 'Next question' }).click();
-  await page.locator('[role=radio]').first().click();
-  await page.getByRole('button', { name: 'Finish' }).click();
+  // Missed questions are asked once more at the end, so the session is 2–4 questions long.
+  for (let n = 0; n < 4; n++) {
+    await page.locator('[role=radio]').first().click();
+    const missed = (await page.getByText('Not quite.').count()) > 0;
+    const finish = page.getByRole('button', { name: 'Finish' });
+    if (await finish.count()) { if (!missed) { await finish.click(); break; } }
+    await page.getByRole('button', { name: /^(Next question|Finish)$/ }).click();
+    if (await page.getByText('Review done for today').count()) break;
+  }
   await page.getByText('Review done for today').waitFor();
   await ctx.close();
 });

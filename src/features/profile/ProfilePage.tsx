@@ -5,6 +5,7 @@ import { Icon } from '../../components/Icon';
 import { ProgressRing } from '../../components/ProgressRing';
 import { Sheet } from '../../components/Sheet';
 import { TRACKS } from '../../content/catalog';
+import { PRACTICE_RECORD } from '../../lib/practice';
 import { href } from '../../lib/router';
 import { sfx } from '../../lib/sound';
 import { skinsByMaker, type SkinId } from '../../skins';
@@ -15,6 +16,8 @@ import { saveCertificate } from './certificate';
 export default function ProfilePage() {
   const p = useProgress();
   const prefs = usePrefs();
+  const readiness = p.exams.readiness;
+  const readinessOk = Boolean(readiness && readiness.best / readiness.total >= 0.8);
   const reduce = useReducedMotion();
   const lv = level(p.xp);
   const bs = badges(p);
@@ -81,7 +84,14 @@ export default function ProfilePage() {
           );
         })}
       </div>
-      <p className="text-xs text-muted -mt-4 mb-6">Certificates are practice records, not a qualification, certification or site authorization.</p>
+      <div className="card p-3 flex items-center gap-3 min-w-0 mb-2">
+        <ProgressRing pct={readiness ? readiness.best / readiness.total : 0} size={44} stroke={5} live={readinessOk} label="Readiness">R</ProgressRing>
+        <div className="flex-1 min-w-0"><p className="m-0 font-semibold text-heading text-sm">Controls Technician Readiness</p><p className="m-0 text-xs text-muted">{readiness ? `Best ${Math.round((readiness.best / readiness.total) * 100)} %` : 'Not taken yet'} · 80 % unlocks it</p></div>
+        {readinessOk
+          ? <button type="button" className="btn btn-sm" onClick={() => saveCertificate({ kind: 'readiness', name: prefs.name, date: today(), pct: Math.round((readiness!.best / readiness!.total) * 100) })} aria-label="Save readiness practice record"><Icon name="download" size={16} /> Save</button>
+          : <a className="btn btn-sm" href={href('exam/readiness')}>Take it</a>}
+      </div>
+      <p className="text-sm font-semibold mb-6 flex items-start gap-1.5"><Icon name="shield" size={16} className="flex-none mt-0.5 text-warn" /> <span>{PRACTICE_RECORD} Certificates and readiness results record self-paced training.</span></p>
 
       <h2 className="text-lg font-bold mb-2">Settings</h2>
       <section className="card card-pad space-y-5 mb-6">

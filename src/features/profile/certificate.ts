@@ -1,5 +1,21 @@
-/** Draws a branded certificate of completion on a canvas and saves it as a PNG on the device. */
-export async function saveCertificate(opts: { name: string; track: string; trackN: number; date: string; lessons: number }) {
+import { PRACTICE_RECORD } from '../../lib/practice';
+
+export type CertificateOpts =
+  | { kind?: 'track'; name: string; track: string; trackN: number; date: string; lessons: number }
+  | { kind: 'readiness'; name: string; date: string; pct: number };
+
+/** What the certificate says, apart from the artwork. Pure so it can be unit-tested. */
+export function certificateText(opts: CertificateOpts) {
+  const who = opts.name.trim().slice(0, 40) || 'A Controls Academy learner';
+  if (opts.kind === 'readiness') {
+    return { title: 'Practice Record', who, line1: `scored ${opts.pct} % on the`, line2: 'Controls Technician Readiness practice assessment', label: PRACTICE_RECORD, file: 'controls-academy-readiness-practice-record.png' };
+  }
+  return { title: 'Certificate of Completion', who, line1: `completed all ${opts.lessons} lessons and checks in`, line2: `Track ${opts.trackN}: ${opts.track}`, label: PRACTICE_RECORD, file: `controls-academy-track-${opts.trackN}-certificate.png` };
+}
+
+/** Draws a branded certificate on a canvas and saves it as a PNG on the device. */
+export async function saveCertificate(opts: CertificateOpts) {
+  const text = certificateText(opts);
   const W = 1600;
   const H = 1100;
   const c = document.createElement('canvas');
@@ -57,26 +73,30 @@ export async function saveCertificate(opts: { name: string; track: string; track
   g.fillText('CONTROLS ACADEMY  ·  CAYLOR MADE TECHNOLOGIES', W / 2, 300);
   g.fillStyle = '#ffffff';
   g.font = '800 72px Montserrat, Inter, sans-serif';
-  g.fillText('Certificate of Completion', W / 2, 400);
+  g.fillText(text.title, W / 2, 400);
   g.fillStyle = '#c9d3e0';
   g.font = '400 32px Inter, sans-serif';
   g.fillText('This records that', W / 2, 480);
   g.fillStyle = grad;
   g.font = '800 84px Montserrat, Inter, sans-serif';
-  g.fillText(opts.name || 'A Controls Academy learner', W / 2, 580);
+  g.fillText(text.who, W / 2, 580);
   g.fillStyle = '#c9d3e0';
   g.font = '400 32px Inter, sans-serif';
-  g.fillText(`completed all ${opts.lessons} lessons and checks in`, W / 2, 660);
+  g.fillText(text.line1, W / 2, 660);
   g.fillStyle = '#ffffff';
   g.font = '700 48px Montserrat, Inter, sans-serif';
-  g.fillText(`Track ${opts.trackN}: ${opts.track}`, W / 2, 740);
+  g.fillText(text.line2, W / 2, 740);
   g.fillStyle = '#3ddc97';
   g.font = '600 30px Inter, sans-serif';
   g.fillText(opts.date, W / 2, 810);
 
+  // The practice-record label is part of the certificate, not small print.
+  g.fillStyle = '#ffb547';
+  g.font = '700 30px Inter, sans-serif';
+  g.fillText(text.label.toUpperCase(), W / 2, 905);
   g.fillStyle = '#9aa7b8';
   g.font = '400 22px Inter, sans-serif';
-  g.fillText('A self-paced practice record. Not a qualification, certification, license or site authorization.', W / 2, 930);
+  g.fillText('Self-paced training. Not a certification or site authorization. Follow your employer\'s procedures.', W / 2, 945);
   g.fillStyle = '#6ea6ff';
   g.font = '700 24px Montserrat, Inter, sans-serif';
   g.fillText('Advanced Engineering. Built Different.', W / 2, 980);
@@ -86,7 +106,7 @@ export async function saveCertificate(opts: { name: string; track: string; track
       if (blob) {
         const a = document.createElement('a');
         a.href = URL.createObjectURL(blob);
-        a.download = `controls-academy-track-${opts.trackN}-certificate.png`;
+        a.download = text.file;
         a.click();
         setTimeout(() => URL.revokeObjectURL(a.href), 2000);
       }
