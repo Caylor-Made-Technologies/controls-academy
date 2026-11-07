@@ -24,8 +24,8 @@ const rows = [];
 for (const [route, name] of VIEWS) {
   await p.goto(BASE + '#/' + route);
   await p.waitForSelector('canvas', { timeout: 30000 });
-  await p.waitForTimeout(2500);
-  // Force one fresh frame on every stage and read its counters.
+  await p.waitForFunction(() => { const s = window.__ca3d.stats(); return s.live > 0 && s.stages.every((x) => x.frames > 0 && x.calls > 0); }, null, { timeout: 30000 });
+  await p.waitForTimeout(1500);
   const s = await p.evaluate(() => window.__ca3d.stats());
   const worst = s.stages.reduce((a, x) => ({ calls: Math.max(a.calls, x.calls), triangles: Math.max(a.triangles, x.triangles) }), { calls: 0, triangles: 0 });
   rows.push([name, worst.calls, worst.triangles]);

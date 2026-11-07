@@ -73,7 +73,7 @@ for (let i = 0; i < 20; i++) {
   await p.getByRole('button', { name: '3D panel' }).click();
   await p.waitForSelector('section[aria-label="3D control panel"] canvas');
   await p.waitForFunction(() => window.__ca3d.stats().live === 1);
-  if (i === 0) { await p.waitForTimeout(1500); fresh = (await stats()).stages[0]; }
+  if (i === 2) { await p.waitForTimeout(1500); fresh = (await stats()).stages[0]; } // steady state
 }
 await p.waitForTimeout(1500); // R3F releases the old contexts shortly after unmount
 const last = await stats();
@@ -133,6 +133,8 @@ for (let i = 0; i < 20; i++) {
   await p.waitForFunction(() => window.__ca3d.stats().live === 1);
 }
 await p.goto(base + '#/learn');
+// the old page finishes its exit animation before it unmounts
+await p.waitForFunction(() => window.__ca3d.stats().live === 0, null, { timeout: 10000 }).catch(() => {});
 await p.waitForTimeout(1500);
 const m1 = await stats();
 ok(m1.live === 0 && (await p.evaluate(() => window.__gl)) === 0, `machine scenes: 20 switches, nothing left live (stages ${m1.live})`);
@@ -157,6 +159,7 @@ for (let i = 0; i < 20; i++) {
   await p.waitForFunction((n) => window.__ca3d.stats().live === n, withProbes, { timeout: 30000 });
 }
 await p.goto(base + '#/learn');
+await p.waitForFunction(() => window.__ca3d.stats().live === 0, null, { timeout: 10000 }).catch(() => {});
 await p.waitForTimeout(1500);
 const w1 = await stats();
 ok(w1.live === 0 && (await p.evaluate(() => window.__gl)) === 0 && w1.opened === w1.closed, `wiring board + 3D meter: 20 cycles each, nothing left live (${w1.opened} opened, ${w1.closed} closed)`);

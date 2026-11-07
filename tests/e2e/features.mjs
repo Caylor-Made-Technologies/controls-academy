@@ -546,7 +546,7 @@ const HUNTS = [
       for (const v of ['psu', 'i0', 'i1', 'coil', 'o0']) {
         await sel.selectOption(v);
         await page.getByRole('button', { name: 'Measure' }).click();
-        expect(/\d/.test(await page.getByRole('status', { name: /Meter reading/ }).textContent()), 'meter shows a number');
+        expect(/\d/.test(await page.getByText(/^Meter reads /).textContent()), 'meter shows a number');
       }
       await solve(page);
       await page.getByText('Found it').waitFor();

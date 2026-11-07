@@ -5,7 +5,7 @@ import { INSIDE, INSIDE_BY_ID } from '../../content/inside';
 import { useAfterPaint } from '../../lib/afterPaint';
 import { href } from '../../lib/router';
 import { usePrefs } from '../../state/prefs';
-import { hasWebGL } from '../../three/support';
+import { hasWebGL, prefer3D } from '../../three/support';
 
 const Inside3D = lazy(() => import('../../three/Inside3D'));
 
@@ -32,6 +32,7 @@ export function InsideDetail({ id }: { id: string }) {
   const quality = usePrefs((s) => s.quality);
   const can3d = useMemo(() => hasWebGL() && quality !== '2d', [quality]);
   const painted = useAfterPaint();
+  const [show3d, setShow3d] = useState(() => prefer3D(quality));
   const [spread, setSpread] = useState(0.6);
   const [sel, setSel] = useState<string | null>(null);
   if (!device) return <div><a href={href('reference/inside')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> What's inside</a><p>Not found.</p></div>;
@@ -42,6 +43,9 @@ export function InsideDetail({ id }: { id: string }) {
       <PageHead eyebrow="What's inside" title={device.title}>{device.summary}</PageHead>
       <div className="callout callout-safety mb-3 flex gap-2 text-sm"><Icon name="shield" size={16} className="flex-none mt-0.5" /><span>{device.safety}</span></div>
       {can3d && (
+        <button type="button" className="btn btn-sm mb-2" aria-pressed={show3d} onClick={() => setShow3d(!show3d)}><Icon name="layers" size={16} /> {show3d ? 'Hide 3D view' : 'Show 3D view'}</button>
+      )}
+      {can3d && show3d && (
         <div className="mb-3">
           {painted ? (
             <Suspense fallback={<div className="skeleton h-[clamp(300px,52svh,460px)] rounded-xl" role="status" aria-label="Loading 3D view" />}>
