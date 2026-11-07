@@ -21,7 +21,7 @@
 - GPU-less devices open the Simulator in 2D on "auto" (3D is one tap away).
 
 ### Known issues
-- Lighthouse performance on `#/sim` is about 85 locally (was 45); the 95+ target is Phase 6.1.
+- B-010: LCP is 2.7 s on Simulator, Troubleshoot and Wiring (budget 2.5 s). Lighthouse performance is 95–96 on the live site (Simulator was 45).
 - Spinning parts are shown slowed down on purpose (labels say so); real speeds are in the readouts.
 - The 3D views are tested on a software GPU here; real-phone frame rates are checked against budgets (draw calls and triangles), not measured on devices.
 - VERIFY items for 0.8.0 are listed in docs/VERIFY.md and await expert review.

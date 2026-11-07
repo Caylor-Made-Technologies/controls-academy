@@ -12,9 +12,14 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 | B-004 | High | Phase 0 | Fixed in 0.5.1 |
 | B-003 | High | Phase 0 | Fixed in 0.5.1 |
 | B-002 | Low | Phase 0 (Lighthouse) | Fixed in 0.5.1 |
+| B-010 | Medium | Phase 3 gate (Lighthouse live) | Open: Phase 4 / 6.1 |
 | B-009 | Low | Phase 3 review | Fixed 3.6 |
 | B-008 | High | Phase 3 review | Fixed 3.3 |
-| B-001 | Medium | Phase 0 (Lighthouse) | Mostly fixed 3.1 (45 → 85 local); 95+ in 6.1 |
+| B-001 | Medium | Phase 0 (Lighthouse) | Fixed 3.1–3.8 (live 45 → 95) |
+
+## B-010 — LCP 2.7 s on Simulator, Troubleshoot and Wiring (budget 2.5 s)
+- **Found by:** Lighthouse mobile on the live v0.8.0 site: `#/sim`, `#/troubleshoot`, `#/wiring` LCP 2.7 s (Learn 2.4 s). Performance score is 95 on all four, CLS 0.
+- **Plan:** Phase 4 (fonts, first-paint content, route chunk sizes) and Phase 6.1 (Lighthouse 95+ everywhere, LCP < 2.5 s).
 
 ## B-009 — Small buttons are 36 px tall (target 44 px)
 - **Found by:** Phase 3 review. `.btn-sm` is `min-height: 36px` across the app; the project rule is 44 px touch targets. The 3D HUD chips were fixed (now 44 px) in 3.3.
@@ -59,7 +64,7 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 - **Steps:** Lighthouse mobile on `#/sim` (4× CPU, no GPU): Performance 44, TBT ≈ 72 s.
 - **Cause:** the 3D panel opens by default and every 10 ms sim tick invalidates the canvas, so it re-renders continuously even when nothing visible changed and when it's scrolled off-screen. In a GPU-less headless browser that's software rendering; on a phone it's battery and heat.
 - **Plan:** render only when an I/O bit or motor value changes, cap idle frame rate, pause when the canvas is off-screen, defer 3D until after first paint (Phase 3.1); Lighthouse 95+ target in Phase 6.1.
-- **Fix (3.1):** all 3D goes through one `Stage` (`src/three/Stage.tsx`): draws only when the panel's visible state changes (plus a 0.5 s settle), 30 fps cap on the low tier, paused off-screen and in hidden tabs, mounted after first paint. A second cause turned up while testing: the workbench re-renders every scan, which re-rendered the 3D tree and drew a frame each time — the 3D panel is now memoized. GPU-less devices (software renderer) open in 2D on "auto". **Tests:** `tests/e2e/three.mjs` → idle panel draws ≤ 4 frames in 2 s (measured 0), off-screen 0 frames; `tests/unit/three-support.test.ts`. Lighthouse mobile `#/sim` local: 45 → 85 (TBT 72 s → 0.24 s).
+- **Fix (3.1):** all 3D goes through one `Stage` (`src/three/Stage.tsx`): draws only when the panel's visible state changes (plus a 0.5 s settle), 30 fps cap on the low tier, paused off-screen and in hidden tabs, mounted after first paint. A second cause turned up while testing: the workbench re-renders every scan, which re-rendered the 3D tree and drew a frame each time — the 3D panel is now memoized. GPU-less devices (software renderer) open in 2D on "auto". **Tests:** `tests/e2e/three.mjs` → idle panel draws ≤ 4 frames in 2 s (measured 0), off-screen 0 frames; `tests/unit/three-support.test.ts`. Lighthouse mobile `#/sim` local: 45 → 85 (TBT 72 s → 0.24 s); live v0.8.0: **95** (TBT 110 ms).
 
 ## Not bugs (checked)
 - Sweep showed many simulator buttons "not clickable" with a 0.6 s timeout: the page is busy with software 3D in headless Chromium. With a 2 s timeout every button clicks; `features.mjs` covers them.
