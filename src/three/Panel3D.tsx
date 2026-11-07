@@ -2,7 +2,7 @@
  * Lazy-loaded 3D view of the motor-station control panel, synced to the live engine.
  * Quality tiers adapt to the device; render loop runs on demand when nothing moves.
  */
-import { ContactShadows, Environment, Lightformer, OrbitControls, PerformanceMonitor } from '@react-three/drei';
+import { ContactShadows, OrbitControls, PerformanceMonitor } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Vector3 } from 'three';
@@ -22,6 +22,7 @@ import { PARTS, TOURS, type PartId } from './info';
 import { PanelScene } from './PanelScene';
 import { panelSignature } from './signature';
 import { Stage } from './Stage';
+import { StudioLights } from './Lights';
 import { capped, pickTier, probeDevice, type Tier } from './support';
 import { retainTextures } from './textures';
 
@@ -118,8 +119,7 @@ function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => 
           animate={animating}
           capTier={capTier}
           camera={camera}
-          onCreated={({ gl }) => { gl.toneMappingExposure = 1.08; }}
-          onPointerMissed={() => setSelected(null)}
+                    onPointerMissed={() => setSelected(null)}
           aria-label="Interactive 3D control panel. Tap a component to learn about it. Use the 2D view for full keyboard control."
           role="img"
           lostFallback={(
@@ -128,40 +128,15 @@ function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => 
             </div>
           )}
         >
-          {(q) => <>
+          {(q, look) => <>
           <Invalidator rt={rt} />
           <PerformanceMonitor
             onDecline={() => { if (quality === 'auto') setCapTier('low'); }}
           />
-          <color attach="background" args={['#0d131b']} />
-          <fog attach="fog" args={['#0d131b', 3.2, 6.5]} />
-          <ambientLight intensity={0.35} />
-          <hemisphereLight args={['#cfe3ff', '#1a1f28', 0.55]} />
-          <directionalLight
-            position={[1.6, 2.2, 2.4]}
-            intensity={1.7}
-            color="#fff6ea"
-            castShadow={q.shadows}
-            shadow-mapSize={[1024, 1024]}
-            shadow-camera-left={-1.5}
-            shadow-camera-right={1.8}
-            shadow-camera-top={1.2}
-            shadow-camera-bottom={-1.2}
-            shadow-bias={-0.0004}
-          />
+          <StudioLights look={look} q={q} keyPos={[1.6, 2.2, 2.4]} shadowBox={{ left: -1.5, right: 1.8, top: 1.2, bottom: -1.2 }} />
           <pointLight position={[0, 0.3, 0.6]} intensity={0.6} distance={2} color="#e8f1ff" />
-          {/* rim light in brand blue, warm fill from the floor side */}
-          <directionalLight position={[-2.2, 1.4, -0.6]} intensity={0.9} color="#3d8bff" />
-          <directionalLight position={[1.5, -0.6, 1.8]} intensity={0.25} color="#ffd9a8" />
-          {q.envRes > 0 && (
-            <Environment resolution={q.envRes} frames={1}>
-              <Lightformer form="rect" intensity={2.2} color="#dbe8ff" position={[0, 2, 2]} scale={[3, 1, 1]} />
-              <Lightformer form="rect" intensity={1.2} color="#3d8bff" position={[-3, 0.5, 1]} rotation-y={Math.PI / 2} scale={[2, 1, 1]} />
-              <Lightformer form="rect" intensity={1.0} color="#22d3ee" position={[3, 0.2, 1]} rotation-y={-Math.PI / 2} scale={[2, 1, 1]} />
-            </Environment>
-          )}
-          <PanelScene rt={rt} skin={skin} selected={selected} onSelect={onSelect} xray={xray} explode={explode} shadows={q.shadows} hw={hw} />
-          {q.contactRes > 0 && <ContactShadows position={[0.3, -0.748, 0.4]} opacity={0.55} scale={4} blur={2.4} far={1.2} resolution={q.contactRes} frames={1} />}
+          <PanelScene rt={rt} skin={skin} selected={selected} onSelect={onSelect} xray={xray} explode={explode} shadows={q.shadows} hw={hw} look={look} aoRes={q.contactRes} />
+          {q.contactRes > 0 && <ContactShadows position={[0.3, -0.748, 0.4]} opacity={look.ao} scale={4} blur={2.4} far={1.2} resolution={q.contactRes} frames={1} />}
           <OrbitControls
             ref={controls}
             makeDefault

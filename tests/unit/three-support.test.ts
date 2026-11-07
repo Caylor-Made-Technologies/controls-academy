@@ -64,3 +64,24 @@ describe('render on change (B-001)', () => {
     expect(panelSignature(rt)).not.toBe(before);
   });
 });
+
+import { LOOKS } from '../../src/three/look';
+import { readFileSync } from 'node:fs';
+
+describe('3D look per theme', () => {
+  it('both themes define the same grade, in sane ranges', () => {
+    expect(Object.keys(LOOKS.light).sort()).toEqual(Object.keys(LOOKS.dark).sort());
+    for (const l of Object.values(LOOKS)) {
+      expect(l.exposure).toBeGreaterThan(0.8);
+      expect(l.exposure).toBeLessThan(1.3);
+      expect(l.ao).toBeGreaterThan(0);
+      expect(l.ao).toBeLessThan(1);
+      expect(l.fog[0]).toBeLessThan(l.fog[1]);
+    }
+  });
+  it('the canvas color matches the CSS backdrop behind it (no flash while 3D loads)', () => {
+    const css = readFileSync('src/styles/app.css', 'utf8');
+    expect(css).toContain(LOOKS.dark.bg);
+    expect(css).toContain(LOOKS.light.bg);
+  });
+});

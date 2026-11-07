@@ -11,6 +11,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import type { WebGLRenderer } from 'three';
 import { capped, probeDevice, pickTier, tierSettings, type Tier, type TierSettings } from './support';
 import { textureCacheSize } from './textures';
+import { useLook, type Look } from './look';
 
 interface Live { id: number; gl: WebGLRenderer | null }
 const live = new Map<number, Live>();
@@ -55,6 +56,14 @@ function useOnScreen(ref: React.RefObject<HTMLElement | null>): boolean {
   return inView && visible;
 }
 
+/** Tone-mapping exposure follows the theme's grade (and redraws once when it changes). */
+function Grade({ exposure }: { exposure: number }) {
+  const gl = useThree((st) => st.gl);
+  const invalidate = useThree((st) => st.invalidate);
+  useEffect(() => { gl.toneMappingExposure = exposure; invalidate(); }, [gl, exposure, invalidate]);
+  return null;
+}
+
 /** While animating under a frame cap, ask for a frame at most `fps` times a second. */
 function Throttle({ fps }: { fps: number }) {
   const invalidate = useThree((s) => s.invalidate);
@@ -81,7 +90,7 @@ export interface StageProps extends Omit<CanvasProps, 'children' | 'frameloop' |
   lostFallback: ReactNode;
   /** Lowest tier we've been told to use (PerformanceMonitor decline). */
   capTier?: Tier;
-  children: (s: TierSettings) => ReactNode;
+  children: (s: TierSettings, look: Look) => ReactNode;
 }
 
 export function Stage({ quality, animate, lostFallback, capTier, children, onCreated, ...rest }: StageProps) {
@@ -91,6 +100,7 @@ export function Stage({ quality, animate, lostFallback, capTier, children, onCre
   const probe = probeDevice();
   const tier = capped(pickTier(quality, probe), capTier);
   const s = tierSettings(tier, probe);
+  const look = useLook();
   const id = useRef(0);
 
   useEffect(() => {
@@ -110,7 +120,7 @@ export function Stage({ quality, animate, lostFallback, capTier, children, onCre
       <Canvas
         {...rest}
         dpr={s.dpr}
-        shadows={s.shadows ? 'percentage' : false}
+        shadows={s.shadows ? 'soft' : false}
         frameloop={frameloop}
         gl={{ antialias: s.antialias, powerPreference: 'high-performance', preserveDrawingBuffer: false }}
         onCreated={(st: RootState) => {
@@ -124,7 +134,8 @@ export function Stage({ quality, animate, lostFallback, capTier, children, onCre
         }}
       >
         {throttled && onScreen && <Throttle fps={s.maxFps} />}
-        {children(s)}
+        <Grade exposure={look.exposure} />
+        {children(s, look)}
       </Canvas>
     </div>
   );

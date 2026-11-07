@@ -81,6 +81,9 @@ How the PLC engine, the machines and the screens fit together. Read this before 
   - pause when off-screen or the tab is hidden; context-loss fallback; disposal on unmount (R3F disposes the scene and
     drops the context; procedural textures are ref-counted with `retainTextures()`).
   - `window.__ca3d.stats()` — live stages, opens/closes, GPU geometries/textures/frames, cached textures. The leak test reads it.
+- **Look:** `look.ts` holds one color grade per app theme (background, fog, exposure, light colors, room, AO strength);
+  `Stage` passes it to children with the tier: `{(q, look) => …}`. Light every scene with `<StudioLights>` (`Lights.tsx`)
+  so all 3D views match. The canvas background must equal the CSS `.panel3d-bg` color (test-enforced).
 - Keep the component that hosts a Stage **memoized** with stable props: a re-render of the 3D tree draws a frame.
 - 3D mounts after first paint (`useAfterPaint`, `src/lib/afterPaint.ts`); the 2D view is always complete on its own.
 - On "auto", 3D opens by default only with a real GPU and no reduced-motion preference (`shouldOpen3D`).

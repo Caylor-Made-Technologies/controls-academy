@@ -3,6 +3,7 @@
 ## Unreleased (0.8.0 in progress)
 ### Added
 - One shared 3D stage for every 3D view: quality tiers from a device test, render only on change, pause off-screen, clean disposal.
+- One studio look for all 3D: shared lighting and reflections (`Lights.tsx`), soft shadows on high, a baked contact shadow on the panel backplate for depth, and a color grade per app theme — the 3D room is light in light mode and follows theme switches live.
 - Leak test: the 3D panel and the hardware viewer each opened and closed 20 times — contexts, GPU memory and textures stay flat.
 ### Fixed
 - B-001 (mostly): the Simulator no longer redraws 3D every scan. Lighthouse mobile `#/sim` 45 → 85 locally.

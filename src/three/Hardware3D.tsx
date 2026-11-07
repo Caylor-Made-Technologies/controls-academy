@@ -2,7 +2,7 @@
  * Lazy-loaded 3D viewer for one hardware-library model. Orbit, pinch, tap a module to learn
  * what it is. LEDs run a demo pattern (inputs flicker, outputs follow) so the hardware looks alive.
  */
-import { ContactShadows, Environment, Lightformer, OrbitControls } from '@react-three/drei';
+import { ContactShadows, OrbitControls } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MathUtils, PerspectiveCamera, Vector3, type Group } from 'three';
@@ -12,6 +12,7 @@ import type { HwModel } from '../content/hardware';
 import { usePrefs } from '../state/prefs';
 import { HardwareModel, layoutShape, type HwLive } from './HardwareModel';
 import { Stage } from './Stage';
+import { StudioLights } from './Lights';
 import { retainTextures } from './textures';
 
 const now = () => performance.now();
@@ -95,24 +96,13 @@ export default function Hardware3D({ model, selected, onSelect }: { model: HwMod
         role="img"
         lostFallback={<p className="p-4 text-sm m-0" role="status">The 3D view lost its graphics context. Use the 2D front view, or reload to try again.</p>}
       >
-        {(q) => <>
-        <color attach="background" args={['#0d131b']} />
+        {(q, look) => <>
         <CameraRig w={Math.min(fit[0], (width + 0.02) * s) + (spread ? model.shape.units.length * 0.012 * s : 0)} h={h} view={view} nonce={nonce} controls={controls} />
-        <ambientLight intensity={0.45} />
-        <hemisphereLight args={['#cfe3ff', '#1a1f28', 0.6]} />
-        <directionalLight position={[0.8, 1.2, 1.4]} intensity={1.7} color="#fff6ea" />
-        <directionalLight position={[-1.4, 0.6, -0.4]} intensity={0.8} color="#3d8bff" />
-        <directionalLight position={[0.6, -0.4, 1]} intensity={0.3} color="#ffd9a8" />
-        {q.envRes > 0 && (
-          <Environment resolution={Math.min(64, q.envRes)} frames={1}>
-            <Lightformer form="rect" intensity={2} color="#dbe8ff" position={[0, 2, 2]} scale={[3, 1, 1]} />
-            <Lightformer form="rect" intensity={1} color="#22d3ee" position={[3, 0.2, 1]} rotation-y={-Math.PI / 2} scale={[2, 1, 1]} />
-          </Environment>
-        )}
+        <StudioLights look={look} q={q} keyPos={[0.8, 1.2, 1.4]} shadowBox={{ left: -0.4, right: 0.4, top: 0.3, bottom: -0.3 }} mapSize={512} />
         <TurnIn key={model.id} still={reduce}>
           <HardwareModel shape={model.shape} live={reduce ? STATIC_LIVE : DEMO_LIVE} selected={selected} onSelect={onSelect} fit={fit} spread={spread} tags />
         </TurnIn>
-        {q.contactRes > 0 && <ContactShadows position={[0, -h / 2 - 0.01, 0.08]} opacity={0.5} scale={1.2} blur={2.2} far={0.4} resolution={256} frames={1} />}
+        {q.contactRes > 0 && <ContactShadows position={[0, -h / 2 - 0.01, 0.08]} opacity={look.ao} scale={1.2} blur={2.2} far={0.4} resolution={256} frames={1} />}
         <OrbitControls ref={controls} makeDefault target={[0, 0, 0.04]} enableDamping dampingFactor={0.12} minDistance={0.25} maxDistance={2.2} maxPolarAngle={Math.PI * 0.7} minAzimuthAngle={-1.3} maxAzimuthAngle={1.3} />
         </>}
       </Stage>

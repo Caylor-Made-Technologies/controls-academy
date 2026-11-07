@@ -363,6 +363,7 @@
 
 /* ---------- 3D panel HUD ---------- */
 .panel3d-bg { background: radial-gradient(120% 90% at 50% 10%, #16202d 0%, #0d131b 60%, #090d12 100%); }
+:root[data-theme="light"] .panel3d-bg { background: radial-gradient(120% 90% at 50% 10%, #eef2f6 0%, #dfe5ec 60%, #cfd7e0 100%); }
 .hud-row { scrollbar-width: none; }
 .hud-row::-webkit-scrollbar { display: none; }
 .hud-chip {
@@ -375,6 +376,7 @@
 .hud-chip:active { transform: scale(0.95); }
 .hud-chip[aria-pressed='true'] { background: rgba(30, 111, 255, 0.55); border-color: #6ea6ff; }
 .hud-legend { padding: 8px 10px; border-radius: 12px; color: #e8f1ff; background: rgba(11, 15, 20, 0.7); border: 1px solid rgba(110, 166, 255, 0.25); }
+:root[data-theme="light"] .hud-chip, :root[data-theme="light"] .hud-legend { background: rgba(11, 15, 20, 0.78); }
 .hud-legend .dot { display: inline-block; width: 8px; height: 8px; border-radius: 50%; margin-right: 6px; }
 
 /* ==========================================================================

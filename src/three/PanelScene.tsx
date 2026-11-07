@@ -3,7 +3,7 @@
  * Everything live (LEDs, contactor armature, overload flag, motor shaft, current flow)
  * is read from the SimRuntime inside useFrame, so the scan never triggers React renders.
  */
-import { Billboard, Edges, Instances, Instance } from '@react-three/drei';
+import { Billboard, ContactShadows, Edges, Instances, Instance } from '@react-three/drei';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
@@ -11,6 +11,7 @@ import {
   type Group, type InstancedMesh, type Mesh, type MeshStandardMaterial,
 } from 'three';
 import type { SimRuntime } from '../features/simulator/runtime';
+import { LOOKS, type Look } from './look';
 import { addressMap, type Skin } from '../skins';
 import { PARTS, type PartId } from './info';
 import { brushedTexture, floorTexture } from './textures';
@@ -29,6 +30,10 @@ export interface SceneProps {
   shadows: boolean;
   /** Hardware-library model to show instead of the generic PLC rack (null = generic rack). */
   hw?: HwModel | null;
+  /** Theme grade (room colors, AO strength). */
+  look?: Look;
+  /** Resolution of the baked backplate occlusion (0 = off, low tier). */
+  aoRes?: number;
 }
 
 const C = {
@@ -145,7 +150,7 @@ const v = (x: number, y: number, z: number) => new Vector3(x, y, z);
 
 // ---------- the scene ----------
 
-export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw }: SceneProps) {
+export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, look = LOOKS.dark, aoRes = 0 }: SceneProps) {
   const s = () => rt.scene.state;
   const io = () => rt.io;
   const plc = () => rt.plc;
@@ -227,11 +232,11 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw }: 
       {/* floor + wall */}
       <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.3, -0.75, 0.6]} receiveShadow>
         <planeGeometry args={[6, 4]} />
-        <meshStandardMaterial map={floor} color="#8a94a3" roughness={0.92} />
+        <meshStandardMaterial map={floor} color={look.floor} roughness={0.92} />
       </mesh>
       <mesh position={[0.3, 0.3, -0.04]} receiveShadow>
         <planeGeometry args={[6, 3]} />
-        <meshStandardMaterial color="#1b222c" roughness={1} />
+        <meshStandardMaterial color={look.wall} roughness={1} />
       </mesh>
       {/* working-clearance box painted in front of the panel (example teaching marking) */}
       <group position={[0, -0.7485, 0]} raycast={() => null}>
@@ -268,6 +273,13 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw }: 
         <Label text="MCP-1  MOTOR CONTROL PANEL" pos={[0, 0.535, -0.008]} w={0.3} h={0.026} fg="#e8f1ff" bg="#1e3a8a" />
         {/* back plate */}
         <Box size={[0.84, 1.1, 0.006]} pos={[0, 0, -0.012]} color={C.plate} metal={0.35} rough={0.6} />
+        {/* Ambient-occlusion feel: a contact shadow baked onto the backplate from everything mounted on it.
+            Re-baked when the PLC hardware changes; off on the low tier. */}
+        {aoRes > 0 && (
+          <group key={hw?.id ?? 'generic'} position={[0, 0, -0.0086]} rotation={[Math.PI / 2, 0, 0]}>
+            <ContactShadows scale={[0.84, 1.1]} far={0.14} blur={1.6} opacity={look.ao * 0.85} resolution={aoRes} frames={1} color="#0b1220" />
+          </group>
+        )}
         {/* door, hinged on the left and swung open */}
         <group position={[-0.45, 0, 0.275]} rotation={[0, -2.7, 0]}>
           <mesh position={[0.45, 0, 0]} castShadow receiveShadow>
