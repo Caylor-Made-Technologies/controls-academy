@@ -814,7 +814,39 @@ await check('3D: every machine has a live 3D view; Fault Hunt probes drag onto t
   await drag(58 / 309, 313 / 503, 85 / 309, 133 / 503); // probe → 24 VDC supply terminal
   expect((await meter()).includes('24'), `probe on the supply reads 24 V (got ${await meter()})`);
   await drag(85 / 309, 133 / 503, 222 / 309, 133 / 503); // → AI0 loop current, still in volts mode
-  expect((await page.locator('[role=alert]').textContent()).includes('Wrong meter mode'), 'wrong meter mode is caught and explained');
+  expect((await page.locator('[role=alert]').textContent()).includes('4–20 mA loop current'), 'wrong meter mode on a loop point is caught and explained');
+  await ctx.close();
+});
+
+await check('Wiring trainer: wire a 3-wire start/stop with the terminal buttons; a missing seal-in is explained; the right answer passes', async () => {
+  const { ctx, page } = await newPage({ prefs: { onboarded: true, quality: '2d' }, w: 375, h: 812 });
+  await go(page, 'wiring');
+  await page.getByRole('link', { name: /3-wire start\/stop/ }).click();
+  const wire = async (a, b) => { await page.getByRole('button', { name: a, exact: true }).click(); await page.getByRole('button', { name: b, exact: true }).click(); };
+  await wire('X1 (hot)', 'Stop 1');
+  await wire('Stop 2', 'Start 3');
+  await wire('Start 4', 'M coil A1');
+  await wire('M coil A2', 'OL 95');
+  await wire('OL 96', 'X2 (common)');
+  await page.getByRole('button', { name: /Check wiring/ }).click();
+  const res = page.getByRole('status', { name: 'Check result' });
+  expect((await res.textContent()).includes('No seal-in'), 'missing seal-in explained');
+  await wire('Start 3', 'M aux 13');
+  await wire('Start 4', 'M aux 14');
+  await page.getByRole('button', { name: /Check wiring/ }).click();
+  expect((await res.textContent()).includes('It works'), 'correct wiring passes');
+  await page.getByRole('button', { name: /Remove wire X1/ }).click();
+  expect((await page.getByRole('heading', { name: /Wires \(6\)/ }).count()) === 1, 'remove a wire');
+  await ctx.close();
+});
+
+await check("What's inside: four exploded views; picking a part explains it (works without 3D)", async () => {
+  const { ctx, page } = await newPage({ prefs: { onboarded: true, quality: '2d' }, w: 375, h: 812 });
+  await go(page, 'reference/inside');
+  expect((await page.locator('a[href*="#/reference/inside/"]').count()) === 4, 'four devices listed');
+  await go(page, 'reference/inside/vfd');
+  await page.getByRole('button', { name: 'DC bus capacitors' }).click();
+  expect((await page.locator('[aria-live="polite"]').filter({ hasText: 'stay charged' }).count()) === 1, 'part explanation shown');
   await ctx.close();
 });
 

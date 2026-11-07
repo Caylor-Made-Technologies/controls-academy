@@ -11,12 +11,14 @@ import { usePrefs } from '../../state/prefs';
 import { HARDWARE, categoryOf } from '../../content/hardware';
 import { HardwareCard, HardwareDetail, HardwareLibrary } from './HardwarePages';
 import { HwFront } from '../../components/HwFront';
+import { InsideDetail, InsideList } from './InsidePages';
 
 const SECTIONS = [
   { id: 'brands', title: 'Brand field guides', desc: 'Software, hardware, addressing, first-day checklists, tips and gotchas.', icon: 'layers' as const },
   { id: 'instructions', title: 'Instruction reference', desc: 'Every instruction, with its name on each platform.', icon: 'sim' as const },
   { id: 'glossary', title: 'Glossary', desc: `${GLOSSARY.length} terms in plain English.`, icon: 'book' as const },
   { id: 'safety', title: 'Safety rules', desc: 'The hard stops. Read these before you touch a panel.', icon: 'shield' as const },
+  { id: 'inside', title: 'What\'s inside', desc: 'Exploded 3D views: overload relay, prox sensor, input card, VFD.', icon: 'search' as const },
   { id: 'practice', title: 'Practice at home', desc: 'Free and trial tools to keep learning.', icon: 'download' as const },
 ];
 
@@ -30,6 +32,7 @@ export default function ReferencePage({ section, item }: { section?: string; ite
   if (sec === 'glossary') return <Glossary />;
   if (sec === 'safety') return <Safety />;
   if (sec === 'practice') return <Practice />;
+  if (sec === 'inside') return item ? <InsideDetail id={item.split('?')[0]} /> : <InsideList />;
   return (
     <div>
       <PageHead eyebrow="Reference" title="Field reference">Quick answers for the plant floor. Everything works offline.</PageHead>
@@ -160,7 +163,7 @@ function Instructions() {
       <PageHead eyebrow="Reference" title="Instruction reference">Behavior is the generic Logix/IEC baseline the simulator runs. Names are shown for your skin plus two others.</PageHead>
       <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2" role="group" aria-label="Category">
         {(['all', ...Object.keys(CATS)] as (OpCategory | 'all')[]).map((c) => (
-          <button key={c} type="button" className="chip cursor-pointer !min-h-[36px] whitespace-nowrap" aria-pressed={cat === c} style={cat === c ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined} onClick={() => setCat(c)}>{c === 'all' ? 'All' : CATS[c]}</button>
+          <button key={c} type="button" className="chip cursor-pointer !min-h-[44px] whitespace-nowrap" aria-pressed={cat === c} style={cat === c ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined} onClick={() => setCat(c)}>{c === 'all' ? 'All' : CATS[c]}</button>
         ))}
       </div>
       <p className="text-xs text-muted mt-0 mb-3">* = no exact native equivalent on that platform; the closest tool is shown. "—" = not available.</p>

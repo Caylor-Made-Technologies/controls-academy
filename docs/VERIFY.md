@@ -92,3 +92,9 @@ All in `src/content/hardware.ts` and `src/content/brands.ts`. The 3D shapes are 
 - `vfd` machine: all drive numbers are illustrative generic values, not a product — DC bus nominal 680 V (√2 × 480), OV trip 840 V, chopper 790 V, bus capacitance 4.7 mF, overcurrent trip 2× FLA, current limit 150 %, losses 600 W, min 6 Hz. Fault names (OC, OV, LOSS OF REF, MOTOR OL, STO status) differ by brand. Whether STO shows as a status or a fault, and the loss-of-reference action (fault vs preset speed), are drive parameters.
 - `datacenter` machine: generator start-to-ready time (10 s), utility-loss delay (2 s), retransfer delay (30 s here; real sites commonly use minutes), cooldown (20 s here; often ~5 min), ATS transfer time, coil UA and room heat capacity are illustrative and shortened for the simulator. 27 °C high-temperature alarm follows the commonly cited top of the recommended inlet range — site limits vary.
 - `tank`, `pumps`, `conveyor`, `fwdrev`: dimensions, flows, timers and set levels are illustrative teaching values.
+
+## 0.8.0 (Phase 3)
+- Wiring trainer, 3-wire control: "switch the hot side; one side of the coil goes straight to the grounded conductor (only the overload contact may be between)" — confirm wording against NFPA 79 and NEC 430.74 practice before citing section numbers. `src/lib/wiring.ts`.
+- What's inside → VFD: "on a 480 V drive the bus sits around 650–680 VDC" (√2 × 480 ≈ 679 V; lower under load). `src/content/inside.ts`.
+- What's inside → overload relay: setting the dial from nameplate FLA "following the code and the manufacturer's instructions (service factor and ambient can matter)". `src/content/inside.ts`.
+- Fault Hunt cue: "480 V motor leads: meter rated CAT III or higher" — confirm category guidance for the measurement location (CAT III vs CAT IV at the service). `src/features/troubleshoot/TroubleshootPage.tsx`.

@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { lazy, Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { PageHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
@@ -155,21 +155,36 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
     }
   };
 
+  // Each mistake costs once per point and mode (sweeping the dial or re-dropping a probe doesn't stack it).
+  const charged = useRef(new Set<string>());
+  const once = (key: string, why: string, pts: number, unsafe?: boolean) => {
+    if (charged.current.has(key)) { setMoment(why); return; }
+    charged.current.add(key);
+    penalize(why, pts, unsafe);
+  };
+  // Live-dead-live: a "dead" reading only counts as proof after the meter is proved again on a live source.
+  const [deadAt, setDeadAt] = useState<string | null>(null);
   const measure = (at = meterPoint, m = mode) => {
     if (!rt || !at) return;
     const p = rt.scene.meterPoints(rt.io).find((x) => x.id === at);
     if (!p) return;
     if (!proved && at !== 'psu') {
-      penalize('Prove your meter first: check it on a known live source (the 24 VDC supply) before trusting any reading. That\'s the first "live" in live-dead-live.', 5);
+      once(`prove|${at}`, 'Prove your meter first: check it on a known live source (the 24 VDC supply) before trusting any reading. That\'s the first "live" in live-dead-live.', 5);
     }
-    const nowProved = proved || (at === 'psu' && m === 'VDC');
-    if (nowProved !== proved) setProved(true);
     const r = p.read();
     const res = meterResult(m, r.unit, r.value);
     setReading(res.display);
-    if (res.penalty) penalize(res.penalty.why, res.penalty.pts, res.penalty.unsafe);
-    else if (fault.evidence?.includes(at) && proved) setEvidence(true);
     buzz(6);
+    if (res.penalty) { once(`${at}|${m}`, res.penalty.why, res.penalty.pts, res.penalty.unsafe); return; }
+    if (at === 'psu' && m === 'VDC' && r.value > 0) {
+      setProved(true);
+      if (deadAt && fault.evidence?.includes(deadAt)) setEvidence(true); // dead reading now confirmed
+      setDeadAt(null);
+      return;
+    }
+    if (!proved) return;
+    if (Math.abs(r.value) < 0.05) setDeadAt(at); // reads dead: prove the meter again before trusting it
+    else if (fault.evidence?.includes(at)) setEvidence(true);
   };
   // 3D probes: the probe stays on a terminal and the display follows the live value.
   const quality = usePrefs((s) => s.quality);
@@ -190,12 +205,15 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
     setMeterPoint(id ?? '');
     if (id) measure(id); else setReading(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [rt, mode, proved, fault]);
+  }, [rt, mode, proved, fault, deadAt]);
+  const onLift = useCallback(() => { setPlaced(false); setReading(null); }, []);
   const onDial = useCallback((m: MeterMode) => {
     setMode(m);
     if (placed && meterPoint) measure(meterPoint, m); else setReading(null);
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [placed, meterPoint, rt, proved, fault]);
+  }, [placed, meterPoint, rt, proved, fault, deadAt]);
+  // What kind of point the leads are on, for the right safety and method cue.
+  const pointUnit = useMemo(() => (rt && meterPoint ? rt.scene.meterPoints(rt.io).find((x) => x.id === meterPoint)?.read().unit ?? null : null), [rt, meterPoint]);
 
   return (
     <div>
@@ -251,9 +269,10 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
       {/* Meter */}
       <section className="card card-pad mb-3" aria-label="Multimeter">
         <div className="flex flex-wrap gap-3 items-end">
-          <div className="rounded-xl px-4 py-2 font-mono text-2xl tabular-nums min-w-[9rem] text-center" style={{ background: '#0c1a12', color: '#7dffbe', boxShadow: 'inset 0 0 0 2px #1f3a2b' }} role="status" aria-live="polite" aria-label={`Meter reading ${live ?? reading ?? 'none'}`}>
+          <div className="rounded-xl px-4 py-2 font-mono text-2xl tabular-nums min-w-[9rem] text-center" style={{ background: '#0c1a12', color: '#7dffbe', boxShadow: 'inset 0 0 0 2px #1f3a2b' }} aria-hidden="true">
             {live ?? reading ?? '----'}
           </div>
+          <p className="sr-only" role="status" aria-live="polite">{reading ? `Meter reads ${reading}` : ''}</p>
           {can3d && (
             <button type="button" className="btn btn-sm btn-ghost" aria-pressed={probes3d} onClick={() => setProbes3d(!probes3d)}><Icon name="meter" size={16} /> {probes3d ? 'Hide 3D probes' : '3D probes'}</button>
           )}
@@ -276,13 +295,16 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
           <div className="mt-3">
             {painted ? (
               <Suspense fallback={<div className="skeleton h-[clamp(360px,62svh,520px)] rounded-xl" role="status" aria-label="Loading 3D meter" />}>
-                <MeterProbes3D points={points} mode={mode} at={placed ? meterPoint : null} reading={live ?? reading ?? '----'} onMode={onDial} onLand={onLand} />
+                <MeterProbes3D points={points} mode={mode} at={placed ? meterPoint : null} reading={live ?? reading ?? '----'} onMode={onDial} onLand={onLand} onLift={onLift} />
               </Suspense>
             ) : <div className="skeleton h-[clamp(360px,62svh,520px)] rounded-xl" role="status" aria-label="Loading 3D meter" />}
             <p className="text-xs text-muted m-0 mt-1">Drag the red probe onto a terminal; the black lead is on common. Turn the dial by tapping a mode. The reading stays live while the probe is on.</p>
           </div>
         )}
-        <p className="text-xs text-muted mb-0 mt-2">{proved ? 'Meter proved on a known source. Prove it again before you call anything dead.' : 'Tip: set the mode, then prove the meter on the 24 VDC supply first (live-dead-live). Readings are to 0 V / neutral unless the point says "across".'} Training sim: on real gear, measuring live needs the right PPE, a CAT-rated meter, and authorization.</p>
+        {pointUnit === 'mA' && <p className="text-sm m-0 mt-2 flex gap-1.5"><Icon name="info" size={16} className="flex-none mt-0.5 text-glow" /><span>Loop current is measured in series: the meter goes in place of the loop's test link (or use a mA clamp or loop calibrator) — not from a terminal to common. Opening a live loop moves the reading under range: tell operations and put the loop in manual first.</span></p>}
+        {pointUnit === 'A' && <p className="text-sm m-0 mt-2 flex gap-1.5"><Icon name="shield" size={16} className="flex-none mt-0.5 text-warn" /><span>Motor current: clamp around one conductor, never in series. 480 V: a meter rated CAT III or higher and arc-rated PPE per NFPA 70E.</span></p>}
+        {deadAt && <p className="text-sm m-0 mt-2 text-warn" role="status">That reads dead. Prove the meter on the 24 VDC supply again before you trust it (the last "live" in live-dead-live).</p>}
+        <p className="text-xs text-muted mb-0 mt-2">{proved ? 'Meter proved on a known source. Prove it again after any dead reading.' : 'Tip: set the mode, then prove the meter on the 24 VDC supply first (live-dead-live). Voltage readings are to 0 V / neutral unless the point says "across".'} Training sim: on real gear, measuring live needs the right PPE, a CAT-rated meter, and authorization.</p>
       </section>
 
       <Workbench initial={initial} machine={fault.machine} editable={false} onRuntime={onRuntime} onUnsafe={(w) => penalize(`${w}. Forcing can start equipment with someone in the machine. Find the cause with your meter and the logic instead — forcing is a last resort with authorization and everyone clear.`, 20)} onDevicePick={pick} devicePickLabel="This is the problem" />

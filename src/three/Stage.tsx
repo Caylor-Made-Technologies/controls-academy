@@ -30,6 +30,8 @@ export function stageStats() {
       textures: s.gl?.info.memory.textures ?? 0,
       programs: s.gl?.info.programs?.length ?? 0,
       frames: s.gl?.info.render.frame ?? 0,
+      calls: s.gl?.info.render.calls ?? 0,
+      triangles: s.gl?.info.render.triangles ?? 0,
     })),
   };
 }

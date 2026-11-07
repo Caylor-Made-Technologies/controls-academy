@@ -135,7 +135,7 @@ export function OperandSheet({
               {sugg.length > 0 && (
                 <div className="flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label={`Suggestions for ${a.name}`}>
                   {sugg.slice(0, 24).map((s) => (
-                    <button type="button" key={s} className="chip whitespace-nowrap cursor-pointer !min-h-[36px]" aria-pressed={v === s} onClick={() => { const next = [...fixedArgs]; next[i] = s; setArgs(next); }}>
+                    <button type="button" key={s} className="chip whitespace-nowrap cursor-pointer !min-h-[44px]" aria-pressed={v === s} onClick={() => { const next = [...fixedArgs]; next[i] = s; setArgs(next); }}>
                       {s}
                     </button>
                   ))}

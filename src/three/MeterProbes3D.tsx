@@ -1,8 +1,10 @@
 /**
  * Fault Hunt in 3D: the machine's test points on a terminal strip, a meter with a mode dial, and a red
- * probe you drag onto a terminal. The black lead stays on common (0 V / neutral), matching how the points
- * are labeled ("across" points say so). The reading updates live while the probe is on a terminal.
+ * probe you drag onto a terminal. For voltage points the black lead stays on common (0 V / neutral), matching
+ * how the points are labeled ("across" points say so). Current points are read in series or with a clamp;
+ * the page says so next to the meter. The reading updates live while the probe is on a terminal.
  * The select list next to it does the same thing without 3D (keyboard / screen reader path).
+ * Touch scrolling is off over this canvas so a probe drag isn't taken for a page scroll (scroll beside it).
  */
 import { QuadraticBezierLine } from '@react-three/drei';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
@@ -34,7 +36,7 @@ export function benchLayout(n: number, aspect: number) {
   return { cols, spots, width: cols * DX + 0.06, top: 0.1, bottom: meterAt.y - 0.25, termBottom, meterAt, home };
 }
 
-function Probe({ spots, ids, home, onLand, at, meterJack }: { spots: Vector3[]; ids: string[]; home: Vector3; onLand: (id: string | null) => void; at: string | null; meterJack: Vector3 }) {
+function Probe({ spots, ids, home, onLand, onLift, at, meterJack }: { spots: Vector3[]; ids: string[]; home: Vector3; onLand: (id: string | null) => void; onLift: () => void; at: string | null; meterJack: Vector3 }) {
   const g = useRef<Group>(null);
   const line = useRef<React.ElementRef<typeof QuadraticBezierLine>>(null);
   const dragging = useRef(false);
@@ -52,11 +54,13 @@ function Probe({ spots, ids, home, onLand, at, meterJack }: { spots: Vector3[]; 
     if (!dragging.current && p.distanceTo(rest) > 0.001) invalidate();
   });
 
-  const down = (e: ThreeEvent<PointerEvent>) => { e.stopPropagation(); dragging.current = true; (e.target as Element).setPointerCapture?.(e.pointerId); };
+  const down = (e: ThreeEvent<PointerEvent>) => { e.stopPropagation(); dragging.current = true; onLift(); (e.target as Element).setPointerCapture?.(e.pointerId); };
   const move = (e: ThreeEvent<PointerEvent>) => {
     if (!dragging.current || !g.current) return;
     if (e.ray.intersectPlane(plane, hit)) { g.current.position.set(hit.x, hit.y, 0.06); invalidate(); }
   };
+  // A cancelled gesture (e.g. the browser took it for a scroll) sends the probe home; it never lands it.
+  const cancel = () => { if (!dragging.current) return; dragging.current = false; onLand(null); invalidate(); };
   const up = () => {
     if (!dragging.current || !g.current) return;
     dragging.current = false;
@@ -71,21 +75,21 @@ function Probe({ spots, ids, home, onLand, at, meterJack }: { spots: Vector3[]; 
   return (
     <>
       <QuadraticBezierLine ref={line} start={meterJack} end={rest} mid={[0, -0.2, 0.12]} color="#dc2626" lineWidth={3} />
-      <group ref={g} position={home} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={up}>
+      <group ref={g} position={home} onPointerDown={down} onPointerMove={move} onPointerUp={up} onPointerCancel={cancel}>
         {/* tip, guard, handle */}
         <mesh position={[0, 0, 0]} rotation={[Math.PI / 2, 0, 0]}><coneGeometry args={[0.006, 0.03, 10]} /><meshStandardMaterial color="#d1d5db" metalness={0.9} roughness={0.2} /></mesh>
         <mesh position={[0, 0, 0.03]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.016, 0.016, 0.008, 16]} /><meshStandardMaterial color="#991b1b" /></mesh>
         <mesh position={[0, 0, 0.075]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.012, 0.012, 0.08, 16]} /><meshStandardMaterial color="#dc2626" roughness={0.45} /></mesh>
         {/* generous invisible grab target (44 px-ish at phone scale) */}
-        <mesh position={[0, 0, 0.05]}><sphereGeometry args={[0.05, 8, 6]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>
+        <mesh position={[0, 0, 0.05]}><sphereGeometry args={[0.075, 8, 6]} /><meshBasicMaterial transparent opacity={0} depthWrite={false} /></mesh>
       </group>
     </>
   );
 }
 
-type BenchProps = { points: ProbePoint[]; mode: MeterMode; at: string | null; reading: string; onMode: (m: MeterMode) => void; onLand: (id: string | null) => void };
+type BenchProps = { points: ProbePoint[]; mode: MeterMode; at: string | null; reading: string; onMode: (m: MeterMode) => void; onLand: (id: string | null) => void; onLift: () => void };
 
-function Bench({ points, mode, at, reading, onMode, onLand }: BenchProps) {
+function Bench({ points, mode, at, reading, onMode, onLand, onLift }: BenchProps) {
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
   const aspect = size.width / Math.max(1, size.height);
@@ -132,17 +136,17 @@ function Bench({ points, mode, at, reading, onMode, onLand }: BenchProps) {
             );
           })}
         </group>
-        <Label text="black lead: COM / 0 V" pos={[0, -0.1, 0.027]} w={0.2} h={0.026} fg="#e5e7eb" bg="#111827" />
+        <Label text="black lead: COM / 0 V (volts)" pos={[0, -0.1, 0.027]} w={0.22} h={0.026} fg="#e5e7eb" bg="#111827" />
       </group>
-      <Probe spots={L.spots} ids={ids} home={L.home} onLand={onLand} at={at} meterJack={jack} />
+      <Probe spots={L.spots} ids={ids} home={L.home} onLand={onLand} onLift={onLift} at={at} meterJack={jack} />
     </group>
   );
 }
 
-function MeterProbes3D({ points, mode, at, reading, onMode, onLand }: { points: ProbePoint[]; mode: MeterMode; at: string | null; reading: string; onMode: (m: MeterMode) => void; onLand: (id: string | null) => void }) {
+function MeterProbes3D({ points, mode, at, reading, onMode, onLand, onLift }: BenchProps) {
   const quality = usePrefs((s) => s.quality);
   return (
-    <div className="relative h-[clamp(360px,62svh,520px)] panel3d-bg rounded-xl overflow-hidden">
+    <div className="relative h-[clamp(360px,62svh,520px)] panel3d-bg rounded-xl overflow-hidden" style={{ touchAction: 'none' }}>
       <Stage
         quality={quality}
         animate={false}
@@ -153,7 +157,7 @@ function MeterProbes3D({ points, mode, at, reading, onMode, onLand }: { points: 
       >
         {(q, look) => <>
           <StudioLights look={look} q={q} keyPos={[0.6, 1.0, 1.6]} shadowBox={{ left: -0.8, right: 0.8, top: 0.8, bottom: -0.8 }} mapSize={512} fog={[3, 8]} />
-          <Bench points={points} mode={mode} at={at} reading={reading} onMode={onMode} onLand={onLand} />
+          <Bench points={points} mode={mode} at={at} reading={reading} onMode={onMode} onLand={onLand} onLift={onLift} />
         </>}
       </Stage>
     </div>

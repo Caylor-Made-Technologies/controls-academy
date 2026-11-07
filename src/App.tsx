@@ -16,6 +16,7 @@ const CommandPalette = lazy(() => import('./features/CommandPalette').then((m) =
 const LessonPage = lazy(() => import('./features/learn/LessonPage'));
 const ReviewPage = lazy(() => import('./features/learn/ReviewPage'));
 const SkillMapPage = lazy(() => import('./features/learn/SkillMapPage'));
+const WiringPage = lazy(() => import('./features/wiring/WiringPage'));
 const ExamPage = lazy(() => import('./features/learn/ExamPage'));
 const SummaryPage = lazy(() => import('./features/learn/SummaryPage'));
 const SimulatorPage = lazy(() => import('./features/simulator/SimulatorPage'));
@@ -37,7 +38,7 @@ const ORDER: Record<TabId, number> = { learn: 0, sim: 1, troubleshoot: 2, refere
 
 function tabFor(seg: string | undefined): TabId {
   switch (seg) {
-    case 'sim': return 'sim';
+    case 'sim': case 'wiring': return 'sim';
     case 'troubleshoot': return 'troubleshoot';
     case 'reference': return 'reference';
     case 'profile': case 'about': return 'profile';
@@ -54,6 +55,7 @@ function Page({ route }: { route: string[] }) {
     case 'exam': return <ExamPage id={b} />;
     case 'summary': return <SummaryPage track={b} />;
     case 'sim': return <SimulatorPage />;
+    case 'wiring': return <WiringPage id={b} />;
     case 'troubleshoot': return <TroubleshootPage huntId={b} />;
     case 'reference': return <ReferencePage section={b} item={route[2]} />;
     case 'profile': return <ProfilePage />;

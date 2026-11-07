@@ -8,11 +8,15 @@
 - Tap a part in any machine scene and the camera glides to it (instant with reduced motion).
 - A small arc at the motor contactor's contacts each time it opens under load — real, normal behavior that the arc chutes contain. Not used for faults, so it never gives away a Fault Hunt answer. Off with reduced motion.
 - Fault Hunt 3D probes: the machine's test points on a terminal strip, a meter with a mode dial and a live display, the black lead on common; drag the red probe onto a terminal. Wrong or unsafe meter modes are caught and explained exactly as with the list.
+- Wiring trainer (`#/wiring`, from the Simulator): 3-wire start/stop, PNP prox to a sinking input, NPN prox to a sourcing input, and a 4–20 mA loop with a shunt. Tap terminal to terminal (terminal buttons, or the 3D board). The checker powers your circuit and runs it through a test — Stop must beat a held Start, a tripped overload must block Start, buttons switch the hot side — so any correct layout passes and the first mistake is explained.
+- What's inside (Reference): exploded 3D views of a thermal overload relay, an inductive prox, a digital input card and a VFD. Explode slider; tap a part (or pick it in the list) for what it does and how it fails.
+- Performance budgets for every 3D view (draw calls and triangles per frame), checked in `tests/e2e/perf.mjs`.
 - Leak test: the 3D panel, the hardware viewer and the machine scenes each opened and closed 20 times — contexts, GPU memory and textures stay flat.
 ### Fixed
 - B-008: the "Failing fan bearing" Fault Hunt couldn't be solved (its culprit, the motor, had no card to tap). Motors now have device cards; a test checks every hunt is solvable.
 - 3D review fixes before release: photo-eyes show what the sensor sees (not the PLC input), a jammed screw stops turning, the batch panel shows what the PLC reads, the weigh-mixer matches the program's process order, a generator with a dead battery doesn't turn, pump running lights come from the starter aux contacts, a stuck float stays stuck, the screw turns at gearbox speed, and safety cues were added (covers, confined-space sign, two-source and auto-start placards, open-door NFPA 70E notes, E-stops).
-- 3D HUD buttons are 44 px tall.
+- B-009: small buttons, segmented controls and chips are 44 px tall everywhere (was 36–38 px).
+- Fault Hunt meter: loop-current points explain that mA is read in series (or with a clamp), not from a terminal to common; motor-current points carry the CAT III / NFPA 70E cue; a volts reading on a loop point no longer shows a false "0.0"; a dead reading only counts as proof after the meter is proved again (live-dead-live); each mistake costs once per point and mode; lifting the probe stops the live reading; a cancelled drag sends the probe home; the meter is announced to screen readers when you measure, not on every scan.
 - B-001 (mostly): the Simulator no longer redraws 3D every scan. Lighthouse mobile `#/sim` 45 → 85 locally.
 - GPU-less devices open the Simulator in 2D on "auto" (3D is one tap away).
 

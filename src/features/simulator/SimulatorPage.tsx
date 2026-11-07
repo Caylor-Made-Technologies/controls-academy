@@ -1,5 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { PageHead } from '../../components/Brand';
+import { href } from '../../lib/router';
 import { Icon } from '../../components/Icon';
 import { SkeletonPage } from '../../components/Skeleton';
 import type { Program } from '../../engine/types';
@@ -86,6 +87,7 @@ function MachineSim({ machine }: { machine: string }) {
       <PageHead eyebrow="Simulator" title="PLC workbench">
         A real scan cycle driving a real-feeling machine. Press buttons, watch power flow, edit the logic online, switch brands.
       </PageHead>
+      <a href={href('wiring')} className="btn btn-sm mb-3"><Icon name="branch" size={16} /> Wiring trainer</a>
       <label className="flex flex-wrap items-center gap-2 mb-3">
         <span className="font-semibold text-heading text-sm">Machine</span>
         <select className="input !w-auto max-w-full" value={machine} onChange={(e) => navigate(e.target.value === 'motor' ? 'sim' : `sim?m=${e.target.value}`)} aria-label="Machine">

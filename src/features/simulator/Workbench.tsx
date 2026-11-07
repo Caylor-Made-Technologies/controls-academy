@@ -213,7 +213,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
               {p.mode}
             </button>
             <label className="sr-only" htmlFor="skin-select">Brand skin</label>
-            <select id="skin-select" className="input !min-h-[36px] !w-auto !py-0 text-sm max-w-[15rem]" value={skinId} onChange={(e) => setPrefs({ skin: e.target.value as SkinId, hwModel: '' })}>
+            <select id="skin-select" className="input !min-h-[44px] !w-auto !py-0 text-sm max-w-[15rem]" value={skinId} onChange={(e) => setPrefs({ skin: e.target.value as SkinId, hwModel: '' })}>
               {skinsByMaker().map((g) => (
                 <optgroup key={g.maker} label={g.maker}>
                   {g.skins.map((s) => <option key={s.id} value={s.id}>{makerShort(s.maker)} — {s.family}</option>)}

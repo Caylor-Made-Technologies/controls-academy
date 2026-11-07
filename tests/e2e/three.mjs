@@ -66,12 +66,14 @@ await p.getByRole('button', { name: /^Stop/ }).first().click();
 
 // Leak test: open and close the 3D panel 20 times.
 const first = await stats();
+let fresh = null; // GPU counts of the first fresh mount: the same conditions as the 20th
 for (let i = 0; i < 20; i++) {
   await p.getByRole('button', { name: '2D', exact: true }).click();
   await p.waitForFunction(() => window.__ca3d.stats().live === 0);
   await p.getByRole('button', { name: '3D panel' }).click();
   await p.waitForSelector('section[aria-label="3D control panel"] canvas');
   await p.waitForFunction(() => window.__ca3d.stats().live === 1);
+  if (i === 0) { await p.waitForTimeout(1500); fresh = (await stats()).stages[0]; }
 }
 await p.waitForTimeout(1500); // R3F releases the old contexts shortly after unmount
 const last = await stats();
@@ -79,7 +81,7 @@ const glLive = await p.evaluate(() => window.__gl);
 ok(last.opened - first.opened === 20 && last.closed - first.closed === 20, `20 opens and 20 closes counted (${last.opened - first.opened}/${last.closed - first.closed})`);
 ok(last.live === 1, `one live 3D stage after 20 cycles (found ${last.live})`);
 ok(glLive <= 1, `WebGL contexts released after 20 cycles (live: ${glLive})`);
-const g0 = first.stages[0], g1 = last.stages[0];
+const g0 = fresh, g1 = last.stages[0];
 ok(g1.geometries <= g0.geometries && g1.textures <= g0.textures, `GPU memory flat: geometries ${g0.geometries}→${g1.geometries}, textures ${g0.textures}→${g1.textures}`);
 ok(last.cachedTextures <= first.cachedTextures, `texture cache flat (${first.cachedTextures}→${last.cachedTextures})`);
 const canvases = await p.locator('canvas').count();
@@ -135,6 +137,29 @@ await p.waitForTimeout(1500);
 const m1 = await stats();
 ok(m1.live === 0 && (await p.evaluate(() => window.__gl)) === 0, `machine scenes: 20 switches, nothing left live (stages ${m1.live})`);
 ok(m1.opened - m0.opened >= 20 && m1.opened === m1.closed, `every 3D stage opened this session was closed (${m1.opened} opened, ${m1.closed} closed)`);
+
+// Wiring board and 3D meter: 20 open/close each.
+await p.goto(base + '#/wiring/loop');
+for (let i = 0; i < 20; i++) {
+  await p.getByRole('button', { name: '3D board' }).click();
+  await p.waitForFunction(() => window.__ca3d.stats().live === 1, null, { timeout: 30000 });
+  await p.getByRole('button', { name: 'Terminals' }).click();
+  await p.waitForFunction(() => window.__ca3d.stats().live === 0);
+}
+await p.goto(base + '#/troubleshoot/tk-wire');
+await p.waitForSelector('section[aria-label="Multimeter"] canvas', { timeout: 30000 });
+await p.waitForTimeout(500);
+const withProbes = (await stats()).live;
+for (let i = 0; i < 20; i++) {
+  await p.getByRole('button', { name: 'Hide 3D probes' }).click();
+  await p.waitForFunction((n) => window.__ca3d.stats().live === n - 1, withProbes);
+  await p.getByRole('button', { name: '3D probes' }).click();
+  await p.waitForFunction((n) => window.__ca3d.stats().live === n, withProbes, { timeout: 30000 });
+}
+await p.goto(base + '#/learn');
+await p.waitForTimeout(1500);
+const w1 = await stats();
+ok(w1.live === 0 && (await p.evaluate(() => window.__gl)) === 0 && w1.opened === w1.closed, `wiring board + 3D meter: 20 cycles each, nothing left live (${w1.opened} opened, ${w1.closed} closed)`);
 
 const leakWarn = errors.some((e) => /Too many active WebGL contexts/.test(e));
 ok(!leakWarn, 'no WebGL context leak warning');

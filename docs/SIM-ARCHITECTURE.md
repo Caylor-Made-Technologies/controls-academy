@@ -91,6 +91,10 @@ How the PLC engine, the machines and the screens fit together. Read this before 
   so all 3D views match. The canvas background must equal the CSS `.panel3d-bg` color (test-enforced).
 - Keep the component that hosts a Stage **memoized** with stable props: a re-render of the 3D tree draws a frame.
 - 3D mounts after first paint (`useAfterPaint`, `src/lib/afterPaint.ts`); the 2D view is always complete on its own.
+- Other 3D views on the same Stage: `MeterProbes3D` (Fault Hunt), `WiringBoard3D` (trainer, checker in
+  `src/lib/wiring.ts`), `Inside3D` (exploded views, data in `src/content/inside.ts`), `Hardware3D`.
+- Budgets per 3D view: ≤ 300 draw calls and ≤ 200k triangles per frame (`tests/e2e/perf.mjs`). A canvas that
+  takes drags sets `touch-action: none` so the gesture isn't read as a page scroll.
 - On "auto", 3D opens by default only with a real GPU and no reduced-motion preference (`shouldOpen3D`).
 
 ## Fault Hunt scoring (`src/features/troubleshoot/scoring.ts`)
