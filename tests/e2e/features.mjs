@@ -822,7 +822,9 @@ await check('Wiring trainer: wire a 3-wire start/stop with the terminal buttons;
   const { ctx, page } = await newPage({ prefs: { onboarded: true, quality: '2d' }, w: 375, h: 812 });
   await go(page, 'wiring');
   await page.getByRole('link', { name: /3-wire start\/stop/ }).click();
-  const wire = async (a, b) => { await page.getByRole('button', { name: a, exact: true }).click(); await page.getByRole('button', { name: b, exact: true }).click(); };
+  // A terminal's name gains "(n wires)" once wired, so match the label at the start.
+  const term = (l) => page.getByRole('button', { name: new RegExp('^' + l.replace(/[.*+?^${}()|[\]\\]/g, '\\$&') + '(\\s*\\(\\d+ wires?\\))?$') });
+  const wire = async (a, b) => { await term(a).click(); await term(b).click(); };
   await wire('X1 (hot)', 'Stop 1');
   await wire('Stop 2', 'Start 3');
   await wire('Start 4', 'M coil A1');

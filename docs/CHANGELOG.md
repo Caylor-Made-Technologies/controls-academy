@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased (0.8.0 in progress)
+## 0.8.0 — 2026-11-07 · Phase 3: graphics
 ### Added
 - One shared 3D stage for every 3D view: quality tiers from a device test, render only on change, pause off-screen, clean disposal.
 - One studio look for all 3D: shared lighting and reflections (`Lights.tsx`), soft shadows on high, a baked contact shadow on the panel backplate for depth, and a color grade per app theme — the 3D room is light in light mode and follows theme switches live.
@@ -19,6 +19,12 @@
 - Fault Hunt meter: loop-current points explain that mA is read in series (or with a clamp), not from a terminal to common; motor-current points carry the CAT III / NFPA 70E cue; a volts reading on a loop point no longer shows a false "0.0"; a dead reading only counts as proof after the meter is proved again (live-dead-live); each mistake costs once per point and mode; lifting the probe stops the live reading; a cancelled drag sends the probe home; the meter is announced to screen readers when you measure, not on every scan.
 - B-001 (mostly): the Simulator no longer redraws 3D every scan. Lighthouse mobile `#/sim` 45 → 85 locally.
 - GPU-less devices open the Simulator in 2D on "auto" (3D is one tap away).
+
+### Known issues
+- Lighthouse performance on `#/sim` is about 85 locally (was 45); the 95+ target is Phase 6.1.
+- Spinning parts are shown slowed down on purpose (labels say so); real speeds are in the readouts.
+- The 3D views are tested on a software GPU here; real-phone frame rates are checked against budgets (draw calls and triangles), not measured on devices.
+- VERIFY items for 0.8.0 are listed in docs/VERIFY.md and await expert review.
 
 ## 0.7.0 — 2026-11-06 (Phase 2: machines and a VFD)
 - **7 new machines** in the simulator (pick one at the top of the Simulator, or open `#/sim?m=<id>`), each with a working ladder program, wiring notes for every device, meter points, SI-unit physics tested against hand-worked values, and 4–5 injectable faults:

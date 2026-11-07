@@ -34,7 +34,7 @@ phase report and vault update. Items found in the Phase 0 audit are marked **(au
 ## Phase 3 — Graphics → v0.8.0
 - [x] 3.1 Shared renderer, scene manager, disposal; tiers by device test; leak test (20 open/close) **(audit: B-001 render only on change, pause off-screen)**
 - [x] 3.2 Materials/lighting · [x] 3.3 3D scene per machine (engine-driven) · [x] 3.4 camera/press/pull-in/spark motion
-- [x] 3.5 3D meter probes · [x] 3.6 3D wiring trainer · [x] 3.7 exploded overload, prox, I/O card, VFD · 3.8 performance pass
+- [x] 3.5 3D meter probes · [x] 3.6 3D wiring trainer · [x] 3.7 exploded overload, prox, I/O card, VFD · [x] 3.8 performance pass
 
 ## Phase 4 — UI and motion → v0.9.0
 - 4.1 Design system + `docs/DESIGN-SYSTEM.md` + `/styleguide` · 4.2 components everywhere · 4.3 motion (shared elements, springs, haptics, reduced-motion) · 4.4 empty/loading/error states · 4.5 polish at 320/375/768/1440 · 4.6 PWA feel (icons, splash, safe areas) **(audit: B-002 responsive icon sizes)**
