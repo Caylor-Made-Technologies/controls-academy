@@ -51,3 +51,14 @@ describe('fault hunt evidence', () => {
     expect(all.filter((f) => f.evidence?.length).length).toBeGreaterThanOrEqual(30);
   });
 });
+
+import { allFaults as _allFaults, createMachine as _create } from '../../src/plant';
+describe('every Fault Hunt can be solved (B-008)', () => {
+  it("each fault's culprit is a device or a hunt choice of its machine", () => {
+    for (const f of _allFaults()) {
+      const m = _create(f.machine);
+      const ids = new Set([...m.devices.map((d) => d.id), ...(m.huntChoices ?? []).map((c) => c.id)]);
+      expect(ids.has(f.culprit), `${f.id}: culprit "${f.culprit}" can't be picked`).toBe(true);
+    }
+  });
+});

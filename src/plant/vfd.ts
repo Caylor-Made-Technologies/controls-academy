@@ -141,6 +141,7 @@ export const VFD_DEVICES: FieldDevice[] = [
   { id: 'faultlt', label: 'Fault', kind: 'light', io: { kind: 'DO', point: 3 }, color: 'amber', wiring: 'Amber pilot light on output O3.' },
   { id: 'ref', label: 'Speed reference', kind: 'analog', io: { kind: 'AO', point: 0 }, wiring: 'Analog output 0 to the drive\'s analog reference input, as 4–20 mA (or 0–10 V, per the drive setting). Shielded pair, shield grounded at one end.' },
   { id: 'drive', label: 'VFD', kind: 'coil', wiring: 'The drive: 480 V three-phase in (L1-L2-L3), motor out (T1-T2-T3). Its DC bus stays charged after power is removed.' },
+  { id: 'motor', label: 'Fan motor and bearings', kind: 'motor', wiring: 'Three-phase motor fed from the drive output T1-T2-T3, coupled to the fan. A mechanical problem (worn bearings, rubbing wheel) shows up as higher current and heat at the same speed.' },
 ];
 
 export const VFD_FAULTS: FaultDef[] = [
@@ -195,6 +196,7 @@ export function createVfdScene(): PlantScene<VfdState> {
     summary: 'Speed control, accel/decel ramps, analog reference, STO and drive faults.',
     site: 'datacenter',
     devices: VFD_DEVICES,
+    view3d: 'machine',
     state: init(),
     faults: VFD_FAULTS,
     activeFault: null,

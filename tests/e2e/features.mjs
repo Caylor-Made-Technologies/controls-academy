@@ -793,6 +793,31 @@ await check('3D: reduced motion and "2D only" open in 2D', async () => {
   await b.ctx.close();
 });
 
+await check('3D: every machine has a live 3D view; Fault Hunt probes drag onto terminals and read live', async () => {
+  const { ctx, page } = await newPage({ prefs: { onboarded: true, quality: 'medium' }, w: 375, h: 812, motion: 'no-preference' });
+  for (const id of ['vfd', 'tank', 'datacenter']) {
+    await go(page, `sim?m=${id}`);
+    await page.waitForSelector('section[aria-label="3D machine view"] canvas', { timeout: 30000 });
+  }
+  await go(page, 'troubleshoot/tk-wire');
+  const c = page.locator('section[aria-label="Multimeter"] canvas');
+  await c.waitFor({ timeout: 30000 });
+  await c.scrollIntoViewIfNeeded();
+  await page.waitForTimeout(1500);
+  const bb = await c.boundingBox();
+  const drag = async (fx, fy, tx, ty) => {
+    await page.mouse.move(bb.x + fx * bb.width, bb.y + fy * bb.height); await page.mouse.down();
+    for (let i = 1; i <= 8; i++) { await page.mouse.move(bb.x + (fx + (tx - fx) * i / 8) * bb.width, bb.y + (fy + (ty - fy) * i / 8) * bb.height); await page.waitForTimeout(30); }
+    await page.mouse.up(); await page.waitForTimeout(700);
+  };
+  const meter = () => page.locator('section[aria-label="Multimeter"] [role=status]').first().textContent();
+  await drag(58 / 309, 313 / 503, 85 / 309, 133 / 503); // probe → 24 VDC supply terminal
+  expect((await meter()).includes('24'), `probe on the supply reads 24 V (got ${await meter()})`);
+  await drag(85 / 309, 133 / 503, 222 / 309, 133 / 503); // → AI0 loop current, still in volts mode
+  expect((await page.locator('[role=alert]').textContent()).includes('Wrong meter mode'), 'wrong meter mode is caught and explained');
+  await ctx.close();
+});
+
 // ---------- L. PWA / offline ----------
 await check('PWA: manifest + icons served; service worker controls the page; works offline', async () => {
   const { ctx, page } = await newPage();

@@ -4,8 +4,15 @@
 ### Added
 - One shared 3D stage for every 3D view: quality tiers from a device test, render only on change, pause off-screen, clean disposal.
 - One studio look for all 3D: shared lighting and reflections (`Lights.tsx`), soft shadows on high, a baked contact shadow on the panel backplate for depth, and a color grade per app theme — the 3D room is light in light mode and follows theme switches live.
-- Leak test: the 3D panel and the hardware viewer each opened and closed 20 times — contexts, GPU memory and textures stay flat.
+- A live 3D scene for every machine (VFD fan with a working drive keypad, forward/reverse screw, bag conveyor with photo-eye beams and real bags, tank with live level and valve stem, lift station wet well with riding floats, data-center ATS + generator + CRAH, flour batch mixer). Everything moves from the simulation; tap a part for its wiring card. Phone framing backs the camera off on narrow screens.
+- Tap a part in any machine scene and the camera glides to it (instant with reduced motion).
+- A small arc at the motor contactor's contacts each time it opens under load — real, normal behavior that the arc chutes contain. Not used for faults, so it never gives away a Fault Hunt answer. Off with reduced motion.
+- Fault Hunt 3D probes: the machine's test points on a terminal strip, a meter with a mode dial and a live display, the black lead on common; drag the red probe onto a terminal. Wrong or unsafe meter modes are caught and explained exactly as with the list.
+- Leak test: the 3D panel, the hardware viewer and the machine scenes each opened and closed 20 times — contexts, GPU memory and textures stay flat.
 ### Fixed
+- B-008: the "Failing fan bearing" Fault Hunt couldn't be solved (its culprit, the motor, had no card to tap). Motors now have device cards; a test checks every hunt is solvable.
+- 3D review fixes before release: photo-eyes show what the sensor sees (not the PLC input), a jammed screw stops turning, the batch panel shows what the PLC reads, the weigh-mixer matches the program's process order, a generator with a dead battery doesn't turn, pump running lights come from the starter aux contacts, a stuck float stays stuck, the screw turns at gearbox speed, and safety cues were added (covers, confined-space sign, two-source and auto-start placards, open-door NFPA 70E notes, E-stops).
+- 3D HUD buttons are 44 px tall.
 - B-001 (mostly): the Simulator no longer redraws 3D every scan. Lighthouse mobile `#/sim` 45 → 85 locally.
 - GPU-less devices open the Simulator in 2D on "auto" (3D is one tap away).
 

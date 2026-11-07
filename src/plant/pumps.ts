@@ -149,6 +149,7 @@ export function createPumpsScene(): PlantScene<PumpsState> {
     summary: 'Lead/lag, alternation, fail-over and an independent high-level float.',
     site: 'water',
     devices: PUMPS_DEVICES,
+    view3d: 'machine',
     state: init(),
     faults: PUMPS_FAULTS,
     activeFault: null,

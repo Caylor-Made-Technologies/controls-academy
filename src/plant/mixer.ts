@@ -168,6 +168,7 @@ export function createMixerScene(): PlantScene<MixerState> {
     summary: 'Recipe weights, state machine with fault codes, dust-collector and gate interlocks.',
     site: 'mill',
     devices: MIXER_DEVICES,
+    view3d: 'machine',
     state: init(),
     faults: MIXER_FAULTS,
     activeFault: null,

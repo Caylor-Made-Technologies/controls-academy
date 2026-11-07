@@ -9,12 +9,13 @@ import type { TierSettings } from './support';
 
 export interface ShadowBox { left: number; right: number; top: number; bottom: number }
 
-export function StudioLights({ look, q, keyPos, shadowBox, mapSize = 1024 }: { look: Look; q: TierSettings; keyPos: [number, number, number]; shadowBox?: ShadowBox; mapSize?: number }) {
+/** `fog` overrides the theme's fog distances for scenes much bigger than the motor panel. */
+export function StudioLights({ look, q, keyPos, shadowBox, mapSize = 1024, fog }: { look: Look; q: TierSettings; keyPos: [number, number, number]; shadowBox?: ShadowBox; mapSize?: number; fog?: [number, number] }) {
   const b = shadowBox ?? { left: -1, right: 1, top: 1, bottom: -1 };
   return (
     <>
       <color attach="background" args={[look.bg]} />
-      <fog attach="fog" args={[look.bg, look.fog[0], look.fog[1]]} />
+      <fog attach="fog" args={[look.bg, (fog ?? look.fog)[0], (fog ?? look.fog)[1]]} />
       <ambientLight intensity={look.ambient} />
       <hemisphereLight args={look.hemi} />
       <directionalLight

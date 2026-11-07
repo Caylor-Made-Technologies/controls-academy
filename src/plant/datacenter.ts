@@ -161,6 +161,7 @@ export function createDatacenterScene(): PlantScene<DcState> {
     summary: 'Utility loss, generator start, transfer and retransfer; CRAH chilled-water PID.',
     site: 'datacenter',
     devices: DC_DEVICES,
+    view3d: 'machine',
     state: init(),
     faults: DC_FAULTS,
     activeFault: null,

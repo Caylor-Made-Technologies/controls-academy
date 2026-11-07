@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { useCallback, useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useCallback, useEffect, useMemo, useState, useSyncExternalStore } from 'react';
 import { PageHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
@@ -10,6 +10,9 @@ import { buzz, sfx } from '../../lib/sound';
 import { useProgress } from '../../state/progress';
 import type { SimRuntime } from '../simulator/runtime';
 import { Workbench } from '../simulator/Workbench';
+import { hasWebGL, prefer3D } from '../../three/support';
+import { useAfterPaint } from '../../lib/afterPaint';
+import { usePrefs } from '../../state/prefs';
 import { MODE_LABEL, huntScore, meterResult, type MeterMode, type Penalty } from './scoring';
 
 
@@ -92,6 +95,9 @@ export default function TroubleshootPage({ huntId }: { huntId?: string }) {
   );
 }
 
+const MeterProbes3D = lazy(() => import('../../three/MeterProbes3D'));
+const noSub = () => () => {};
+
 function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void; onNext: () => void }) {
   const recordHunt = useProgress((s) => s.recordHunt);
   const [rt, setRt] = useState<SimRuntime | null>(null);
@@ -149,21 +155,47 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
     }
   };
 
-  const measure = () => {
-    if (!rt || !meterPoint) return;
-    const p = rt.scene.meterPoints(rt.io).find((x) => x.id === meterPoint);
+  const measure = (at = meterPoint, m = mode) => {
+    if (!rt || !at) return;
+    const p = rt.scene.meterPoints(rt.io).find((x) => x.id === at);
     if (!p) return;
-    if (!proved && meterPoint !== 'psu') {
+    if (!proved && at !== 'psu') {
       penalize('Prove your meter first: check it on a known live source (the 24 VDC supply) before trusting any reading. That\'s the first "live" in live-dead-live.', 5);
     }
-    if (meterPoint === 'psu' && mode === 'VDC') setProved(true);
+    const nowProved = proved || (at === 'psu' && m === 'VDC');
+    if (nowProved !== proved) setProved(true);
     const r = p.read();
-    const res = meterResult(mode, r.unit, r.value);
+    const res = meterResult(m, r.unit, r.value);
     setReading(res.display);
     if (res.penalty) penalize(res.penalty.why, res.penalty.pts, res.penalty.unsafe);
-    else if (fault.evidence?.includes(meterPoint) && proved) setEvidence(true);
+    else if (fault.evidence?.includes(at) && proved) setEvidence(true);
     buzz(6);
   };
+  // 3D probes: the probe stays on a terminal and the display follows the live value.
+  const quality = usePrefs((s) => s.quality);
+  const can3d = useMemo(() => hasWebGL() && quality !== '2d', [quality]);
+  const [probes3d, setProbes3d] = useState(() => prefer3D(quality));
+  const painted = useAfterPaint();
+  const [placed, setPlaced] = useState(false);
+  const live = useSyncExternalStore(rt ? rt.subscribe : noSub, () => {
+    if (!rt || !placed || !meterPoint) return null;
+    const p = rt.scene.meterPoints(rt.io).find((x) => x.id === meterPoint);
+    if (!p) return null;
+    const r = p.read();
+    return meterResult(mode, r.unit, r.value).display;
+  });
+  const points = useMemo(() => (rt ? rt.scene.meterPoints(rt.io).map(({ id, label }) => ({ id, label })) : []), [rt]);
+  const onLand = useCallback((id: string | null) => {
+    setPlaced(Boolean(id));
+    setMeterPoint(id ?? '');
+    if (id) measure(id); else setReading(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [rt, mode, proved, fault]);
+  const onDial = useCallback((m: MeterMode) => {
+    setMode(m);
+    if (placed && meterPoint) measure(meterPoint, m); else setReading(null);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [placed, meterPoint, rt, proved, fault]);
 
   return (
     <div>
@@ -219,24 +251,37 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
       {/* Meter */}
       <section className="card card-pad mb-3" aria-label="Multimeter">
         <div className="flex flex-wrap gap-3 items-end">
-          <div className="rounded-xl px-4 py-2 font-mono text-2xl tabular-nums min-w-[9rem] text-center" style={{ background: '#0c1a12', color: '#7dffbe', boxShadow: 'inset 0 0 0 2px #1f3a2b' }} role="status" aria-live="polite" aria-label={`Meter reading ${reading ?? 'none'}`}>
-            {reading ?? '----'}
+          <div className="rounded-xl px-4 py-2 font-mono text-2xl tabular-nums min-w-[9rem] text-center" style={{ background: '#0c1a12', color: '#7dffbe', boxShadow: 'inset 0 0 0 2px #1f3a2b' }} role="status" aria-live="polite" aria-label={`Meter reading ${live ?? reading ?? 'none'}`}>
+            {live ?? reading ?? '----'}
           </div>
+          {can3d && (
+            <button type="button" className="btn btn-sm btn-ghost" aria-pressed={probes3d} onClick={() => setProbes3d(!probes3d)}><Icon name="meter" size={16} /> {probes3d ? 'Hide 3D probes' : '3D probes'}</button>
+          )}
           <div className="w-full">
             <span className="text-sm font-semibold text-heading">Meter mode</span>
             <div className="seg mt-1 flex-wrap" role="group" aria-label="Meter mode">
-              {(Object.keys(MODE_LABEL) as MeterMode[]).map((m) => <button key={m} type="button" aria-pressed={mode === m} onClick={() => { setMode(m); setReading(null); }}>{MODE_LABEL[m]}</button>)}
+              {(Object.keys(MODE_LABEL) as MeterMode[]).map((m) => <button key={m} type="button" aria-pressed={mode === m} onClick={() => onDial(m)}>{MODE_LABEL[m]}</button>)}
             </div>
           </div>
           <label className="flex-1 min-w-[12rem]">
             <span className="text-sm font-semibold text-heading flex items-center gap-1.5"><Icon name="meter" size={16} /> Meter — put your leads on</span>
-            <select className="input mt-1" value={meterPoint} onChange={(e) => { setMeterPoint(e.target.value); setReading(null); }}>
+            <select className="input mt-1" value={meterPoint} onChange={(e) => { setMeterPoint(e.target.value); setPlaced(false); setReading(null); }}>
               <option value="">Choose a test point…</option>
               {rt?.scene.meterPoints(rt.io).map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
             </select>
           </label>
-          <button type="button" className="btn btn-primary" disabled={!meterPoint} onClick={measure}>Measure</button>
+          <button type="button" className="btn btn-primary" disabled={!meterPoint} onClick={() => measure()}>Measure</button>
         </div>
+        {can3d && probes3d && rt && (
+          <div className="mt-3">
+            {painted ? (
+              <Suspense fallback={<div className="skeleton h-[clamp(360px,62svh,520px)] rounded-xl" role="status" aria-label="Loading 3D meter" />}>
+                <MeterProbes3D points={points} mode={mode} at={placed ? meterPoint : null} reading={live ?? reading ?? '----'} onMode={onDial} onLand={onLand} />
+              </Suspense>
+            ) : <div className="skeleton h-[clamp(360px,62svh,520px)] rounded-xl" role="status" aria-label="Loading 3D meter" />}
+            <p className="text-xs text-muted m-0 mt-1">Drag the red probe onto a terminal; the black lead is on common. Turn the dial by tapping a mode. The reading stays live while the probe is on.</p>
+          </div>
+        )}
         <p className="text-xs text-muted mb-0 mt-2">{proved ? 'Meter proved on a known source. Prove it again before you call anything dead.' : 'Tip: set the mode, then prove the meter on the 24 VDC supply first (live-dead-live). Readings are to 0 V / neutral unless the point says "across".'} Training sim: on real gear, measuring live needs the right PPE, a CAT-rated meter, and authorization.</p>
       </section>
 

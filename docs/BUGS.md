@@ -12,7 +12,17 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 | B-004 | High | Phase 0 | Fixed in 0.5.1 |
 | B-003 | High | Phase 0 | Fixed in 0.5.1 |
 | B-002 | Low | Phase 0 (Lighthouse) | Fixed in 0.5.1 |
+| B-009 | Low | Phase 3 review | Scheduled: Phase 4 |
+| B-008 | High | Phase 3 review | Fixed 3.3 |
 | B-001 | Medium | Phase 0 (Lighthouse) | Mostly fixed 3.1 (45 → 85 local); 95+ in 6.1 |
+
+## B-009 — Small buttons are 36 px tall (target 44 px)
+- **Found by:** Phase 3 review. `.btn-sm` is `min-height: 36px` across the app; the project rule is 44 px touch targets. The 3D HUD chips were fixed (now 44 px) in 3.3.
+- **Plan:** fix in the Phase 4 design-system pass (sizes, spacing and layouts change together; the route gate checks overflow).
+
+## B-008 — The "Failing fan bearing" Fault Hunt couldn't be solved (caught before release)
+- **Found by:** the Phase 3 scene review. Fault `vfd-ol` names `motor` as the culprit, but the VFD machine had no device or button with that id, so nothing you could tap was ever "the problem".
+- **Fix:** the VFD, screw and conveyor machines now have a motor device card (the 3D motors open it). **Test:** `tests/unit/machines.test.ts` → every fault's culprit is a device or hunt choice of its machine (fails without the fix).
 
 ## B-007 — New lift-station program short-cycled pumps on the backup float (caught before release)
 - **Found by:** the frozen-transmitter test. With the float as the only control, both pumps chattered on/off every second at 4.2 m until their overloads tripped from repeated inrush — then the well flooded.

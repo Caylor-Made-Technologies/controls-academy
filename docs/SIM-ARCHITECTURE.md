@@ -37,7 +37,7 @@ How the PLC engine, the machines and the screens fit together. Read this before 
 | `armFault?(id, plc)` | Faults that also need the controller (a force left installed) |
 | `meterPoints(io)` | Where the Fault Hunt meter can measure, and what it reads. Every machine has `psu` (a known live source for live-dead-live) |
 | `ui` | Declarative operator panel for the generic `MachinePanel`: momentary buttons, toggles, selectors, sliders, pilot lights, gauges, text, a live trend, machine-side actions. A control's `field` can be `tag:Name.Member` to read/write a PLC tag (setpoints, PID tuning); `settings: true` moves it into a collapsible settings box |
-| `view3d?` | 3D hook. Today only the motor station (`'motor-panel'`); others render 2D until Phase 3.3 |
+| `view3d?` | `'motor-panel'` (the detailed motor station) or `'machine'` (a scene in `src/three/machines/<id>.tsx`) |
 | `evidence` (per fault) | Meter points that prove the fault; Fault Hunt rewards measuring one before naming the culprit |
 | `huntChoices?` | Extra "this is the problem" buttons (control fuse, a force, the program) |
 | `sound?` | Hum level and contactor state for sound cues |
@@ -50,6 +50,11 @@ How the PLC engine, the machines and the screens fit together. Read this before 
 3. Add `tests/unit/<id>.test.ts`: the shipped program verifies clean and runs the machine; physics against
    hand-worked numbers; every fault produces its described symptom.
 4. List any uncertain vendor detail with `// VERIFY` and in `docs/VERIFY.md`.
+5. 3D: set `view3d: 'machine'`, add `src/three/machines/<id>.tsx` exporting a `MachineSceneDef` (scene, camera, radius,
+   `moving`, `readout`, `describe`) and register it in `src/three/machines/index.ts`. Build it from `parts.tsx`; every
+   moving part reads `rt.scene.state` / `rt.io` inside useFrame (never cache `state`: `reset()` replaces it). Tap targets
+   are `<Pick id="<device id>">` so they open that device's wiring card — `tests/unit/machine-scenes.test.ts` checks the ids.
+   `moving(rt)` must be true whenever anything animates (the host only draws continuously then).
 
 ## Screens
 - `Workbench` runs any machine (`machine` prop): the machine's `ui` panel (or the motor's own `MotorPanel`), the

@@ -59,6 +59,7 @@ export const FWDREV_DEVICES: FieldDevice[] = [
   { id: 'zss', label: 'Zero speed', kind: 'sensor', io: { kind: 'DI', point: 6 }, wiring: 'Zero-speed switch on the screw shaft: closed when stopped, to input I6. Prevents reversing a turning screw.' },
   { id: 'fcoil', label: 'F coil', kind: 'coil', io: { kind: 'DO', point: 0 }, wiring: 'Output O0 → R contactor NC aux (electrical interlock) → OL 95-96 → F coil A1-A2.' },
   { id: 'rcoil', label: 'R coil', kind: 'coil', io: { kind: 'DO', point: 1 }, wiring: 'Output O1 → F contactor NC aux (electrical interlock) → OL 95-96 → R coil A1-A2.' },
+  { id: 'motor', label: 'Screw motor', kind: 'motor', wiring: 'Three-phase motor; the F and R contactors swap two phases to reverse it. A gearbox (about 20:1) turns the screw.' },
   { id: 'fwdlt', label: 'Fwd light', kind: 'light', io: { kind: 'DO', point: 2 }, color: 'green', wiring: 'Pilot light on output O2.' },
   { id: 'revlt', label: 'Rev light', kind: 'light', io: { kind: 'DO', point: 3 }, color: 'green', wiring: 'Pilot light on output O3.' },
 ];
@@ -107,6 +108,7 @@ export function createFwdRevScene(): PlantScene<FwdRevState> {
     summary: 'Reversing starter with mechanical, electrical and logic interlocks, and a zero-speed switch.',
     site: 'mill',
     devices: FWDREV_DEVICES,
+    view3d: 'machine',
     state: init(),
     faults: FWDREV_FAULTS,
     activeFault: null,

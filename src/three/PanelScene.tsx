@@ -12,6 +12,8 @@ import {
 } from 'three';
 import type { SimRuntime } from '../features/simulator/runtime';
 import { LOOKS, type Look } from './look';
+import { openingsUnderLoad } from './edges';
+import { Sparks } from './Sparks';
 import { addressMap, type Skin } from '../skins';
 import { PARTS, type PartId } from './info';
 import { brushedTexture, floorTexture } from './textures';
@@ -190,6 +192,9 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
 
   // Contactor armature, overload flag, motor shaft refs.
   const armature = useRef<Mesh>(null);
+  // A small arc each time the contactor opens with current flowing (normal; the arc chutes contain it).
+  const arcs = useMemo(() => openingsUnderLoad(() => rt.scene.state.contactor, () => rt.scene.state.amps), [rt]);
+  const reduceMotion = useMemo(() => Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches), []);
   const flag = useRef<Mesh>(null);
   const shaft = useRef<Group>(null);
   const handle = useRef<Group>(null);
@@ -447,6 +452,7 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
             {explode && <Label text="Coil A1-A2" pos={[-0.2, -0.1, 0.09]} w={0.05} h={0.012} />}
           </group>
           <group ref={(g) => { explodeParts.current[2] = g; }}>
+            <Sparks pos={[-0.2, -0.1, 0.115]} events={arcs} scale={0.22} reduceMotion={reduceMotion} />
             <mesh ref={armature} position={[-0.2, -0.115, 0.1]} castShadow>
               <boxGeometry args={[0.068, 0.04, 0.016]} />
               <meshStandardMaterial color="#9ca3af" metalness={0.6} roughness={0.35} />

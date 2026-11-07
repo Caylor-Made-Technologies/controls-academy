@@ -367,7 +367,7 @@
 .hud-row { scrollbar-width: none; }
 .hud-row::-webkit-scrollbar { display: none; }
 .hud-chip {
-  display: inline-flex; align-items: center; gap: 6px; flex: none; min-height: 36px; padding: 0 12px; border-radius: 999px; cursor: pointer;
+  display: inline-flex; align-items: center; gap: 6px; flex: none; min-height: 44px; padding: 0 12px; border-radius: 999px; cursor: pointer;
   font-size: 0.78rem; font-weight: 700; color: #e8f1ff; white-space: nowrap;
   background: rgba(11, 15, 20, 0.62); border: 1px solid rgba(110, 166, 255, 0.28);
   backdrop-filter: blur(8px); -webkit-backdrop-filter: blur(8px);

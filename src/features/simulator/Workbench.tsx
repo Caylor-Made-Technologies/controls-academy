@@ -23,6 +23,7 @@ import { hasWebGL, prefer3D } from '../../three/support';
 import { useAfterPaint } from '../../lib/afterPaint';
 
 const Panel3D = lazy(() => import('../../three/Panel3D'));
+const Machine3D = lazy(() => import('../../three/Machine3D'));
 
 const QUICK: OpCode[] = ['XIC', 'XIO', 'OTE', 'OTL', 'OTU', 'ONS', 'TON', 'TOF', 'RTO', 'CTU', 'CTD', 'RES', 'EQU', 'GRT', 'LES', 'MOV', 'ADD', 'CPT'];
 
@@ -75,7 +76,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
   const [, bump] = useState(0);
   const quality = usePrefs((s) => s.quality);
   const [view3d, setView3d] = useState(() => Boolean(start3D) && prefer3D(quality));
-  const can3d = useMemo(() => hasWebGL() && quality !== '2d' && rt.scene.view3d === 'motor-panel', [quality, rt]);
+  const can3d = useMemo(() => hasWebGL() && quality !== '2d' && Boolean(rt.scene.view3d), [quality, rt]);
   useEffect(() => { if (!can3d) setView3d(false); }, [can3d]);
   const painted = useAfterPaint();
 
@@ -167,7 +168,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
         <div className="flex items-center gap-2">
           <div className="seg" role="group" aria-label="Machine view">
             <button type="button" aria-pressed={!view3d} onClick={() => setView3d(false)}>2D</button>
-            <button type="button" aria-pressed={view3d} onClick={() => setView3d(true)}>3D panel</button>
+            <button type="button" aria-pressed={view3d} onClick={() => setView3d(true)}>{rt.scene.view3d === 'motor-panel' ? '3D panel' : '3D machine'}</button>
           </div>
           {view3d && <span className="text-xs text-muted">Live — synced to the logic below.</span>}
         </div>
@@ -175,7 +176,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
       {!hidePanel && view3d && (() => {
         const loading = <div className="card skeleton h-[clamp(380px,68svh,560px)] lg:h-[540px]" role="status" aria-label="Loading 3D panel" aria-busy="true" />;
         // The 3D layer waits for first paint, so the page shows and responds before WebGL spins up (B-001).
-        return painted ? <Suspense fallback={loading}><Panel3D rt={rt} onDevice={setDevice} /></Suspense> : loading;
+        return painted ? <Suspense fallback={loading}>{rt.scene.view3d === 'motor-panel' ? <Panel3D rt={rt} onDevice={setDevice} /> : <Machine3D rt={rt} onDevice={setDevice} />}</Suspense> : loading;
       })()}
       <div className={hidePanel ? '' : 'grid gap-3 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] items-start'}>
         {!hidePanel && (

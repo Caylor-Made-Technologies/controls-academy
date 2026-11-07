@@ -7,7 +7,7 @@ export interface FieldIO {
   AO: number[];
 }
 
-export type DeviceKind = 'pb-no' | 'pb-nc' | 'estop' | 'selector' | 'sensor' | 'contact' | 'coil' | 'light' | 'analog';
+export type DeviceKind = 'pb-no' | 'pb-nc' | 'estop' | 'selector' | 'sensor' | 'contact' | 'coil' | 'light' | 'analog' | 'motor';
 
 export interface FieldDevice {
   id: string;
@@ -94,7 +94,8 @@ export interface PlantScene<S = unknown> {
   /** Generic 2D operator panel. Machines without it (the motor station) have their own component. */
   ui?: MachineUI<S>;
   /** 3D hook: which 3D scene shows this machine, if any. */
-  view3d?: 'motor-panel';
+  /** 3D view: the detailed motor panel, or a generic machine scene (src/three/machines). */
+  view3d?: 'motor-panel' | 'machine';
   /** Extra "this is the problem" choices in Fault Hunt (things that aren't a device, like a fuse or a force). */
   huntChoices?: { id: string; label: string }[];
   /** Arm a fault that needs the controller too (e.g. a force left installed). */

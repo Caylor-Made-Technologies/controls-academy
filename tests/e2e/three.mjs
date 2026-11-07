@@ -97,6 +97,45 @@ await p.waitForTimeout(1500);
 const hwStats = await stats();
 const hwGl = await p.evaluate(() => window.__gl);
 ok(hwStats.live === 0 && hwGl === 0, `hardware viewer: 20 opens, nothing left live (stages ${hwStats.live}, contexts ${hwGl})`);
+// Machine scenes (3.3): each machine opens its own 3D view, live readout, no errors.
+const MACHINES = ['vfd', 'fwdrev', 'conveyor', 'tank', 'pumps', 'datacenter', 'mixer'];
+for (const id of MACHINES) {
+  await p.goto(base + '#/sim?m=' + id);
+  await p.waitForSelector('section[aria-label="3D machine view"] canvas', { timeout: 30000 });
+  const ro = await p.locator('section[aria-label="3D machine view"] [role="status"]').first().textContent();
+  ok(Boolean(ro && ro.length > 5), `3D ${id}: renders with live readout "${ro}"`);
+}
+const vMachine = await p.evaluate(async () => (await window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map((x) => x.id)).catch(async () => {
+  await p.addScriptTag({ content: axeSrc });
+  return p.evaluate(async () => (await window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map((x) => x.id));
+});
+ok(vMachine.length === 0, `axe clean with a machine 3D view open ${vMachine.join(', ')}`);
+await p.goto(base + '#/sim?m=fwdrev');
+await p.waitForSelector('section[aria-label="3D machine view"] canvas');
+await p.waitForTimeout(2500);
+f0 = await frames();
+await p.waitForTimeout(2000);
+idle = (await frames()) - f0;
+ok(idle <= 4, `idle machine scene draws ≤ 4 frames in 2 s (drew ${idle})`);
+await p.getByRole('button', { name: /^Forward/ }).first().click();
+await p.waitForTimeout(1500);
+f0 = await frames();
+await p.waitForTimeout(1000);
+const screwFrames = (await frames()) - f0;
+ok(screwFrames >= 4, `running screw animates (${screwFrames} frames in 1 s)`);
+// Leak test: 20 machine switches, each tearing down one scene and building another.
+const m0 = await stats();
+for (let i = 0; i < 20; i++) {
+  await p.goto(base + '#/sim?m=' + MACHINES[i % MACHINES.length]);
+  await p.waitForSelector('section[aria-label="3D machine view"] canvas', { timeout: 30000 });
+  await p.waitForFunction(() => window.__ca3d.stats().live === 1);
+}
+await p.goto(base + '#/learn');
+await p.waitForTimeout(1500);
+const m1 = await stats();
+ok(m1.live === 0 && (await p.evaluate(() => window.__gl)) === 0, `machine scenes: 20 switches, nothing left live (stages ${m1.live})`);
+ok(m1.opened - m0.opened >= 20 && m1.opened === m1.closed, `every 3D stage opened this session was closed (${m1.opened} opened, ${m1.closed} closed)`);
+
 const leakWarn = errors.some((e) => /Too many active WebGL contexts/.test(e));
 ok(!leakWarn, 'no WebGL context leak warning');
 ok(errors.length === 0, `no console errors/warnings ${errors.slice(0, 3).join(' | ')}`);

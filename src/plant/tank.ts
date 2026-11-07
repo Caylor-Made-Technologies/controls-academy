@@ -122,6 +122,7 @@ export function createTankScene(): PlantScene<TankState> {
     summary: '4–20 mA level transmitter, PID fill valve, bad-signal and high-high protection.',
     site: 'water',
     devices: TANK_DEVICES,
+    view3d: 'machine',
     state: init(),
     faults: TANK_FAULTS,
     activeFault: null,
