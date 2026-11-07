@@ -247,3 +247,8 @@ export function hmiTexture(aspect: number): Texture {
   cache.set(key, t);
   return t;
 }
+
+/** How many procedural textures are cached (leak test reads this). */
+export function textureCacheSize(): number {
+  return cache.size;
+}

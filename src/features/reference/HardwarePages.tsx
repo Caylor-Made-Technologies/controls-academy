@@ -9,6 +9,7 @@ import { href } from '../../lib/router';
 import { SKINS } from '../../skins';
 import { usePrefs } from '../../state/prefs';
 import { prefer3D } from '../../three/support';
+import { useAfterPaint } from '../../lib/afterPaint';
 
 const Hardware3D = lazy(() => import('../../three/Hardware3D'));
 
@@ -113,10 +114,17 @@ export function HardwareDetail({ id }: { id: string }) {
   const hwModel = usePrefs((s) => s.hwModel);
   const setPrefs = usePrefs((s) => s.setPrefs);
   const [want3d, setWant3d] = useState(() => prefer3D(quality));
+  const painted = useAfterPaint();
   const [sel, setSel] = useState<number | null>(null);
   useEffect(() => { setSel(null); window.scrollTo?.(0, 0); }, [id]);
   if (!m) return <div><Back to="reference/hardware" label="Hardware library" /><p>Model not found.</p></div>;
   const unit = sel !== null ? m.shape.units[sel] : null;
+  const loading3d = (
+    <div className="h-[clamp(300px,52svh,460px)] relative panel3d-bg flex items-center justify-center p-4" role="status" aria-label="Loading 3D model">
+      <HwFront model={m} className="block w-full max-h-full opacity-80" title={`${m.name} front view`} />
+      <span className="absolute bottom-3 left-1/2 -translate-x-1/2 hud-chip !cursor-default"><span className="spinner" aria-hidden="true" /> Loading 3D…</span>
+    </div>
+  );
   const isPlc = categoryOf(m) === 'plc' || categoryOf(m) === 'logic';
   const inSim = hwModel === m.id && skin === m.skin;
   const kinds = [...new Set(m.shape.units.map((u) => u.kind))];
@@ -135,14 +143,7 @@ export function HardwareDetail({ id }: { id: string }) {
 
       <section className="card overflow-hidden mb-3" aria-label={`${m.name} model`}>
         {want3d ? (
-          <Suspense fallback={(
-            <div className="h-[clamp(300px,52svh,460px)] relative panel3d-bg flex items-center justify-center p-4" role="status" aria-label="Loading 3D model">
-              <HwFront model={m} className="block w-full max-h-full opacity-80" title={`${m.name} front view`} />
-              <span className="absolute bottom-3 left-1/2 -translate-x-1/2 hud-chip !cursor-default"><span className="spinner" aria-hidden="true" /> Loading 3D…</span>
-            </div>
-          )}>
-            <Hardware3D model={m} selected={sel} onSelect={setSel} />
-          </Suspense>
+          painted ? <Suspense fallback={loading3d}><Hardware3D model={m} selected={sel} onSelect={setSel} /></Suspense> : loading3d
         ) : (
           <div className="p-3" style={{ background: '#0d131b' }}><HwFront model={m} selected={sel} onSelect={setSel} className="block w-full h-56" /></div>
         )}

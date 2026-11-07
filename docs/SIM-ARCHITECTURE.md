@@ -70,5 +70,20 @@ How the PLC engine, the machines and the screens fit together. Read this before 
 | mixer | Flour batch mixer | mill | 4 |
 | vfd | Fan on a VFD | data center | 5 |
 
+## The 3D layer (`src/three/`)
+- **Every 3D view opens through `<Stage>`** (`Stage.tsx`). Don't use `<Canvas>` directly. Stage gives you:
+  - the quality tier from the device test (`support.ts`: `probeDevice` → `pickTier` → `tierSettings`: DPR, antialias,
+    shadows, environment and contact-shadow resolution, frame cap). Software renderers and ≤ 2 GB / ≤ 2 cores → low;
+    phones and ≤ 4 GB / ≤ 4 cores → medium; else high. An explicit Profile choice wins. A `PerformanceMonitor`
+    decline can cap the tier lower (`capTier`).
+  - **render on change:** pass `animate` only while something moves; otherwise call `invalidate()` when the picture
+    changes. The motor panel compares `panelSignature(rt)` (`signature.ts`) each scan and draws for 0.5 s after a change.
+  - pause when off-screen or the tab is hidden; context-loss fallback; disposal on unmount (R3F disposes the scene and
+    drops the context; procedural textures are ref-counted with `retainTextures()`).
+  - `window.__ca3d.stats()` — live stages, opens/closes, GPU geometries/textures/frames, cached textures. The leak test reads it.
+- Keep the component that hosts a Stage **memoized** with stable props: a re-render of the 3D tree draws a frame.
+- 3D mounts after first paint (`useAfterPaint`, `src/lib/afterPaint.ts`); the 2D view is always complete on its own.
+- On "auto", 3D opens by default only with a real GPU and no reduced-motion preference (`shouldOpen3D`).
+
 ## Fault Hunt scoring (`src/features/troubleshoot/scoring.ts`)
 50 base + up to 50 for speed; +10 for measuring an evidence point before naming the culprit (−10 for naming it with no proof when proof was possible); −15 per wrong part blamed; −20 per force installed; −20 for ohms/continuity or amps-jacks on a live point; −5 for a wrong-but-harmless meter mode or not proving the meter first. Minimum 10.

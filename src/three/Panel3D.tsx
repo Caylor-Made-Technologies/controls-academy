@@ -3,8 +3,8 @@
  * Quality tiers adapt to the device; render loop runs on demand when nothing moves.
  */
 import { ContactShadows, Environment, Lightformer, OrbitControls, PerformanceMonitor } from '@react-three/drei';
-import { Canvas, useFrame, useThree } from '@react-three/fiber';
-import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
+import { useFrame, useThree } from '@react-three/fiber';
+import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Vector3 } from 'three';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { Icon } from '../components/Icon';
@@ -20,21 +20,26 @@ import { DEFAULT_HW, HARDWARE, categoryOf } from '../content/hardware';
 const SIM_HW = HARDWARE.filter((m) => categoryOf(m) === 'plc' || categoryOf(m) === 'logic');
 import { PARTS, TOURS, type PartId } from './info';
 import { PanelScene } from './PanelScene';
+import { panelSignature } from './signature';
+import { Stage } from './Stage';
+import { capped, pickTier, probeDevice, type Tier } from './support';
 import { retainTextures } from './textures';
 
-type Tier = 'low' | 'medium' | 'high';
-
-function tierFromPref(q: string): Tier {
-  if (q === 'low' || q === 'medium' || q === 'high') return q;
-  const mobile = window.matchMedia?.('(pointer: coarse)').matches;
-  return mobile ? 'medium' : 'high';
-}
-
-/** Re-render the canvas whenever the simulation ticks (frameloop="demand"). */
+/**
+ * Draw a frame only when something visible changed (B-001). After a change, keep drawing for half a
+ * second so eased motion (armature pull-in, overload flag) can settle, then go quiet.
+ */
 function Invalidator({ rt }: { rt: SimRuntime }) {
   const invalidate = useThree((s) => s.invalidate);
   useEffect(() => {
-    const off = rt.subscribe(() => invalidate());
+    let sig = '';
+    let until = 0;
+    const off = rt.subscribe(() => {
+      const next = panelSignature(rt);
+      const t = performance.now();
+      if (next !== sig) { sig = next; until = t + 500; }
+      if (t < until) invalidate();
+    });
     return () => { off(); };
   }, [rt, invalidate]);
   return null;
@@ -54,22 +59,20 @@ function CameraRig({ goal, controls, onArrive }: { goal: { pos: Vector3; target:
   return null;
 }
 
-export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => void }) {
+function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => void }) {
   const quality = usePrefs((s) => s.quality);
   const skin = SKINS[usePrefs((s) => s.skin)];
   const hwModel = usePrefs((s) => s.hwModel);
   const setPrefs = usePrefs((s) => s.setPrefs);
   const hwId = hwModel || DEFAULT_HW[skin.id];
   const hw = SIM_HW.find((m) => m.id === hwId) ?? null;
-  const [tier, setTier] = useState<Tier>(() => tierFromPref(quality));
-  const [dpr, setDpr] = useState(() => Math.min(tierFromPref(quality) === 'high' ? 2 : tierFromPref(quality) === 'medium' ? 1.5 : 1, window.devicePixelRatio || 1));
+  const [capTier, setCapTier] = useState<Tier | undefined>(undefined);
   const [selected, setSelected] = useState<PartId | null>(null);
   const [info, setInfo] = useState<PartId | null>(null);
   const [xray, setXray] = useState(false);
   const [explode, setExplode] = useState(false);
   const [goal, setGoal] = useState<{ pos: Vector3; target: Vector3 } | null>(null);
   const [tourId, setTourId] = useState<string>('overview');
-  const [lost, setLost] = useState(false);
   const controls = useRef<OrbitControlsImpl | null>(null);
   // Live motor readout for the HUD; rounded so steady running doesn't re-render every tick.
   const readout = useSyncExternalStore(rt.subscribe, () => {
@@ -79,7 +82,8 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
   const spinning = useSyncExternalStore(rt.subscribe, () => rt.scene.state.rpm > 1 || Boolean(rt.plc.fault));
 
   useEffect(() => retainTextures(), []);
-  useEffect(() => { setTier(tierFromPref(quality)); }, [quality]);
+  useEffect(() => { setCapTier(undefined); }, [quality]);
+  const tier = capped(pickTier(quality, probeDevice()), capTier);
 
   const animating = spinning || xray || Boolean(goal) || explode;
 
@@ -98,7 +102,6 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
   }, [onDevice]);
 
   const part = info ? PARTS[info] : null;
-  const shadows = tier === 'high';
   const initial = TOURS[0];
   const reduceMotion = useMemo(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches, []);
   // Fly-in on open: start wide and high, glide to the overview (skipped with reduced motion).
@@ -107,35 +110,28 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
     if (!reduceMotion) setGoal({ pos: new Vector3(...initial.pos), target: new Vector3(...initial.target) });
   }, [reduceMotion, initial]);
 
-  if (lost) {
-    return (
-      <div className="card card-pad text-sm" role="status">
-        The 3D view lost its graphics context (the device may be low on memory). Switch to 2D, or reload to try again.
-      </div>
-    );
-  }
-
   return (
     <section className="card overflow-hidden relative" aria-label="3D control panel">
       <div className="relative h-[clamp(380px,68svh,560px)] lg:h-[540px] panel3d-bg">
-        <Canvas
-          dpr={dpr}
-          shadows={shadows ? 'percentage' : false}
-          frameloop={animating ? 'always' : 'demand'}
+        <Stage
+          quality={quality}
+          animate={animating}
+          capTier={capTier}
           camera={camera}
-          gl={{ antialias: tier !== 'low', powerPreference: 'high-performance', preserveDrawingBuffer: false }}
-          onCreated={({ gl }) => {
-            gl.toneMappingExposure = 1.08;
-            gl.domElement.addEventListener('webglcontextlost', (e) => { e.preventDefault(); setLost(true); });
-          }}
+          onCreated={({ gl }) => { gl.toneMappingExposure = 1.08; }}
           onPointerMissed={() => setSelected(null)}
           aria-label="Interactive 3D control panel. Tap a component to learn about it. Use the 2D view for full keyboard control."
           role="img"
+          lostFallback={(
+            <div className="card-pad text-sm" role="status">
+              The 3D view lost its graphics context (the device may be low on memory). Switch to 2D, or reload to try again.
+            </div>
+          )}
         >
+          {(q) => <>
           <Invalidator rt={rt} />
           <PerformanceMonitor
-            onDecline={() => { setDpr(1); if (quality === 'auto') setTier('low'); }}
-            onIncline={() => { if (quality === 'auto') { setDpr(Math.min(1.5, window.devicePixelRatio)); setTier('medium'); } }}
+            onDecline={() => { if (quality === 'auto') setCapTier('low'); }}
           />
           <color attach="background" args={['#0d131b']} />
           <fog attach="fog" args={['#0d131b', 3.2, 6.5]} />
@@ -145,7 +141,7 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
             position={[1.6, 2.2, 2.4]}
             intensity={1.7}
             color="#fff6ea"
-            castShadow={shadows}
+            castShadow={q.shadows}
             shadow-mapSize={[1024, 1024]}
             shadow-camera-left={-1.5}
             shadow-camera-right={1.8}
@@ -157,15 +153,15 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
           {/* rim light in brand blue, warm fill from the floor side */}
           <directionalLight position={[-2.2, 1.4, -0.6]} intensity={0.9} color="#3d8bff" />
           <directionalLight position={[1.5, -0.6, 1.8]} intensity={0.25} color="#ffd9a8" />
-          {tier !== 'low' && (
-            <Environment resolution={128} frames={1}>
+          {q.envRes > 0 && (
+            <Environment resolution={q.envRes} frames={1}>
               <Lightformer form="rect" intensity={2.2} color="#dbe8ff" position={[0, 2, 2]} scale={[3, 1, 1]} />
               <Lightformer form="rect" intensity={1.2} color="#3d8bff" position={[-3, 0.5, 1]} rotation-y={Math.PI / 2} scale={[2, 1, 1]} />
               <Lightformer form="rect" intensity={1.0} color="#22d3ee" position={[3, 0.2, 1]} rotation-y={-Math.PI / 2} scale={[2, 1, 1]} />
             </Environment>
           )}
-          <PanelScene rt={rt} skin={skin} selected={selected} onSelect={onSelect} xray={xray} explode={explode} shadows={shadows} hw={hw} />
-          {tier !== 'low' && <ContactShadows position={[0.3, -0.748, 0.4]} opacity={0.55} scale={4} blur={2.4} far={1.2} resolution={tier === 'high' ? 512 : 256} frames={1} />}
+          <PanelScene rt={rt} skin={skin} selected={selected} onSelect={onSelect} xray={xray} explode={explode} shadows={q.shadows} hw={hw} />
+          {q.contactRes > 0 && <ContactShadows position={[0.3, -0.748, 0.4]} opacity={0.55} scale={4} blur={2.4} far={1.2} resolution={q.contactRes} frames={1} />}
           <OrbitControls
             ref={controls}
             makeDefault
@@ -180,7 +176,8 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
             onStart={() => setGoal(null)}
           />
           <CameraRig goal={goal} controls={controls} onArrive={() => setGoal(null)} />
-        </Canvas>
+          </>}
+        </Stage>
 
         {/* overlay HUD */}
         <div className="absolute top-2 left-2 right-2 flex gap-1.5 overflow-x-auto pointer-events-auto hud-row" role="toolbar" aria-label="Camera tours">
@@ -241,3 +238,6 @@ export default function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (
     </section>
   );
 }
+
+/** Memoized: the workbench re-renders every scan; the 3D panel must not (each re-render would draw a frame). */
+export default memo(Panel3D);

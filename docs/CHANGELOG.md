@@ -1,5 +1,13 @@
 # Changelog
 
+## Unreleased (0.8.0 in progress)
+### Added
+- One shared 3D stage for every 3D view: quality tiers from a device test, render only on change, pause off-screen, clean disposal.
+- Leak test: the 3D panel and the hardware viewer each opened and closed 20 times — contexts, GPU memory and textures stay flat.
+### Fixed
+- B-001 (mostly): the Simulator no longer redraws 3D every scan. Lighthouse mobile `#/sim` 45 → 85 locally.
+- GPU-less devices open the Simulator in 2D on "auto" (3D is one tap away).
+
 ## 0.7.0 — 2026-11-06 (Phase 2: machines and a VFD)
 - **7 new machines** in the simulator (pick one at the top of the Simulator, or open `#/sim?m=<id>`), each with a working ladder program, wiring notes for every device, meter points, SI-unit physics tested against hand-worked values, and 4–5 injectable faults:
   - **Fan on a VFD:** accel/decel ramps, 4–20 mA / 0–10 V / keypad speed reference, terminal or keypad control, current limit, DC-bus regeneration, braking resistor, STO, and OC / OV / loss-of-reference / motor-overload trips.
