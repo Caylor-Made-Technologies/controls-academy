@@ -1,3 +1,4 @@
+import { PageHead } from '../../components/Brand';
 import { useMemo } from 'react';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
@@ -49,8 +50,7 @@ export default function SummaryPage({ track }: { track?: string }) {
     return (
       <div>
         <a href={href('learn')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Learn</a>
-        <h1 className="text-2xl font-extrabold">Study summaries</h1>
-        <p className="text-muted">One printable page per track: key terms, formulas, safety points and common mistakes.</p>
+        <PageHead eyebrow="Learn" title="Study summaries">One printable page per track: key terms, formulas, safety points and common mistakes.</PageHead>
         <ul className="list-none p-0 m-0 grid gap-2 sm:grid-cols-2">
           {TRACKS.map((x) => <li key={x.id}><a className="card card-link card-pad block" href={href(`summary/${x.id}`)}><span className="eyebrow">Track {x.n}</span><span className="block font-bold text-heading mt-1">{x.title}</span></a></li>)}
         </ul>

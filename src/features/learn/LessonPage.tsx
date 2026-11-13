@@ -212,7 +212,7 @@ export default function LessonPage({ id }: { id: string }) {
         </div>
       </header>
 
-      <div className="max-w-[68ch]">
+      <div className="max-w-[68ch] flow">
         {lesson.blocks.map((b, i) => <BlockView key={i} b={b} />)}
         <OnTheJob lesson={lesson} />
       </div>

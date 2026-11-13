@@ -66,7 +66,7 @@ export const FIELD_LESSONS: Lesson[] = [
       { t: 'list', items: [
         'Logix-style controllers separate **installing** a force (it\'s in the list) from **enabling** forces (they act). Enabling turns on EVERY installed force — including old ones someone left. Disabling doesn\'t remove them. The FORCE light is solid when enabled and flashes when forces are installed but disabled. // VERIFY per model',
         'Forces are saved with the project and survive a power cycle. A forced input\'s LED shows the real field state while the logic sees the forced value — the LED and the logic disagree.',
-        'Siemens-style systems use a force table; the CPU shows a maintenance/force indication. A watch-table *modify* is different: the logic overwrites it next scan. // VERIFY per model',
+        'Siemens-style systems use a force table; the CPU shows a maintenance/force indication. A watch-table **modify** is different: the logic overwrites it next scan. // VERIFY per model',
         'Forces are easy to forget. A machine that "stopped working after maintenance" is a classic forgotten force.',
       ] },
       { t: 'callout', tone: 'tip', title: 'The rule', text: 'Document every force you install, tell the next shift, and remove it before you leave. Check the force indicator on your way out.' },

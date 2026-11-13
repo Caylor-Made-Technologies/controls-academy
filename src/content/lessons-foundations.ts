@@ -214,7 +214,7 @@ export const FOUNDATION_LESSONS: Lesson[] = [
       { t: 'p', text: 'The Stop button is **normally closed** and in **series**. Pressing it breaks the only path, the coil drops, and the seal-in contact opens. Releasing Stop doesn\'t restart anything.' },
       { t: 'figure', fig: 'hardwired-3wire' },
       { t: 'h', text: 'Why "3-wire"?' },
-      { t: 'p', text: 'Three wires run out to the pushbutton station. The big win: after a power failure, the seal-in drops out, so the motor does **not** restart by itself when power returns. That\'s called low-voltage protection. (A very short blink may not drop the contactor.) Compare [[two-wire]] — low-voltage *release* — where a switch that\'s still closed restarts the motor.' },
+      { t: 'p', text: 'Three wires run out to the pushbutton station. The big win: after a power failure, the seal-in drops out, so the motor does **not** restart by itself when power returns. That\'s called low-voltage protection. (A very short blink may not drop the contactor.) Compare [[two-wire]] — low-voltage **release** — where a switch that\'s still closed restarts the motor.' },
       { t: 'p', text: 'In a PLC we program the same thing: the output [[bit|bit]] seals in around the Start contact.' },
       { t: 'rung', text: '[XIC(Start_PB),XIC(Motor_Run)]XIC(Stop_PB)OTE(Motor_Run)', tags: [
         { name: 'Start_PB', type: 'BOOL', io: { kind: 'DI', point: 0 } }, { name: 'Stop_PB', type: 'BOOL', io: { kind: 'DI', point: 1 } }, { name: 'Motor_Run', type: 'BOOL', io: { kind: 'DO', point: 0 } },

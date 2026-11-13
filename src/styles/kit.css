@@ -127,3 +127,15 @@ a.row:active, button.row:active { transform: scale(0.99); }
 .sg-dot { position: absolute; left: var(--space-1); width: var(--space-5); height: var(--space-5); border-radius: 50%; background: var(--blue-glow); transition: transform var(--dur-move); }
 .sg-dot[data-moved='true'] { transform: translateX(var(--size-160)); }
 @media (prefers-reduced-motion: reduce) { .sg-dot { transition: none; } }
+
+/* ---------- Rhythm and scrolling (from the screen review) ---------- */
+/* Flowing text: every block gets air above it. Headings and callouts keep their own, larger margins. */
+.flow > * + * { margin-top: var(--space-3); }
+.flow > h2 { margin-top: var(--space-6); }
+/* Machine readouts: a real two-column grid; an odd last tile spans the row instead of sitting alone. */
+.readout-grid { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: var(--space-2); }
+.readout-grid > :last-child:nth-child(odd) { grid-column: 1 / -1; }
+/* Anything that scrolls sideways fades out at its right edge, so a cut-off item reads as "more this way". */
+.overflow-x-auto { -webkit-mask-image: linear-gradient(90deg, var(--black) calc(100% - var(--space-7)), transparent); mask-image: linear-gradient(90deg, var(--black) calc(100% - var(--space-7)), transparent); }
+/* Ladder: the live 0/1 digit sits in its own gutter instead of on top of a long tag name. */
+.instr { padding-left: var(--space-3h); padding-right: var(--space-3h); }

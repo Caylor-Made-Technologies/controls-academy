@@ -5,6 +5,7 @@ import { LESSONS } from '../../content';
 import { href } from '../../lib/router';
 import { dueReviews, useProgress } from '../../state/progress';
 import { QuestionCard } from './Quiz';
+import { EmptyState } from '../../components/ui';
 
 export default function ReviewPage() {
   const p = useProgress();
@@ -22,12 +23,9 @@ export default function ReviewPage() {
     <div className="max-w-[68ch]">
       <RouteHead seg="review" />
       {!q ? (
-        <div className="card card-pad text-center">
-          <Icon name="check" size={36} className="text-live mx-auto" />
-          <h2 className="text-lg font-bold mt-2">{qs.length ? 'Review done for today' : 'Nothing due'}</h2>
-          <p className="text-muted">Missed quiz questions land here automatically. Keep learning and check back tomorrow.</p>
-          <a className="btn btn-primary" href={href('learn')}>Back to Learn</a>
-        </div>
+        <EmptyState title={qs.length ? 'Review done for today' : 'Nothing due'} action={{ label: 'Back to Learn', href: href('learn') }}>
+          Missed quiz questions land here automatically. Keep learning and check back tomorrow.
+        </EmptyState>
       ) : (
         <div className="space-y-3">
           <QuestionCard key={`${q.id}-${i}`} q={q} n={i + 1} of={qs.length} onAnswer={(c) => {

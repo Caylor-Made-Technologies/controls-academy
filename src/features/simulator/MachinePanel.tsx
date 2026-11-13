@@ -128,7 +128,7 @@ export function MachinePanel({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id:
           <div className="grid gap-3 mt-2">{settings.map((c) => <Control key={c.field} c={c} rt={rt} set={set} />)}</div>
         </details>
       )}
-      {other.length > 0 && <div className="flex flex-wrap gap-2 mt-3">{other.map((x) => <Readout key={x.label} x={x} rt={rt} />)}</div>}
+      {other.length > 0 && <div className="readout-grid mt-3">{other.map((x) => <Readout key={x.label} x={x} rt={rt} />)}</div>}
       {ui.trend && <Trend rt={rt} />}
 
       {ui.actions && ui.actions.length > 0 && (
