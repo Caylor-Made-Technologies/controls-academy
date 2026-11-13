@@ -10,6 +10,8 @@
 - 3D: one material library (brushed and machined steel, copper, tinned, powder coat, enamel, plastics, rubber, glass), room reflections, soft baked contact shadows under equipment and on the panel backplate.
 - 3D detail on shared parts: motor fins, end bells, terminal box screws, nameplate and lifting eye; cabinet door seam, hinges and handle; pipe flanges; valve yoke; riveted nameplates. Pilot lights show their color when off and glow when on.
 - Machine scenes have Reset / Front / Side / Above views with an eased camera move.
+- What's inside: parts are drawn as what they are (capacitor cans, heatsink fins, coil windings, bimetal strips, terminal screws, circuit boards) and each carries its name once the device is pulled apart.
+- Tapping a hardware card grows it into its 3D viewer; Profile numbers count up.
 - If a screen can't download (offline) or crashes, a message explains it and offers a way back instead of a blank page.
 - `npm run verify` (the whole gate, one table), `verify:live`, `shots`, `posters`, `lighthouse`.
 ### Changed
