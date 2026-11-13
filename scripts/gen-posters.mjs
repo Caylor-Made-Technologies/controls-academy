@@ -18,7 +18,7 @@ const out = {};
 for (const shape of SHAPES) {
   const ctx = await browser.newContext({ viewport: { width: shape.w, height: shape.h }, reducedMotion: 'reduce', bypassCSP: true });
   await ctx.addInitScript(() => {
-    localStorage.setItem('ca:prefs', JSON.stringify({ onboarded: true, quality: 'high', theme: 'dark' }));
+    localStorage.setItem('ca:prefs', JSON.stringify({ onboarded: true, quality: 'low', theme: 'dark' }));
     sessionStorage.setItem('ca:powered', '1');
   });
   const page = await ctx.newPage();
@@ -26,7 +26,7 @@ for (const shape of SHAPES) {
     await page.goto('about:blank');
     await page.goto(`${BASE}#/${v.route}`);
     await page.waitForSelector('canvas', { timeout: 30000 });
-    await page.waitForFunction(() => { const s = window.__ca3d.stats(); return s.live > 0 && s.stages.every((x) => x.frames > 1); }, null, { timeout: 30000 });
+    await page.waitForFunction(() => { const s = window.__ca3d.stats(); return s.live > 0 && s.stages.every((x) => x.frames > 0); }, null, { timeout: 30000 });
     await page.waitForTimeout(900);
     const dumps = await page.evaluate(() => window.__ca3d.dump());
     const d = dumps.at(-1);

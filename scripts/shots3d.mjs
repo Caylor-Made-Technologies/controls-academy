@@ -23,7 +23,7 @@ for (const [route, name] of VIEWS) {
   await p.goto('about:blank');
   await p.goto(`${BASE}#/${route}`);
   await p.waitForSelector('canvas', { timeout: 30000 });
-  await p.waitForFunction(() => { const s = window.__ca3d.stats(); return s.live > 0 && s.stages.every((x) => x.frames > 1); }, null, { timeout: 30000 });
+  await p.waitForFunction(() => { const s = window.__ca3d.stats(); return s.live > 0 && s.stages.every((x) => x.frames > 0); }, null, { timeout: 30000 });
   await p.waitForTimeout(2500);
   const el = name === 'meter' ? p.locator('section[aria-label="Multimeter"] .panel3d-bg') : p.locator('.panel3d-bg').first();
   await el.scrollIntoViewIfNeeded();
