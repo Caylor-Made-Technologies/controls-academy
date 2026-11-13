@@ -21,6 +21,7 @@ mkdirSync(dir, { recursive: true });
 
 const browser = await pw.chromium.launch({ args: ['--use-gl=angle', '--use-angle=swiftshader', '--enable-unsafe-swiftshader'] });
 let n = 0;
+const failed = [];
 for (const theme of ['dark', 'light']) {
   for (const width of widths) {
     const ctx = await browser.newContext({ viewport: { width, height: width >= 1440 ? 900 : width >= 768 ? 1024 : 812 }, deviceScaleFactor: width <= 375 ? 2 : 1, reducedMotion: 'reduce', bypassCSP: true });
@@ -35,11 +36,18 @@ for (const theme of ['dark', 'light']) {
       // Give lazy 3D a moment to draw its first frame; pages without 3D just wait briefly.
       await page.waitForFunction(() => !window.__ca3d || window.__ca3d.stats().stages.every((s) => s.frames > 0), null, { timeout: 8000 }).catch(() => {});
       await page.waitForTimeout(700);
-      await page.screenshot({ path: `${dir}/${r.replace(/[/?=]/g, '_')}-${width}-${theme}.png`, fullPage: width <= 375 });
-      n++;
+      // Animations are frozen for the capture; a route that still can't be captured is reported, not fatal.
+      try {
+        await page.screenshot({ path: `${dir}/${r.replace(/[/?=]/g, '_')}-${width}-${theme}.png`, fullPage: width <= 375, animations: 'disabled', timeout: 60000 });
+        n++;
+      } catch (e) {
+        failed.push(`${r} @${width} ${theme}: ${String(e.message).split('\n')[0]}`);
+      }
     }
     await ctx.close();
   }
 }
 await browser.close();
-console.log(`✓ ${n} screenshots → ${dir}/`);
+console.log(`${failed.length ? '✗' : '✓'} ${n} screenshots → ${dir}/`);
+for (const f of failed) console.log(`  not captured: ${f}`);
+process.exit(failed.length ? 1 : 0);
