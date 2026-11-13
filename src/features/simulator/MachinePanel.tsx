@@ -16,15 +16,15 @@ function Control({ c, rt, set }: { c: PanelControl; rt: SimRuntime; set: (field:
       return <PushButton label={c.label} color={c.color} pressed={Boolean(s[c.field])} onChange={(v) => set(c.field, v)} hint={c.hint} />;
     case 'toggle':
       return (
-        <div className="flex flex-col items-center gap-1 min-w-[88px]">
+        <div className="flex flex-col items-center gap-1 min-w-22">
           <button type="button" className="btn btn-sm" aria-pressed={Boolean(s[c.field])} onClick={() => set(c.field, !s[c.field])} aria-label={`${c.label}: ${s[c.field] ? c.on : c.off}. ${c.hint}`}>{s[c.field] ? c.on : c.off}</button>
-          <span className="text-[0.72rem] font-bold text-center">{c.label}</span>
+          <span className="text-xs font-bold text-center">{c.label}</span>
         </div>
       );
     case 'selector':
       return (
         <div className="flex flex-col gap-1">
-          <span className="text-[0.72rem] font-bold">{c.label}</span>
+          <span className="text-xs font-bold">{c.label}</span>
           <div className="seg" role="group" aria-label={`${c.label}. ${c.hint}`}>
             {c.options.map((o) => <button key={o.value} type="button" aria-pressed={s[c.field] === o.value} onClick={() => set(c.field, o.value)}>{o.label}</button>)}
           </div>
@@ -47,13 +47,13 @@ function Readout({ x, rt }: { x: PanelIndicator; rt: SimRuntime }) {
   const s = rt.scene.state;
   const tag = (n: string) => rt.plc.tags.readNum(n);
   if (x.kind === 'light') return <Lamp on={x.on(s, rt.io, tag)} color={x.color} label={x.label} />;
-  if (x.kind === 'text') return <div className="rounded-xl border border-line bg-sunk p-2.5 min-w-[120px]"><p className="m-0 text-[0.68rem] font-bold uppercase tracking-widest text-muted">{x.label}</p><p className="m-0 font-bold text-heading">{x.value(s, rt.io, tag)}</p></div>;
+  if (x.kind === 'text') return <div className="rounded-xl border border-line bg-sunk p-2.5 min-w-30"><p className="m-0 text-2xs font-bold uppercase tracking-widest text-muted">{x.label}</p><p className="m-0 font-bold text-heading">{x.value(s, rt.io, tag)}</p></div>;
   const v = x.value(s, rt.io, tag);
   const pct = Math.max(0, Math.min(1, v / x.max));
   const warn = x.warn !== undefined && v >= x.warn;
   return (
-    <div className="rounded-xl border border-line bg-sunk p-2.5 min-w-[120px] flex-1">
-      <p className="m-0 text-[0.68rem] font-bold uppercase tracking-widest text-muted">{x.label}</p>
+    <div className="rounded-xl border border-line bg-sunk p-2.5 min-w-30 flex-1">
+      <p className="m-0 text-2xs font-bold uppercase tracking-widest text-muted">{x.label}</p>
       <p className="m-0 font-bold text-heading tabular-nums">{fmt(v, x.digits ?? 1)} {x.unit}</p>
       <div className="h-1.5 rounded-full bg-raised overflow-hidden mt-1" role="img" aria-label={`${x.label} ${fmt(v, x.digits ?? 1)} ${x.unit}${warn ? ', high' : ''}`}>
         <div className="h-full" style={{ width: `${pct * 100}%`, background: warn ? 'var(--warn)' : 'var(--blue-glow)' }} />
@@ -112,7 +112,7 @@ export function MachinePanel({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id:
       {scene.summary && <p className="text-sm text-muted m-0 mt-1">{scene.summary}</p>}
 
       <div className="rounded-2xl border border-line bg-sunk p-3 mt-3">
-        <p className="text-[0.68rem] font-bold tracking-widest uppercase text-muted m-0 mb-2">Operator station</p>
+        <p className="text-2xs font-bold tracking-widest uppercase text-muted m-0 mb-2">Operator station</p>
         <div className="flex flex-wrap gap-3 items-end">
           {ops.filter((c) => c.kind !== 'slider').map((c) => <Control key={c.field} c={c} rt={rt} set={set} />)}
         </div>
@@ -124,7 +124,7 @@ export function MachinePanel({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id:
 
       {settings.length > 0 && (
         <details className="rounded-2xl border border-line bg-sunk p-3 mt-3">
-          <summary className="font-semibold text-heading cursor-pointer min-h-[44px] flex items-center">{ui.settingsTitle ?? 'Settings'}</summary>
+          <summary className="font-semibold text-heading cursor-pointer min-h-11 flex items-center">{ui.settingsTitle ?? 'Settings'}</summary>
           <div className="grid gap-3 mt-2">{settings.map((c) => <Control key={c.field} c={c} rt={rt} set={set} />)}</div>
         </details>
       )}
@@ -143,11 +143,11 @@ export function MachinePanel({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id:
       <div className="mt-3"><IoCards rt={rt} onDevice={onDevice} /></div>
       {analog.length > 0 && (
         <div className="rounded-xl border border-line bg-sunk p-2.5 mt-2">
-          <p className="text-[0.68rem] font-bold tracking-widest uppercase text-muted m-0 mb-1">Analog</p>
+          <p className="text-2xs font-bold tracking-widest uppercase text-muted m-0 mb-1">Analog</p>
           <ul className="list-none p-0 m-0 grid gap-1">
             {analog.map((d) => (
               <li key={d.id}>
-                <button type="button" className="w-full flex justify-between gap-2 rounded-lg px-2 py-2 min-h-[44px] hover:bg-raised text-left text-sm" onClick={() => onDevice?.(d.id)}>
+                <button type="button" className="w-full flex justify-between gap-2 rounded-lg px-2 py-2 min-h-11 hover:bg-raised text-left text-sm" onClick={() => onDevice?.(d.id)}>
                   <span><span className="font-mono font-bold">{d.io!.kind}{d.io!.point}</span> {d.label}</span>
                   <span className="font-mono tabular-nums">{fmt(d.io!.kind === 'AI' ? rt.io.AI[d.io!.point] : rt.io.AO[d.io!.point], 2)} {d.io!.kind === 'AI' ? 'mA' : '%'}</span>
                 </button>

@@ -39,7 +39,7 @@ export default function ProfilePage() {
 
       <section className="card card-pad flex flex-wrap items-center gap-4 mb-4">
         <ProgressRing pct={lv.pct} size={84} stroke={8} label="Level progress">
-          <span className="text-center leading-none"><span className="block text-[0.62rem] text-muted">LEVEL</span><span className="text-lg">{lv.index + 1}</span></span>
+          <span className="text-center leading-none"><span className="block text-2xs text-muted">LEVEL</span><span className="text-lg">{lv.index + 1}</span></span>
         </ProgressRing>
         <div className="flex-1 min-w-[10rem]">
           <p className="m-0 font-head font-extrabold text-heading text-lg">{lv.name}</p>
@@ -47,7 +47,7 @@ export default function ProfilePage() {
         </div>
         <div className="grid grid-cols-3 gap-2 text-center w-full sm:w-auto">
           {[[String(streak(p.days)), 'day streak'], [String(Object.keys(p.lessons).length), 'lessons'], [String(Object.keys(p.hunts).length), 'faults found']].map(([n, l]) => (
-            <div key={l} className="rounded-xl bg-raised px-3 py-2"><p className="m-0 font-head font-extrabold text-heading text-xl">{n}</p><p className="m-0 text-[0.7rem] text-muted">{l}</p></div>
+            <div key={l} className="rounded-xl bg-raised px-3 py-2"><p className="m-0 font-head font-extrabold text-heading text-xl">{n}</p><p className="m-0 text-2xs text-muted">{l}</p></div>
           ))}
         </div>
       </section>
@@ -57,7 +57,7 @@ export default function ProfilePage() {
         {bs.map((b, i) => (
           <div key={b.id} data-enter="pop" className="card p-3" style={{ ...({ '--i': Math.min(i, 12) } as CSSProperties), ...(b.earned ? { borderColor: 'var(--live)' } : { opacity: 0.6 }) }}>
             <span className="w-9 h-9 rounded-full flex items-center justify-center mb-1.5" style={{ background: b.earned ? 'var(--grad-live)' : 'var(--surface-raised)' }}>
-              <Icon name={b.earned ? 'trophy' : 'shield'} size={18} className={b.earned ? 'text-[#062a1b]' : 'text-muted'} />
+              <Icon name={b.earned ? 'trophy' : 'shield'} size={18} className={b.earned ? 'text-on-live' : 'text-muted'} />
             </span>
             <p className="m-0 font-bold text-heading text-sm">{b.title}</p>
             <p className="m-0 text-xs text-muted">{b.desc}</p>

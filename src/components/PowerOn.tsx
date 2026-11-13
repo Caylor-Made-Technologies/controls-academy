@@ -37,7 +37,7 @@ export function PowerOn() {
       <div className="power-on-mark">
         <AppMark size={72} />
         <p className="m-0 mt-3 font-head font-extrabold text-heading text-lg tracking-tight">Controls <span className="grad-text">Academy</span></p>
-        <p className="m-0 text-[0.7rem] font-semibold tracking-[0.18em] uppercase text-muted">Advanced Engineering. Built Different.</p>
+        <p className="m-0 text-2xs font-semibold tracking-[0.18em] uppercase text-muted">Advanced Engineering. Built Different.</p>
       </div>
     </div>
   );

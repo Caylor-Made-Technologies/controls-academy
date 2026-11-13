@@ -3,6 +3,7 @@ import { AppMark, Footer, RouteHead, Wordmark } from './components/Brand';
 import { headFor } from './content/heads';
 import { Icon, type IconName } from './components/Icon';
 import { SkeletonPage } from './components/Skeleton';
+import { Toaster } from './components/ui/Toast';
 import { href, navigate, useRoute, type RouteSeg } from './lib/router';
 import { sfx } from './lib/sound';
 import { installSpotlight } from './lib/spotlight';
@@ -24,6 +25,7 @@ const TroubleshootPage = lazy(() => import('./features/troubleshoot/Troubleshoot
 const ReferencePage = lazy(() => import('./features/reference/ReferencePage'));
 const ProfilePage = lazy(() => import('./features/profile/ProfilePage'));
 const AboutPage = lazy(() => import('./features/profile/AboutPage'));
+const StyleguidePage = lazy(() => import('./features/styleguide/StyleguidePage'));
 
 type TabId = 'learn' | 'sim' | 'troubleshoot' | 'reference' | 'profile';
 const TABS: { id: TabId; label: string; icon: IconName; path: string }[] = [
@@ -41,7 +43,7 @@ function tabFor(seg: string | undefined): TabId {
     case 'sim': case 'wiring': return 'sim';
     case 'troubleshoot': return 'troubleshoot';
     case 'reference': return 'reference';
-    case 'profile': case 'about': return 'profile';
+    case 'profile': case 'about': case 'styleguide': return 'profile';
     default: return 'learn';
   }
 }
@@ -61,6 +63,7 @@ const PAGES: Record<RouteSeg, (route: string[]) => ReactNode> = {
   reference: (r) => <ReferencePage section={r[1]} item={r[2]} />,
   profile: () => <ProfilePage />,
   about: () => <AboutPage />,
+  styleguide: () => <StyleguidePage />,
 };
 
 /** While a screen's code loads: its real heading (top-level screens) over a skeleton. */
@@ -174,9 +177,9 @@ export default function App() {
         ))}
         </div>
         <button type="button" className="rail-link mt-2" onClick={() => setPaletteOpen(true)}>
-          <Icon name="search" /> <span>Search</span> <kbd className="ml-auto text-[0.7rem]">⌘K</kbd>
+          <Icon name="search" /> <span>Search</span> <kbd className="ml-auto text-2xs">⌘K</kbd>
         </button>
-        <div className="mt-auto px-2 text-[0.72rem] text-muted space-y-2">
+        <div className="mt-auto px-2 text-xs text-muted space-y-2">
           <p className="m-0">Training only — not site procedure.</p>
           <p className="m-0 grad-text font-semibold">Advanced Engineering. Built Different.</p>
         </div>
@@ -225,6 +228,7 @@ export default function App() {
       </nav>
 
       {paletteOpen && <Suspense fallback={null}><CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} /></Suspense>}
+      <Toaster />
       {!prefs.onboarded && <Suspense fallback={null}><Onboarding onDone={(path) => { prefs.setPrefs({ onboarded: true }); if (path) navigate(path); }} /></Suspense>}
     </>
   );

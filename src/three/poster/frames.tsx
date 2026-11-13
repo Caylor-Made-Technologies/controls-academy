@@ -8,8 +8,8 @@ import type { PosterSpec } from './project';
 
 /** Height + backdrop of each kind of 3D view. Shared by the live components and their posters. */
 export const FRAME = {
-  panel: 'relative h-[clamp(380px,68svh,560px)] lg:h-[540px] panel3d-bg',
-  machine: 'relative h-[clamp(340px,60svh,520px)] lg:h-[500px] panel3d-bg',
+  panel: 'relative h-[clamp(380px,68svh,560px)] lg:h-135 panel3d-bg',
+  machine: 'relative h-[clamp(340px,60svh,520px)] lg:h-125 panel3d-bg',
   wiring: 'relative h-[clamp(320px,55svh,480px)] panel3d-bg rounded-xl overflow-hidden',
   inside: 'relative h-[clamp(300px,52svh,460px)] panel3d-bg rounded-xl overflow-hidden',
   meter: 'relative h-[clamp(360px,62svh,520px)] panel3d-bg rounded-xl overflow-hidden',

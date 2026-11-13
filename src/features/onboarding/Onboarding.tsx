@@ -30,7 +30,7 @@ export function Onboarding({ onDone }: { onDone: (path?: string) => void }) {
     <div key="0" className="text-center">
       <div className="relative inline-block mb-4"><AppMark size={96} /></div>
       <p className="eyebrow m-0">Caylor Made Technologies</p>
-      <h1 className="text-[1.9rem] font-extrabold mt-1 mb-3">Controls <span className="grad-text">Academy</span></h1>
+      <h1 className="text-3xl font-extrabold mt-1 mb-3">Controls <span className="grad-text">Academy</span></h1>
       <p className="text-body max-w-sm mx-auto">Go from "what's a relay?" to reading prints, writing ladder logic and troubleshooting a live machine.</p>
       <ul className="text-left max-w-sm mx-auto space-y-2 list-none p-0 my-5">
         {['A real PLC scan you can single-step', 'Ten brand dialects: Allen-Bradley, Siemens and more', 'Fault Hunts with a meter and a stopwatch', 'Works offline. Nothing leaves your device.'].map((t) => (
@@ -56,7 +56,7 @@ export function Onboarding({ onDone }: { onDone: (path?: string) => void }) {
       <div className="space-y-3" role="radiogroup" aria-label="PLC platform">
         {skinsByMaker().map((g) => (
           <div key={g.maker}>
-            <p className="text-[0.7rem] font-bold tracking-[0.14em] uppercase text-muted m-0 mb-1.5">{g.maker}</p>
+            <p className="text-2xs font-bold tracking-[0.14em] uppercase text-muted m-0 mb-1.5">{g.maker}</p>
             <div className="grid gap-2 sm:grid-cols-2">
               {g.skins.map((s) => (
                 <button key={s.id} type="button" role="radio" aria-checked={skin === s.id} onClick={() => setSkin(s.id)} className="card card-link p-3 text-left cursor-pointer" style={skin === s.id ? { borderColor: 'var(--blue-glow)', boxShadow: 'var(--glow)' } : undefined}>
@@ -85,7 +85,7 @@ export function Onboarding({ onDone }: { onDone: (path?: string) => void }) {
 
   return (
     <div className="fixed inset-0 z-[70] overflow-y-auto" style={{ background: 'var(--bg)' }} role="dialog" aria-modal="true" aria-label="Welcome to Controls Academy">
-      <div className="absolute top-0 right-0 w-[320px] opacity-60 pointer-events-none" aria-hidden="true"><Traces className="w-full h-auto" /></div>
+      <div className="absolute top-0 right-0 w-80 opacity-60 pointer-events-none" aria-hidden="true"><Traces className="w-full h-auto" /></div>
       <div className="min-h-full flex flex-col max-w-xl mx-auto px-4" style={{ paddingTop: 'calc(var(--safe-top) + 24px)', paddingBottom: 'calc(var(--safe-bottom) + 20px)' }}>
         <div className="flex items-center justify-between mb-6">
           <div className="flex gap-1.5" role="img" aria-label={`Step ${step + 1} of 4`}>

@@ -135,7 +135,7 @@ export function OperandSheet({
               {sugg.length > 0 && (
                 <div className="flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label={`Suggestions for ${a.name}`}>
                   {sugg.slice(0, 24).map((s) => (
-                    <button type="button" key={s} className="chip whitespace-nowrap cursor-pointer !min-h-[44px]" aria-pressed={v === s} onClick={() => { const next = [...fixedArgs]; next[i] = s; setArgs(next); }}>
+                    <button type="button" key={s} className="chip whitespace-nowrap cursor-pointer !min-h-11" aria-pressed={v === s} onClick={() => { const next = [...fixedArgs]; next[i] = s; setArgs(next); }}>
                       {s}
                     </button>
                   ))}
@@ -146,7 +146,7 @@ export function OperandSheet({
         })}
 
         <details className="rounded-xl border border-line p-3">
-          <summary className="cursor-pointer font-semibold text-heading min-h-[28px]">Create a new tag</summary>
+          <summary className="cursor-pointer font-semibold text-heading min-h-7">Create a new tag</summary>
           <div className="grid gap-2 mt-3 sm:grid-cols-[1fr_auto_auto_auto] items-end">
             <label className="block"><span className="text-xs text-muted">Name</span><input className="input font-mono" value={newName} onChange={(e) => setNewName(e.target.value.replace(/\s/g, '_'))} placeholder="Pump1_Run" /></label>
             <label className="block"><span className="text-xs text-muted">Type</span>

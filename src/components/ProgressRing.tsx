@@ -16,7 +16,7 @@ export function ProgressRing({ pct, size = 56, stroke = 6, live = false, childre
           className={`ring-arc ${live ? 'ring-live' : ''}`} strokeDasharray={c} strokeDashoffset={drawn ? c * (1 - p) : c}
         />
       </svg>
-      <div className="absolute inset-0 flex items-center justify-center text-[0.72rem] font-bold text-heading">{children}</div>
+      <div className="absolute inset-0 flex items-center justify-center text-xs font-bold text-heading">{children}</div>
     </div>
   );
 }

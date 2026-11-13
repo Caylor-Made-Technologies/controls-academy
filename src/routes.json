@@ -46,5 +46,9 @@
   "about": {
     "page": "AboutPage",
     "samples": ["about"]
+  },
+  "styleguide": {
+    "page": "StyleguidePage",
+    "samples": ["styleguide"]
   }
 }

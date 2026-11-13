@@ -13,7 +13,7 @@ export function splitVerify(text: string): { text: string; verify: string | null
 
 export function VerifyFlag({ note }: { note: string }) {
   return (
-    <span className="chip chip-warn ml-1 align-middle !min-h-[22px] !text-[0.68rem]" title={`Check your platform's manual: ${note}`}>
+    <span className="chip chip-warn ml-1 align-middle !min-h-5.5 !text-2xs" title={`Check your platform's manual: ${note}`}>
       <Icon name="flag" size={12} /> check your manual
     </span>
   );

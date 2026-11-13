@@ -84,7 +84,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
       <ul id="palette-results" ref={listRef} role="listbox" className="list-none p-0 m-0 mt-3 space-y-1 max-h-[55dvh] overflow-y-auto">
         {results.map((r, i) => (
           <li key={r.path + r.title} id={`pal-${i}`} role="option" aria-selected={i === active}>
-            <button type="button" className="w-full flex gap-3 items-start text-left rounded-xl p-2.5 cursor-pointer min-h-[48px]" style={{ background: i === active ? 'var(--blue-soft)' : undefined }} onClick={() => go(r)} onMouseEnter={() => setActive(i)}>
+            <button type="button" className="w-full flex gap-3 items-start text-left rounded-xl p-2.5 cursor-pointer min-h-12" style={{ background: i === active ? 'var(--blue-soft)' : undefined }} onClick={() => go(r)} onMouseEnter={() => setActive(i)}>
               <Icon name={r.icon} size={18} className="flex-none mt-0.5 text-glow" />
               <span className="min-w-0">
                 <span className="block font-semibold text-heading text-sm">{r.title}</span>

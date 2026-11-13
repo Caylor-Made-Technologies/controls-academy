@@ -98,7 +98,6 @@ export default function SkillMapPage() {
 
   return (
     <div>
-      <a href={href('learn')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Learn</a>
       <RouteHead seg="skills" />
 
       <div className="flex flex-wrap items-center gap-2 mb-3">
@@ -164,7 +163,7 @@ export default function SkillMapPage() {
                   const pre = l.prereqs.map((p) => LESSONS.find((x) => x.id === p)!.title);
                   return (
                     <li key={id}>
-                      <a href={href(`lesson/${id}`)} className="flex items-start gap-3 rounded-xl px-3 py-2.5 bg-raised no-underline text-body hover:text-heading min-h-[48px]">
+                      <a href={href(`lesson/${id}`)} className="flex items-start gap-3 rounded-xl px-3 py-2.5 bg-raised no-underline text-body hover:text-heading min-h-12">
                         <span className={`chip skill-chip skill-${s} flex-none`}>{STATE_TEXT[s]}</span>
                         <span className="min-w-0">
                           <span className="block font-semibold text-heading">{l.title}</span>

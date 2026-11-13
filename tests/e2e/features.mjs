@@ -802,6 +802,8 @@ await check('3D: every machine has a live 3D view; Fault Hunt probes drag onto t
   await go(page, 'troubleshoot/tk-wire');
   const c = page.locator('section[aria-label="Multimeter"] canvas');
   await c.waitFor({ timeout: 30000 });
+  // Wait until the bench has really drawn (not a fixed pause): the probe can only be picked up once it exists.
+  await page.waitForSelector('section[aria-label="Multimeter"] .stage-canvas[data-drawn="true"]', { timeout: 30000 });
   await c.scrollIntoViewIfNeeded();
   await page.waitForTimeout(1500);
   const bb = await c.boundingBox();

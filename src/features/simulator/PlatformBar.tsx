@@ -41,8 +41,8 @@ export function PlatformBar({ program }: { program: Program }) {
       >
         <span className="platform-maker">{makerShort(skin.maker)}</span>
         <span className="min-w-0 flex-1">
-          <span className="block font-head font-extrabold text-heading text-[0.98rem] leading-tight">{skin.family}</span>
-          <span className="block text-[0.74rem] text-muted leading-snug">{skin.style}</span>
+          <span className="block font-head font-extrabold text-heading text-base leading-tight">{skin.family}</span>
+          <span className="block text-xs text-muted leading-snug">{skin.style}</span>
           <span className="flex flex-wrap gap-1.5 mt-1.5">
             {examples.map(([tag, addr]) => (
               <span key={tag} className="platform-ex" title={`${tag} → ${addr}`}>
@@ -51,7 +51,7 @@ export function PlatformBar({ program }: { program: Program }) {
             ))}
           </span>
         </span>
-        <span className="chip chip-blue flex-none !min-h-[32px] self-start"><Icon name="layers" size={14} /><span className="hidden sm:inline">Change</span></span>
+        <span className="chip chip-blue flex-none !min-h-8 self-start"><Icon name="layers" size={14} /><span className="hidden sm:inline">Change</span></span>
       </button>
 
       <Sheet open={open} onClose={() => setOpen(false)} title="Which PLC are you working on?" wide>
@@ -59,7 +59,7 @@ export function PlatformBar({ program }: { program: Program }) {
         <div className="space-y-4" role="radiogroup" aria-label="PLC platform">
           {groups.map((g) => (
             <section key={g.maker}>
-              <h3 className="text-[0.72rem] font-bold tracking-[0.14em] uppercase text-muted mb-2">{g.maker}</h3>
+              <h3 className="text-xs font-bold tracking-[0.14em] uppercase text-muted mb-2">{g.maker}</h3>
               <div className="grid gap-2 sm:grid-cols-2">
                 {g.skins.map((sk) => {
                   const m = addressMap(program, sk);

@@ -41,7 +41,7 @@ function Invalidator({ rt, extra }: { rt: SimRuntime; extra?: (rt: SimRuntime) =
 /** HUD readout in its own component: its text changes every scan; nothing else should re-render. */
 function HudReadout({ rt, read }: { rt: SimRuntime; read: (rt: SimRuntime) => string }) {
   const text = useSyncExternalStore(rt.subscribe, () => read(rt));
-  return <span role="status" className="ml-auto hud-chip !cursor-default tabular-nums max-sm:!text-[0.7rem] max-sm:!px-2.5" aria-live="off">{text}</span>;
+  return <span role="status" className="ml-auto hud-chip !cursor-default tabular-nums max-sm:!text-2xs max-sm:!px-2.5" aria-live="off">{text}</span>;
 }
 
 /** Back the camera off on narrow (portrait) canvases so the whole machine fits a phone. */

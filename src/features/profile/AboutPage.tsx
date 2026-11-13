@@ -8,7 +8,6 @@ const BASE = import.meta.env.BASE_URL;
 export default function AboutPage() {
   return (
     <div className="max-w-[72ch]">
-      <a href={href('profile')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Profile</a>
       <RouteHead seg="about" />
 
       <section className="card card-pad mb-4 flex gap-4 items-center">
@@ -39,7 +38,7 @@ export default function AboutPage() {
       </ul>
 
       <h2 className="text-lg font-bold mt-6 mb-2">Training only</h2>
-      <p>This is educational software. It is not a substitute for qualified training, manufacturer documentation, or your site's procedures. Never apply anything here to live equipment without authorization. Example values (motor current, overload timing, raw analog ranges) are illustrative. Items marked <span className="chip chip-warn !min-h-[22px] !text-[0.68rem]">check your manual</span> vary by platform, model or version.</p>
+      <p>This is educational software. It is not a substitute for qualified training, manufacturer documentation, or your site's procedures. Never apply anything here to live equipment without authorization. Example values (motor current, overload timing, raw analog ranges) are illustrative. Items marked <span className="chip chip-warn !min-h-5.5 !text-2xs">check your manual</span> vary by platform, model or version.</p>
       <p className="text-sm text-muted">Terms and policy text here are templates until reviewed by an attorney.</p>
 
       <h2 className="text-lg font-bold mt-6 mb-2">Trademarks</h2>
@@ -51,7 +50,7 @@ export default function AboutPage() {
         <li>Built with React, Vite, Tailwind CSS, Framer Motion, Zustand and idb-keyval (MIT / Apache-2.0 licensed open-source projects).</li>
         <li>App icon, CM monogram and all diagrams: original artwork by Caylor Made Technologies. Sounds are generated on device.</li>
       </ul>
-      <p className="text-sm text-muted mt-4">Source: <a href={BUSINESS.github} target="_blank" rel="noopener noreferrer">GitHub</a> · Version {__APP_VERSION__}</p>
+      <p className="text-sm text-muted mt-4">Source: <a href={BUSINESS.github} target="_blank" rel="noopener noreferrer">GitHub</a> · Version {__APP_VERSION__} · <a href={href('styleguide')}>Styleguide</a></p>
     </div>
   );
 }

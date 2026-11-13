@@ -55,7 +55,7 @@ export default function LearnPage() {
       {/* Stats strip */}
       <section className="card card-pad flex items-center gap-4 mb-4" aria-label="Your progress">
         <ProgressRing pct={lv.pct} size={64} label={`Level progress to ${lv.next ?? 'max'}`}>
-          <span className="text-center leading-none"><span className="block text-[0.6rem] text-muted">LVL</span>{lv.index + 1}</span>
+          <span className="text-center leading-none"><span className="block text-2xs text-muted">LVL</span>{lv.index + 1}</span>
         </ProgressRing>
         <div className="min-w-0 flex-1">
           <p className="m-0 font-head font-bold text-heading">{lv.name}</p>
@@ -111,11 +111,11 @@ export default function LearnPage() {
         </span>
       </div>
       <ol className="relative list-none p-0 m-0 space-y-3" aria-label="Tracks">
-        <span className="absolute left-[27px] top-6 bottom-6 w-[3px] rounded bg-line" aria-hidden="true" />
+        <span className="absolute left-6.75 top-6 bottom-6 w-0.75 rounded bg-line" aria-hidden="true" />
         {TRACKS.map((t, i) => {
           const tp = trackProgress(p, t.id);
           return (
-            <li key={t.id} className="relative pl-[68px]" data-enter="rise" style={{ '--i': Math.min(i, 6) } as CSSProperties}>
+            <li key={t.id} className="relative pl-17" data-enter="rise" style={{ '--i': Math.min(i, 6) } as CSSProperties}>
               <div className="absolute left-0 top-2">
                 <ProgressRing pct={tp.pct} size={56} live={tp.complete} label={`Track ${t.n} progress`}>
                   {tp.complete ? <Icon name="check" size={20} className="text-live" /> : t.n}
@@ -139,12 +139,12 @@ export default function LearnPage() {
                     const rec2 = p.lessons[id];
                     return (
                       <li key={id}>
-                        <a style={id === recLesson?.id ? undefined : { viewTransitionName: vtName('lesson', id) }} href={href(`lesson/${id}`)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 bg-raised no-underline text-body hover:text-heading min-h-[48px]">
-                          <span className={`flex-none w-7 h-7 rounded-full flex items-center justify-center border-2 ${rec2 ? 'border-live bg-live text-[#062a1b]' : 'border-line-strong'}`} aria-hidden="true">
+                        <a style={id === recLesson?.id ? undefined : { viewTransitionName: vtName('lesson', id) }} href={href(`lesson/${id}`)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 bg-raised no-underline text-body hover:text-heading min-h-12">
+                          <span className={`flex-none w-7 h-7 rounded-full flex items-center justify-center border-2 ${rec2 ? 'border-live bg-live text-on-live' : 'border-line-strong'}`} aria-hidden="true">
                             {rec2 ? <Icon name="check" size={15} /> : null}
                           </span>
                           <span className="flex-1 min-w-0">
-                            <span className="block font-semibold text-heading text-[0.95rem]">{l.title}</span>
+                            <span className="block font-semibold text-heading text-base">{l.title}</span>
                             <span className="block text-xs text-muted">{l.minutes} min{l.task ? ' · hands-on' : ''}{rec2 ? ` · quiz ${rec2.score}/${rec2.total}` : ''}</span>
                           </span>
                           <span className="sr-only">{rec2 ? 'Completed' : 'Not started'}</span>
@@ -157,7 +157,7 @@ export default function LearnPage() {
                     <li key={title} className="flex items-center gap-3 rounded-xl px-3 py-2 text-muted text-sm border border-dashed border-line">
                       <span className="flex-none w-7 h-7 rounded-full border-2 border-dashed border-line" aria-hidden="true" />
                       <span className="flex-1">{title}</span>
-                      <span className="chip !min-h-[22px] !text-[0.65rem]">Coming</span>
+                      <span className="chip !min-h-5.5 !text-2xs">Coming</span>
                     </li>
                   ))}
                 </ul>

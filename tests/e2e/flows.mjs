@@ -26,6 +26,8 @@ ok(true, 'onboarding lands on first lesson');
 await page.goto(URL0 + '#/lesson/three-wire');
 await page.waitForSelector('text=Hands-on');
 const start = page.getByRole('button', { name: /^Start pushbutton/ });
+// Raw mouse events below: let the screen-change transition finish first (the page ignores input while it runs).
+await page.waitForFunction(() => !document.getAnimations().some((x) => x.effect?.pseudoElement?.startsWith('::view-transition')));
 await start.scrollIntoViewIfNeeded();
 const box = await start.boundingBox();
 await page.mouse.move(box.x + box.width / 2, box.y + 20);

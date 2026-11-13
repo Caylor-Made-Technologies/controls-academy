@@ -6,7 +6,7 @@
  */
 
 /** Colors only tell wires apart on screen (real color codes vary by site, voltage and country). */
-export const WIRE_COLORS = ['#ef4444', '#3b82f6', '#f59e0b', '#22c55e', '#a855f7', '#ec4899', '#14b8a6', '#f97316'];
+export { WIRE_COLORS } from '../three/palette';
 
 export interface Terminal { id: string; label: string }
 export interface WDevice { id: string; name: string; note: string; terminals: Terminal[] }

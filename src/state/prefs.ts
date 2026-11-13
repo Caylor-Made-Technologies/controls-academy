@@ -52,5 +52,7 @@ export const usePrefs = create<PrefsStore>((setState, getState) => ({
 export function applyTheme(theme: ThemePref): void {
   const dark = theme === 'dark' || (theme === 'system' && window.matchMedia?.('(prefers-color-scheme: dark)').matches);
   document.documentElement.dataset.theme = dark ? 'dark' : 'light';
-  document.querySelector('meta[name="theme-color"]')?.setAttribute('content', dark ? '#0b0f14' : '#f4f7fb');
+  // The browser bar takes the page color (the --bg token of the theme just applied).
+  const bg = getComputedStyle(document.documentElement).getPropertyValue('--bg').trim();
+  if (bg) document.querySelector('meta[name="theme-color"]')?.setAttribute('content', bg);
 }

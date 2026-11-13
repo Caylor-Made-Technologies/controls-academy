@@ -47,6 +47,8 @@ const P: Record<string, string> = {
 };
 
 export type IconName = keyof typeof P;
+/** Every icon name (for the styleguide). */
+export const ICON_NAMES = Object.keys(P) as IconName[];
 
 export function Icon({ name, size = 22, ...rest }: { name: IconName; size?: number } & SVGProps<SVGSVGElement>) {
   return (

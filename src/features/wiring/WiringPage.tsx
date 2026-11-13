@@ -8,6 +8,7 @@ import { href } from '../../lib/router';
 import { EXERCISES, EXERCISE_BY_ID, WIRE_COLORS, checkWiring, type CheckResult, type Exercise, type Wire } from '../../lib/wiring';
 import { usePrefs } from '../../state/prefs';
 import { hasWebGL, prefer3D } from '../../three/support';
+import { Callout } from '../../components/ui';
 
 const WiringBoard3D = lazy(() => import('../../three/WiringBoard3D'));
 
@@ -45,7 +46,7 @@ function Trainer({ ex }: { ex: Exercise }) {
     <div>
       <a href={href('wiring')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Wiring trainer</a>
       <PageHead eyebrow="Wiring trainer" title={ex.title}>{ex.goal}</PageHead>
-      <div className="callout callout-safety mb-3 flex gap-2 text-sm"><Icon name="shield" size={16} className="flex-none mt-0.5" /><span>{ex.safety}</span></div>
+      <Callout tone="safety" className="mb-3">{ex.safety}</Callout>
 
       {can3d && (
         <div className="seg mb-2" role="group" aria-label="Board view">
@@ -73,8 +74,8 @@ function Trainer({ ex }: { ex: Exercise }) {
               {d.terminals.map((t) => {
                 const n = wires.filter(([a, b]) => a === t.id || b === t.id).length;
                 return (
-                  <button key={t.id} type="button" className={`btn btn-sm ${armed === t.id ? 'btn-primary' : ''} !min-h-[44px]`} aria-pressed={armed === t.id} onClick={() => tap(t.id)}>
-                    {t.label}{n > 0 && <span className="chip !text-[0.68rem] !min-h-0 !py-0 ml-1"><span aria-hidden="true">{n}</span><span className="sr-only">({n} wire{n > 1 ? 's' : ''})</span></span>}
+                  <button key={t.id} type="button" className={`btn btn-sm ${armed === t.id ? 'btn-primary' : ''} !min-h-11`} aria-pressed={armed === t.id} onClick={() => tap(t.id)}>
+                    {t.label}{n > 0 && <span className="chip !text-2xs !min-h-0 !py-0 ml-1"><span aria-hidden="true">{n}</span><span className="sr-only">({n} wire{n > 1 ? 's' : ''})</span></span>}
                   </button>
                 );
               })}
@@ -91,7 +92,7 @@ function Trainer({ ex }: { ex: Exercise }) {
               <li key={`${a}-${b}`} className="flex items-center gap-2 text-sm">
                 <span className="inline-block w-3 h-3 rounded-full flex-none" style={{ background: colors[i] }} aria-hidden="true" />
                 <span className="flex-1">{label.get(a)} → {label.get(b)}</span>
-                <button type="button" className="btn btn-ghost btn-sm !min-h-[44px]" onClick={() => remove(i)} aria-label={`Remove wire ${label.get(a)} to ${label.get(b)}`}><Icon name="x" size={16} /></button>
+                <button type="button" className="btn btn-ghost btn-sm !min-h-11" onClick={() => remove(i)} aria-label={`Remove wire ${label.get(a)} to ${label.get(b)}`}><Icon name="x" size={16} /></button>
               </li>
             ))}
           </ul>
@@ -128,7 +129,6 @@ export default function WiringPage({ id }: { id?: string }) {
   if (ex) return <Trainer key={ex.id} ex={ex} />;
   return (
     <div>
-      <a href={href('sim')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Simulator</a>
       <RouteHead seg="wiring" />
       <div className="grid gap-2 sm:grid-cols-2">
         {EXERCISES.map((e) => (

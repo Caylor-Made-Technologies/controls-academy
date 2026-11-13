@@ -47,10 +47,10 @@ export function PushButton({ label, color, pressed, onChange, hint }: { label: s
 
 export function Lamp({ on, color, label }: { on: boolean; color: 'green' | 'amber' | 'red'; label: string }) {
   return (
-    <div className="flex flex-col items-center gap-1.5 min-w-[56px]">
+    <div className="flex flex-col items-center gap-1.5 min-w-14">
       <span className="lamp" data-on={on} data-color={color} role="img" aria-label={`${label} light ${on ? 'on' : 'off'}`} />
-      <span className="text-[0.72rem] font-bold">{label}</span>
-      <span className="text-[0.62rem] font-bold text-muted">{on ? 'ON' : 'OFF'}</span>
+      <span className="text-xs font-bold">{label}</span>
+      <span className="text-2xs font-bold text-muted">{on ? 'ON' : 'OFF'}</span>
     </div>
   );
 }
@@ -83,7 +83,7 @@ export function MotorPanel({ rt, onDevice, compact }: { rt: SimRuntime; onDevice
 
       {/* Operator station */}
       <div className="rounded-2xl border border-line bg-sunk p-3 sm:p-4">
-        <p className="text-[0.7rem] font-bold tracking-widest uppercase text-muted m-0 mb-3">Operator station</p>
+        <p className="text-2xs font-bold tracking-widest uppercase text-muted m-0 mb-3">Operator station</p>
         <div className="flex flex-wrap items-end justify-around gap-x-2 gap-y-4">
           <PushButton label="Start" color="green" pressed={s.startPressed} onChange={(v) => set({ startPressed: v })} hint="Normally open, input I0" />
           <PushButton label="Stop" color="red" pressed={s.stopPressed} onChange={(v) => set({ stopPressed: v })} hint="Normally closed, input I1" />
@@ -115,38 +115,38 @@ export function MotorPanel({ rt, onDevice, compact }: { rt: SimRuntime; onDevice
         <div className="grid grid-cols-3 gap-2 items-stretch">
           <button type="button" className="rounded-xl border border-line bg-sunk p-2 text-left cursor-pointer" onClick={() => onDevice?.('coil')} aria-label={`Contactor M1, ${s.contactor ? 'pulled in' : 'dropped out'}. Tap for details.`}>
             <svg viewBox="0 0 80 70" className="w-full h-16" aria-hidden="true">
-              <rect x="10" y="6" width="60" height="58" rx="6" fill="#2a3242" stroke="#3a4558" />
-              <rect x="18" y={s.contactor ? 26 : 16} width="44" height="12" rx="3" fill={s.contactor ? 'var(--live)' : '#5b6a80'} style={{ transition: 'y 0.05s' }} />
-              {[24, 40, 56].map((x) => <circle key={x} cx={x} cy="52" r="4" fill="#8a96a8" />)}
+              <rect x="10" y="6" width="60" height="58" rx="6" fill="var(--dev-body)" stroke="var(--led-off-line)" />
+              <rect x="18" y={s.contactor ? 26 : 16} width="44" height="12" rx="3" fill={s.contactor ? 'var(--live)' : 'var(--dev-idle)'} style={{ transition: 'y 0.05s' }} />
+              {[24, 40, 56].map((x) => <circle key={x} cx={x} cy="52" r="4" fill="var(--dev-metal)" />)}
             </svg>
-            <span className="block text-[0.72rem] font-bold">M1 contactor</span>
-            <span className="block text-[0.66rem] text-muted">{s.contactor ? 'Pulled in' : 'Dropped out'}</span>
+            <span className="block text-xs font-bold">M1 contactor</span>
+            <span className="block text-2xs text-muted">{s.contactor ? 'Pulled in' : 'Dropped out'}</span>
           </button>
           <button type="button" className="rounded-xl border border-line bg-sunk p-2 text-left cursor-pointer" onClick={() => onDevice?.('ol')} aria-label={`Overload relay, ${s.olTripped ? 'tripped' : 'OK'}, ${Math.round(s.olHeat * 100)}% thermal. Tap for details.`}>
             <svg viewBox="0 0 80 70" className="w-full h-16" aria-hidden="true">
-              <rect x="10" y="10" width="60" height="50" rx="6" fill="#2a3242" stroke="#3a4558" />
-              <rect x="16" y="46" width="48" height="6" rx="3" fill="#1a2030" />
+              <rect x="10" y="10" width="60" height="50" rx="6" fill="var(--dev-body)" stroke="var(--led-off-line)" />
+              <rect x="16" y="46" width="48" height="6" rx="3" fill="var(--dev-slot)" />
               <rect x="16" y="46" width={48 * Math.min(1, s.olHeat)} height="6" rx="3" fill={s.olHeat > 0.7 ? 'var(--alarm)' : 'var(--warn)'} />
-              <rect x="28" y={s.olTripped ? 2 : 14} width="24" height="10" rx="2" fill={s.olTripped ? 'var(--alarm)' : '#5b6a80'} />
-              <text x="40" y="38" textAnchor="middle" fontSize="11" fontWeight="800" fill="#c9d3e0">95-96</text>
+              <rect x="28" y={s.olTripped ? 2 : 14} width="24" height="10" rx="2" fill={s.olTripped ? 'var(--alarm)' : 'var(--dev-idle)'} />
+              <text x="40" y="38" textAnchor="middle" fontSize="11" fontWeight="800" fill="var(--dev-text)">95-96</text>
             </svg>
-            <span className="block text-[0.72rem] font-bold">Overload</span>
-            <span className="block text-[0.66rem] text-muted">{s.olTripped ? 'TRIPPED' : `${Math.round(s.olHeat * 100)}% heat`}</span>
+            <span className="block text-xs font-bold">Overload</span>
+            <span className="block text-2xs text-muted">{s.olTripped ? 'TRIPPED' : `${Math.round(s.olHeat * 100)}% heat`}</span>
           </button>
           <div className="rounded-xl border border-line bg-sunk p-2" role="img" aria-label={`Motor at ${Math.round(s.rpm)} RPM drawing ${s.amps.toFixed(1)} amps${s.jammed ? ', load jammed' : ''}`}>
             <svg viewBox="0 0 80 70" className="w-full h-16" aria-hidden="true">
-              <rect x="6" y="18" width="52" height="40" rx="8" fill="#334155" />
-              {[24, 30, 36, 42, 48].map((y) => <rect key={y} x="10" y={y} width="44" height="2" fill="#475569" />)}
-              <rect x="58" y="34" width="16" height="8" rx="2" fill="#94a3b8" />
+              <rect x="6" y="18" width="52" height="40" rx="8" fill="var(--dev-motor)" />
+              {[24, 30, 36, 42, 48].map((y) => <rect key={y} x="10" y={y} width="44" height="2" fill="var(--dev-fin)" />)}
+              <rect x="58" y="34" width="16" height="8" rx="2" fill="var(--dev-shaft)" />
               <g transform="translate(66 38)">
                 <g className={spinDur ? 'motor-spin' : ''} style={spinDur ? { animation: `spin ${spinDur}s linear infinite` } : undefined}>
-                  <path d="M0 -14 L3 0 L0 14 L-3 0 Z" fill={s.rpm > 30 ? 'var(--live)' : '#94a3b8'} />
-                  <path d="M-14 0 L0 3 L14 0 L0 -3 Z" fill={s.rpm > 30 ? 'var(--live)' : '#94a3b8'} />
+                  <path d="M0 -14 L3 0 L0 14 L-3 0 Z" fill={s.rpm > 30 ? 'var(--live)' : 'var(--dev-shaft)'} />
+                  <path d="M-14 0 L0 3 L14 0 L0 -3 Z" fill={s.rpm > 30 ? 'var(--live)' : 'var(--dev-shaft)'} />
                 </g>
               </g>
             </svg>
-            <span className="block text-[0.72rem] font-bold">Motor</span>
-            <span className="block text-[0.66rem] text-muted tabular-nums">{Math.round(s.rpm)} rpm · {s.amps.toFixed(1)} A</span>
+            <span className="block text-xs font-bold">Motor</span>
+            <span className="block text-2xs text-muted tabular-nums">{Math.round(s.rpm)} rpm · {s.amps.toFixed(1)} A</span>
             <span className="block h-1.5 rounded-full bg-raised mt-1 overflow-hidden"><span className="block h-full rounded-full" style={{ width: `${ampsPct * 100}%`, background: ampsPct > 0.3 ? 'var(--alarm)' : 'var(--live)' }} /></span>
           </div>
         </div>
@@ -187,7 +187,7 @@ export function IoCards({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: stri
   const outs = devices.filter((d) => d.io?.kind === 'DO').sort((a, b) => a.io!.point - b.io!.point);
   const row = (kind: 'DI' | 'DO', list: typeof ins) => list.length === 0 ? null : (
     <div className="rounded-xl border border-line bg-sunk p-2.5">
-      <p className="text-[0.68rem] font-bold tracking-widest uppercase text-muted m-0 mb-2">{kind === 'DI' ? 'Input card · 24 VDC' : 'Output card'}</p>
+      <p className="text-2xs font-bold tracking-widest uppercase text-muted m-0 mb-2">{kind === 'DI' ? 'Input card · 24 VDC' : 'Output card'}</p>
       <div className="grid grid-cols-3 gap-1.5">
         {list.map((d) => {
           const on = kind === 'DI' ? io.DI[d.io!.point] : io.DO[d.io!.point];
@@ -196,14 +196,14 @@ export function IoCards({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: stri
             <button
               type="button"
               key={d.id}
-              className="flex flex-col items-center gap-1 rounded-lg py-1.5 min-h-[44px] hover:bg-raised cursor-pointer relative"
+              className="flex flex-col items-center gap-1 rounded-lg py-1.5 min-h-11 hover:bg-raised cursor-pointer relative"
               onClick={() => onDevice?.(d.id)}
               aria-label={`${kind === 'DI' ? 'Input' : 'Output'} ${d.io!.point}, ${d.label}: ${on ? 'ON' : 'OFF'}${forced ? ', forced' : ''}`}
             >
               <span className="io-led" data-on={on} data-kind={kind} />
-              <span className="text-[0.62rem] font-mono font-bold">{kind === 'DI' ? 'I' : 'O'}{d.io!.point}</span>
-              <span className="text-[0.6rem] text-muted leading-tight text-center">{d.label}</span>
-              {forced && <span className="absolute top-0 right-1 text-[0.55rem] font-extrabold text-warn">F</span>}
+              <span className="text-2xs font-mono font-bold">{kind === 'DI' ? 'I' : 'O'}{d.io!.point}</span>
+              <span className="text-2xs text-muted leading-tight text-center">{d.label}</span>
+              {forced && <span className="absolute top-0 right-1 text-2xs font-extrabold text-warn">F</span>}
             </button>
           );
         })}
@@ -256,13 +256,13 @@ function MotorCurve({ s, open }: { s: MotorState; open: boolean }) {
   ];
   return (
     <details className="rounded-xl border border-line bg-sunk p-3 group" open={open}>
-      <summary className="cursor-pointer font-bold text-sm text-heading flex items-center justify-between min-h-[32px]">
+      <summary className="cursor-pointer font-bold text-sm text-heading flex items-center justify-between min-h-8">
         Motor physics <span className="text-xs text-muted font-semibold">torque vs speed · live</span>
       </summary>
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 mt-2" role="group" aria-label="Live motor readings">
         {read.map(([k, v]) => (
           <div key={k} className="rounded-lg border border-line px-2 py-1.5 bg-raised">
-            <span className="block text-[0.62rem] uppercase tracking-wider text-muted font-bold">{k}</span>
+            <span className="block text-2xs uppercase tracking-wider text-muted font-bold">{k}</span>
             <span className="block text-sm font-bold text-heading tabular-nums">{v}</span>
           </div>
         ))}
@@ -283,12 +283,12 @@ function MotorCurve({ s, open }: { s: MotorState; open: boolean }) {
           : <polyline points={curves.load} fill="none" stroke="var(--text-muted)" strokeWidth="1.4" strokeDasharray="5 3" />}
         <circle cx={pt.cx} cy={pt.cy} r="5" fill={s.jammed && running ? 'var(--alarm)' : running ? 'var(--live)' : 'var(--text-muted)'} stroke="var(--bg)" strokeWidth="1.5" />
       </svg>
-      <div className="flex flex-wrap gap-x-3 gap-y-1 text-[0.7rem] text-muted mt-1">
+      <div className="flex flex-wrap gap-x-3 gap-y-1 text-2xs text-muted mt-1">
         <span><span className="inline-block w-3 h-0.5 align-middle mr-1" style={{ background: 'var(--blue-glow)' }} />Motor torque</span>
         <span><span className="inline-block w-3 h-0.5 align-middle mr-1" style={{ background: s.jammed ? 'var(--alarm)' : 'var(--text-muted)' }} />Load torque{s.jammed ? ' (jammed)' : ''}</span>
         <span><span className="inline-block w-3 h-0.5 align-middle mr-1" style={{ background: 'var(--warn)' }} />Current (0–6.5× FLA)</span>
       </div>
-      <p className="text-[0.72rem] text-muted mt-1.5 mb-0">Where the two curves cross is where the motor settles. Starting current is about 6× nameplate; it falls as speed comes up. Jam the load and the load line rises above the motor curve: it can't accelerate, current stays high, and the overload trips. Illustrative design B–like curve, not a specific motor.</p>
+      <p className="text-xs text-muted mt-1.5 mb-0">Where the two curves cross is where the motor settles. Starting current is about 6× nameplate; it falls as speed comes up. Jam the load and the load line rises above the motor curve: it can't accelerate, current stays high, and the overload trips. Illustrative design B–like curve, not a specific motor.</p>
     </details>
   );
 }

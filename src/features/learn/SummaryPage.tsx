@@ -49,7 +49,7 @@ export default function SummaryPage({ track }: { track?: string }) {
     return (
       <div>
         <a href={href('learn')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Learn</a>
-        <h1 className="text-[1.6rem] font-extrabold">Study summaries</h1>
+        <h1 className="text-2xl font-extrabold">Study summaries</h1>
         <p className="text-muted">One printable page per track: key terms, formulas, safety points and common mistakes.</p>
         <ul className="list-none p-0 m-0 grid gap-2 sm:grid-cols-2">
           {TRACKS.map((x) => <li key={x.id}><a className="card card-link card-pad block" href={href(`summary/${x.id}`)}><span className="eyebrow">Track {x.n}</span><span className="block font-bold text-heading mt-1">{x.title}</span></a></li>)}
@@ -66,7 +66,7 @@ export default function SummaryPage({ track }: { track?: string }) {
       </div>
       <header className="mb-4">
         <p className="eyebrow m-0">Study summary · Track {t.n} · {t.level}</p>
-        <h1 className="text-[1.6rem] sm:text-[2rem] font-extrabold mt-1">{t.title}</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold mt-1">{t.title}</h1>
         <p className="text-muted m-0">{t.blurb}</p>
         <p className="text-xs text-muted m-0 mt-1">Controls Academy by {BUSINESS.name}. Training material, not site procedure — your site's procedures and training come first.</p>
       </header>

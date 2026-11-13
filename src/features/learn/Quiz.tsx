@@ -13,7 +13,7 @@ export function QuestionCard({ q, onAnswer, n, of }: { q: Question; onAnswer: (c
   return (
     <div className="card card-pad">
       {n !== undefined && <p className="text-xs text-muted m-0 mb-1 font-semibold">Question {n} of {of}</p>}
-      <p className="font-semibold text-heading mt-0 text-[1.02rem]" id={`${q.id}-q`}><Rich text={q.q} /></p>
+      <p className="font-semibold text-heading mt-0 text-base" id={`${q.id}-q`}><Rich text={q.q} /></p>
       <div className="grid gap-2" role="radiogroup" aria-labelledby={`${q.id}-q`}>
         {order.map((i, pos) => {
           const c = q.choices[i];

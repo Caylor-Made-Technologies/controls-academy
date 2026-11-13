@@ -37,8 +37,8 @@ export function Ladder({ program, skin, plc, version, selected, onSelect, onKey,
         <RungView key={r.id} rung={r} index={i} ctx={{ p: program, skin, map, plc, sel: selected, onSelect, rungId: r.id }} pointer={pointerRung === i} compact={compact} />
       ))}
       {routine.rungs.length === 0 && <p className="muted text-sm font-body p-4">No rungs yet. Add one with the + Rung button.</p>}
-      <div className="flex items-center gap-2 mt-2 pl-[34px]">
-        <span className="font-body text-[0.7rem] text-muted">(End)</span>
+      <div className="flex items-center gap-2 mt-2 pl-8.5">
+        <span className="font-body text-2xs text-muted">(End)</span>
       </div>
     </div>
   );

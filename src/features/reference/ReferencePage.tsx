@@ -93,7 +93,7 @@ function List({ title, items, tone }: { title: string; items: string[]; tone?: '
   return (
     <section className={`card card-pad ${tone === 'gotcha' ? '' : ''}`} style={tone === 'gotcha' ? { borderColor: 'var(--warn)' } : undefined}>
       <h2 className="text-base font-bold flex items-center gap-2 mb-2">{tone === 'gotcha' && <Icon name="warn" size={18} className="text-warn" />}{tone === 'tip' && <Icon name="bolt" size={18} className="text-live" />}{title}</h2>
-      <ul className="pl-5 list-disc space-y-1.5 m-0 text-[0.95rem]">{items.map((t, i) => <li key={i}><Rich text={t} /></li>)}</ul>
+      <ul className="pl-5 list-disc space-y-1.5 m-0 text-base">{items.map((t, i) => <li key={i}><Rich text={t} /></li>)}</ul>
     </section>
   );
 }
@@ -163,18 +163,18 @@ function Instructions() {
       <PageHead eyebrow="Reference" title="Instruction reference">Behavior is the generic Logix/IEC baseline the simulator runs. Names are shown for your skin plus two others.</PageHead>
       <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2" role="group" aria-label="Category">
         {(['all', ...Object.keys(CATS)] as (OpCategory | 'all')[]).map((c) => (
-          <button key={c} type="button" className="chip cursor-pointer !min-h-[44px] whitespace-nowrap" aria-pressed={cat === c} style={cat === c ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined} onClick={() => setCat(c)}>{c === 'all' ? 'All' : CATS[c]}</button>
+          <button key={c} type="button" className="chip cursor-pointer !min-h-11 whitespace-nowrap" aria-pressed={cat === c} style={cat === c ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined} onClick={() => setCat(c)}>{c === 'all' ? 'All' : CATS[c]}</button>
         ))}
       </div>
       <p className="text-xs text-muted mt-0 mb-3">* = no exact native equivalent on that platform; the closest tool is shown. "—" = not available.</p>
       <div className="grid gap-2 sm:grid-cols-2">
         {list.map((o) => (
           <section key={o.op} id={`op-${o.op}`} className="card card-pad" style={focus === o.op ? { borderColor: 'var(--blue-glow)', boxShadow: 'var(--glow)' } : undefined}>
-            <div className="flex items-baseline justify-between gap-2"><h2 className="text-base font-bold font-mono m-0">{o.op}</h2><span className="chip !min-h-[22px] !text-[0.65rem]">{o.role}</span></div>
+            <div className="flex items-baseline justify-between gap-2"><h2 className="text-base font-bold font-mono m-0">{o.op}</h2><span className="chip !min-h-5.5 !text-2xs">{o.role}</span></div>
             <p className="m-0 font-semibold text-heading text-sm">{o.title}</p>
             <p className="text-sm text-muted mt-1 mb-2">{o.summary}</p>
             {o.args.length > 0 && <p className="text-xs m-0 mb-2"><span className="text-muted">Operands:</span> <span className="font-mono">{o.args.map((a) => a.name).join(', ')}</span></p>}
-            <div className="flex flex-wrap gap-1.5">{shown.map((s) => <span key={s.id} className="chip !text-[0.68rem]" title={s.brand}>{s.brand.split(' ')[0]}: <span className="font-mono">{mnemonic(o.op, s)}</span></span>)}</div>
+            <div className="flex flex-wrap gap-1.5">{shown.map((s) => <span key={s.id} className="chip !text-2xs" title={s.brand}>{s.brand.split(' ')[0]}: <span className="font-mono">{mnemonic(o.op, s)}</span></span>)}</div>
           </section>
         ))}
       </div>

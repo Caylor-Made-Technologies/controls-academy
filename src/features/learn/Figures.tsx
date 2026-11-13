@@ -27,7 +27,7 @@ function Ohms() {
         <text x="20" y="64" textAnchor="middle" fontSize="11" fontWeight="800" fill="var(--text-heading)">{v}V</text>
         <path d="M120 20 l8 -8 l10 16 l10 -16 l10 16 l10 -16 l8 8" fill="none" stroke="var(--warn)" strokeWidth="3" transform="translate(0 0)" />
         <text x="150" y="44" textAnchor="middle" fontSize="11" fill="var(--text-muted)">{r} Ω</text>
-        <circle cx="250" cy="100" r="14" fill={`rgba(255, 210, 120, ${0.15 + glow * 0.85})`} stroke="var(--border-strong)" strokeWidth="2" style={{ filter: `drop-shadow(0 0 ${glow * 14}px #ffb547)` }} />
+        <circle cx="250" cy="100" r="14" fill={`rgb(var(--rgb-bulb) / ${0.15 + glow * 0.85})`} stroke="var(--border-strong)" strokeWidth="2" style={{ filter: `drop-shadow(0 0 ${glow * 14}px var(--lamp-amber))` }} />
         <text x="150" y="80" textAnchor="middle" fontSize="16" fontWeight="800" fill="var(--live)">I = {(i * 1000).toFixed(1)} mA</text>
       </svg>
       <Slider label="Voltage" value={v} min={1} max={48} unit="V" onChange={setV} />
@@ -70,14 +70,14 @@ function SinkSource() {
         <text x="80" y="100" textAnchor="middle" fontSize="9" fill="var(--text-muted)">out = {target ? outLevel : 'off'}</text>
         <line x1="60" y1="24" x2="60" y2="62" stroke="var(--alarm)" strokeWidth="2" />
         <line x1="100" y1="112" x2="100" y2="150" stroke="var(--blue-glow)" strokeWidth="2" />
-        <circle cx="70" cy="70" r="4" fill={target ? '#ffb547' : '#3a4558'} />
+        <circle cx="70" cy="70" r="4" fill={target ? 'var(--lamp-amber)' : 'var(--led-off-line)'} />
         {/* signal wire */}
         <path d="M120 87 H200" stroke={flowing ? 'var(--live)' : 'var(--dead)'} strokeWidth="4" fill="none" style={dash} />
         {/* card */}
         <rect x="200" y="56" width="90" height="62" rx="8" fill="var(--surface-sunk)" stroke="var(--border-strong)" strokeWidth="2" />
         <text x="245" y="76" textAnchor="middle" fontSize="10" fontWeight="800" fill="var(--text-heading)">{card.toUpperCase()}</text>
         <text x="245" y="90" textAnchor="middle" fontSize="9" fill="var(--text-muted)">input card</text>
-        <rect x="236" y="96" width="18" height="12" rx="3" fill={flowing ? '#ffb547' : '#2a3342'} style={flowing ? { filter: 'drop-shadow(0 0 6px #ffb547)' } : undefined} />
+        <rect x="236" y="96" width="18" height="12" rx="3" fill={flowing ? 'var(--lamp-amber)' : 'var(--led-off)'} style={flowing ? { filter: 'drop-shadow(0 0 6px var(--lamp-amber))' } : undefined} />
         <path d={card === 'sinking' ? 'M270 118 V150' : 'M270 56 V24'} stroke={flowing ? 'var(--live)' : 'var(--dead)'} strokeWidth="3" fill="none" style={dash} />
         <text x="276" y={card === 'sinking' ? 138 : 44} fontSize="9" fill="var(--text-muted)">COM → {comLevel}</text>
       </svg>
@@ -153,7 +153,7 @@ function Scan() {
       <ol className="grid grid-cols-2 sm:grid-cols-4 gap-2 list-none p-0 m-0" aria-label="Scan cycle">
         {steps.map((s, i) => (
           <li key={s}>
-            <button type="button" onClick={() => setK(i)} className="w-full rounded-xl p-3 text-left border-2 transition-colors min-h-[72px] cursor-pointer" style={{ borderColor: i === k ? 'var(--live)' : 'var(--border)', background: i === k ? 'var(--live-soft)' : 'var(--surface-raised)' }} aria-current={i === k ? 'step' : undefined}>
+            <button type="button" onClick={() => setK(i)} className="w-full rounded-xl p-3 text-left border-2 transition-colors min-h-18 cursor-pointer" style={{ borderColor: i === k ? 'var(--live)' : 'var(--border)', background: i === k ? 'var(--live-soft)' : 'var(--surface-raised)' }} aria-current={i === k ? 'step' : undefined}>
               <span className="block text-xs text-muted font-bold">{i + 1}</span>
               <span className="block font-semibold text-heading text-sm">{s}</span>
             </button>
@@ -212,7 +212,7 @@ function Hardwired() {
         <path d="M110 130 H132" stroke={run ? live : 'transparent'} strokeWidth="2.5" />
         <text x="121" y="118" textAnchor="middle" fontSize="8" fontWeight="800" fill="var(--text-heading)">M</text>
         <path d="M132 130 H200" stroke={run ? live : dead} strokeWidth="2.5" />
-        <circle cx="216" cy="130" r="12" fill={run ? '#3ddc97' : 'none'} stroke="var(--text-body)" strokeWidth="2.5" style={run ? { filter: 'drop-shadow(0 0 8px #3ddc97)' } : undefined} />
+        <circle cx="216" cy="130" r="12" fill={run ? 'var(--lamp-green)' : 'none'} stroke="var(--text-body)" strokeWidth="2.5" style={run ? { filter: 'drop-shadow(0 0 8px var(--lamp-green))' } : undefined} />
         <text x="216" y="156" textAnchor="middle" fontSize="8" fill="var(--text-muted)">RUN LT</text>
         <path d="M228 130 H316" stroke={run ? live : dead} strokeWidth="2.5" />
       </svg>
@@ -270,7 +270,7 @@ function SeriesParallel() {
   const glow = (p: number) => Math.min(1, p / 240);
   const lamp = (cx: number, cy: number, p: number, label: string, out = false) => (
     <g>
-      <circle cx={cx} cy={cy} r="15" fill={out ? 'var(--surface-sunk)' : `rgba(255, 210, 120, ${0.12 + glow(p) * 0.88})`} stroke="var(--border-strong)" strokeWidth="2" strokeDasharray={out ? '4 4' : undefined} style={!out && p > 1 ? { filter: `drop-shadow(0 0 ${glow(p) * 12}px #ffb547)` } : undefined} />
+      <circle cx={cx} cy={cy} r="15" fill={out ? 'var(--surface-sunk)' : `rgb(var(--rgb-bulb) / ${0.12 + glow(p) * 0.88})`} stroke="var(--border-strong)" strokeWidth="2" strokeDasharray={out ? '4 4' : undefined} style={!out && p > 1 ? { filter: `drop-shadow(0 0 ${glow(p) * 12}px var(--lamp-amber))` } : undefined} />
       <text x={cx} y={cy + 30} textAnchor="middle" fontSize="10" fill="var(--text-muted)">{label}</text>
     </g>
   );

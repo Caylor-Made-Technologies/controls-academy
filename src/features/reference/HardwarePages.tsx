@@ -21,7 +21,7 @@ function Back({ to, label }: { to: string; label: string }) {
 
 function StatusChip({ m }: { m: HwModel }) {
   const color = m.status === 'current' ? 'var(--live)' : m.status === 'mature' ? 'var(--blue-glow)' : 'var(--warn)';
-  return <span className="chip !text-[0.68rem]" style={{ borderColor: color, color }}>{m.status === 'current' ? 'Current' : m.status === 'mature' ? 'Mature' : 'Legacy'}</span>;
+  return <span className="chip !text-2xs" style={{ borderColor: color, color }}>{m.status === 'current' ? 'Current' : m.status === 'mature' ? 'Mature' : 'Legacy'}</span>;
 }
 
 const ioPoints = (u: HwModel['shape']['units'][number]) => {
@@ -42,7 +42,7 @@ export function HardwareCard({ m }: { m: HwModel }) {
         </span>
         <span className="flex flex-col items-end gap-1 flex-none">
           <StatusChip m={m} />
-          <span className="text-[0.66rem] font-bold uppercase tracking-wider text-muted">{CATEGORY_ONE[categoryOf(m)]}</span>
+          <span className="text-2xs font-bold uppercase tracking-wider text-muted">{CATEGORY_ONE[categoryOf(m)]}</span>
         </span>
       </span>
     </a>
@@ -79,14 +79,14 @@ export function HardwareLibrary() {
       </div>
       <div className="flex gap-1.5 overflow-x-auto pb-2 mb-1 chip-scroll" role="group" aria-label="Filter by type">
         {([['all', 'All types'], ...Object.entries(CATEGORY_TEXT)] as [string, string][]).map(([id, label]) => (
-          <button key={id} type="button" className="chip cursor-pointer !min-h-[44px] whitespace-nowrap" aria-pressed={cat === id} style={cat === id ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined} onClick={() => setCat(id as 'all' | HwCategory)}>
+          <button key={id} type="button" className="chip cursor-pointer !min-h-11 whitespace-nowrap" aria-pressed={cat === id} style={cat === id ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined} onClick={() => setCat(id as 'all' | HwCategory)}>
             {label} <span className="text-muted font-semibold ml-0.5">{id === 'all' ? HARDWARE.length : HARDWARE.filter((m) => categoryOf(m) === id).length}</span>
           </button>
         ))}
       </div>
       <div className="flex gap-1.5 overflow-x-auto pb-2 mb-1 chip-scroll" role="group" aria-label="Filter by brand">
         {[{ id: 'all', name: 'All brands' }, ...brands].map((b) => (
-          <button key={b.id} type="button" className="chip cursor-pointer !min-h-[44px] whitespace-nowrap" aria-pressed={brand === b.id} style={brand === b.id ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined} onClick={() => setBrand(b.id)}>
+          <button key={b.id} type="button" className="chip cursor-pointer !min-h-11 whitespace-nowrap" aria-pressed={brand === b.id} style={brand === b.id ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined} onClick={() => setBrand(b.id)}>
             {b.name.split(' (')[0].split(' / ')[0]}
           </button>
         ))}
@@ -137,7 +137,7 @@ export function HardwareDetail({ id }: { id: string }) {
       <PageHead eyebrow={brandName(m.brand)} title={m.name}>{m.role}.</PageHead>
       <div className="flex flex-wrap gap-2 mb-3 items-center">
         <StatusChip m={m} />
-        <span className="chip !text-[0.68rem]">{CATEGORY_TEXT[categoryOf(m)]}</span>
+        <span className="chip !text-2xs">{CATEGORY_TEXT[categoryOf(m)]}</span>
         <span className="text-sm text-muted">{STATUS_TEXT[m.status]}</span>
       </div>
 
@@ -145,7 +145,7 @@ export function HardwareDetail({ id }: { id: string }) {
         {want3d ? (
           painted ? <Suspense fallback={loading3d}><Hardware3D model={m} selected={sel} onSelect={setSel} /></Suspense> : loading3d
         ) : (
-          <div className="p-3" style={{ background: '#0d131b' }}><HwFront model={m} selected={sel} onSelect={setSel} className="block w-full h-56" /></div>
+          <div className="p-3" style={{ background: 'var(--stage-2)' }}><HwFront model={m} selected={sel} onSelect={setSel} className="block w-full h-56" /></div>
         )}
         <div className="flex flex-wrap gap-2 items-center px-3 py-2 border-t border-line">
           <button type="button" className="btn btn-sm btn-ghost" onClick={() => setWant3d(!want3d)} aria-pressed={want3d}>
@@ -169,7 +169,7 @@ export function HardwareDetail({ id }: { id: string }) {
           ['Height × depth', `≈ ${m.shape.h} × ${m.shape.d} mm`],
         ].map(([k, v]) => (
           <div key={k} className="card card-pad !py-2.5 stat-tile">
-            <span className="block text-[0.7rem] uppercase tracking-wider text-muted font-bold">{k}</span>
+            <span className="block text-2xs uppercase tracking-wider text-muted font-bold">{k}</span>
             <span className="block font-bold text-heading text-lg leading-tight mt-0.5">{v}</span>
           </div>
         ))}
@@ -185,18 +185,18 @@ export function HardwareDetail({ id }: { id: string }) {
       <div className="grid gap-3 lg:grid-cols-2">
         <section className="card card-pad">
           <h2 className="text-base font-bold mb-2">Where you'll see it</h2>
-          <p className="m-0 text-[0.95rem]"><Rich text={m.where} /></p>
+          <p className="m-0 text-base"><Rich text={m.where} /></p>
           <p className="m-0 mt-2 text-sm"><span className="text-muted">Software: </span><Rich text={m.software} /></p>
         </section>
         <section className="card card-pad">
           <h2 className="text-base font-bold mb-2">What to look at</h2>
-          <ul className="pl-5 list-disc space-y-1.5 m-0 text-[0.95rem]">{m.spot.map((t, i) => <li key={i}><Rich text={t} /></li>)}</ul>
+          <ul className="pl-5 list-disc space-y-1.5 m-0 text-base">{m.spot.map((t, i) => <li key={i}><Rich text={t} /></li>)}</ul>
         </section>
         <section className="card card-pad lg:col-span-2">
           <h2 className="text-base font-bold mb-2">Modules in this example</h2>
           <div className="flex flex-wrap gap-1.5 mb-2">
             {m.shape.units.map((u, i) => u.kind !== 'blank' && (
-              <button key={i} type="button" className="chip cursor-pointer !min-h-[44px]" aria-pressed={sel === i} onClick={() => setSel(sel === i ? null : i)} style={sel === i ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined}>
+              <button key={i} type="button" className="chip cursor-pointer !min-h-11" aria-pressed={sel === i} onClick={() => setSel(sel === i ? null : i)} style={sel === i ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined}>
                 {u.label || UNIT_INFO[u.kind].title}
               </button>
             ))}

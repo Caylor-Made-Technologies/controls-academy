@@ -183,7 +183,7 @@ function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => 
           <span role="note" className="hud-chip !cursor-default" aria-label={`3D quality ${tier}`}>{tier.toUpperCase()}</span>
         </div>
         {xray && (
-          <div className="absolute top-12 right-2 hud-legend text-[0.68rem] space-y-0.5" role="note" aria-label="Current flow legend">
+          <div className="absolute top-12 right-2 hud-legend text-2xs space-y-0.5" role="note" aria-label="Current flow legend">
             <p className="m-0"><span className="dot" style={{ background: '#3ddc97' }} /> 120 VAC coil circuit</p>
             <p className="m-0"><span className="dot" style={{ background: '#22d3ee' }} /> 480 VAC motor power</p>
             <p className="m-0"><span className="dot" style={{ background: '#ffb547' }} /> 24 VDC inputs</p>

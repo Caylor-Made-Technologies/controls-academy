@@ -201,7 +201,7 @@ export default function LessonPage({ id }: { id: string }) {
       <header style={{ viewTransitionName: vtName('lesson', lesson.id) }} className="card card-pad mb-5 relative overflow-hidden">
         <p className="eyebrow m-0">Track {track.n} · {track.title}</p>
         <span className={`level-pill level-${track.level.toLowerCase()} mt-2`}>{track.level}</span>
-        <h1 className="text-[1.5rem] sm:text-[1.9rem] font-extrabold mt-1">{lesson.title}</h1>
+        <h1 className="text-2xl sm:text-3xl font-extrabold mt-1">{lesson.title}</h1>
         <p className="text-muted m-0 mt-1">{lesson.summary}</p>
         {lesson.why && <p className="why-line m-0 mt-3"><strong>Why this matters on the job:</strong> <Rich text={lesson.why} /></p>}
         {lesson.prereqs && <Prereqs ids={lesson.prereqs} />}
@@ -244,7 +244,7 @@ export default function LessonPage({ id }: { id: string }) {
             </>
           ) : (
             <div data-enter="pop" className="flex flex-wrap items-center gap-3 w-full" role="status">
-              <span className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'var(--grad-live)' }}><Icon name="bolt" className="text-[#062a1b]" /></span>
+              <span className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'var(--grad-live)' }}><Icon name="bolt" className="text-on-live" /></span>
               <div className="flex-1 min-w-[10rem]">
                 <p className="m-0 font-bold text-heading">Lesson complete{gained ? ` · +${gained} XP` : ''}</p>
                 <p className="m-0 text-sm text-muted">{score === lesson.quiz.length ? 'Perfect score.' : 'Missed questions come back in Review.'}</p>

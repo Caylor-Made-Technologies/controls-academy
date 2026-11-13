@@ -4,10 +4,10 @@
  */
 
 /* ---------- Enter animations: add data-enter="rise|drop|pop|slide|fade" to an element ---------- */
-@keyframes enter-rise { from { opacity: 0; transform: translateY(12px); } }
-@keyframes enter-drop { from { opacity: 0; transform: translateY(-8px); } }
+@keyframes enter-rise { from { opacity: 0; transform: translateY(var(--space-3)); } }
+@keyframes enter-drop { from { opacity: 0; transform: translateY(calc(var(--space-2) * -1)); } }
 @keyframes enter-pop { from { opacity: 0; transform: scale(0.95); } }
-@keyframes enter-slide { from { opacity: 0; transform: translateX(24px); } }
+@keyframes enter-slide { from { opacity: 0; transform: translateX(var(--space-6)); } }
 @keyframes enter-fade { from { opacity: 0; } }
 [data-enter] { animation: enter-fade var(--dur-slow) var(--ease) backwards; animation-delay: calc(var(--i, 0) * var(--stagger)); }
 [data-enter='rise'] { animation-name: enter-rise; }
@@ -23,10 +23,10 @@
 @keyframes vt-in { from { opacity: 0; } }
 ::view-transition-group(*) { animation-duration: var(--dur-slow); animation-timing-function: var(--ease-spring); }
 /* Everyone else gets a direction-aware enter on the new screen. */
-@keyframes route-right { from { opacity: 0; transform: translateX(24px); } }
-@keyframes route-left { from { opacity: 0; transform: translateX(-24px); } }
-@keyframes route-in { from { opacity: 0; transform: translateY(12px); } }
-@keyframes route-out { from { opacity: 0; transform: translateY(-8px); } }
+@keyframes route-right { from { opacity: 0; transform: translateX(var(--space-6)); } }
+@keyframes route-left { from { opacity: 0; transform: translateX(calc(var(--space-6) * -1)); } }
+@keyframes route-in { from { opacity: 0; transform: translateY(var(--space-3)); } }
+@keyframes route-out { from { opacity: 0; transform: translateY(calc(var(--space-2) * -1)); } }
 @supports not (view-transition-name: none) {
   .route-view { animation: route-in var(--dur) var(--ease) backwards; }
   .route-view[data-dir='right'] { animation-name: route-right; }
@@ -41,12 +41,12 @@
   transition: transform var(--dur-move) var(--ease-spring);
 }
 .tab-pill::before {
-  content: ''; position: absolute; top: 6px; left: 50%; width: 56px; height: 32px; margin-left: -28px;
+  content: ''; position: absolute; top: var(--space-1h); left: 50%; width: var(--space-14); height: var(--space-8); margin-left: calc(var(--space-7) * -1);
   border-radius: var(--radius-pill); background: var(--blue-soft); box-shadow: inset 0 0 0 1px var(--blue-line);
 }
 .tab-bus::before {
-  content: ''; position: absolute; top: -2px; left: 50%; width: 34px; height: 3px; margin-left: -17px;
-  border-radius: 3px; background: var(--grad-live); box-shadow: 0 0 12px var(--live), 0 0 2px var(--live);
+  content: ''; position: absolute; top: -2px; left: 50%; width: var(--space-8); height: 3px; margin-left: calc(var(--space-4) * -1);
+  border-radius: 3px; background: var(--grad-live); box-shadow: 0 0 var(--space-3) var(--live), 0 0 2px var(--live);
 }
 .rail-links { position: relative; display: flex; flex-direction: column; gap: var(--rail-gap); }
 .rail-pill {

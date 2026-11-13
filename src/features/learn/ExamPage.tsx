@@ -18,7 +18,6 @@ function ExamHome() {
   const exams = useProgress((s) => s.exams);
   return (
     <div>
-      <a href={href('learn')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Learn</a>
       <RouteHead seg="exam" />
       <div className="grid gap-3 sm:grid-cols-2">
         {EXAMS.map((e) => {
@@ -96,7 +95,7 @@ function Sitting({ exam }: { exam: ExamDef }) {
             <li>Missed questions are added to your Review.</li>
             {exam.id === 'readiness' && <li>Topics where your lesson checks weren't perfect get a few extra questions.</li>}
           </ul>
-          <label className="flex items-center gap-3 min-h-[44px] cursor-pointer">
+          <label className="flex items-center gap-3 min-h-11 cursor-pointer">
             <input type="checkbox" className="w-5 h-5 accent-[var(--blue)]" checked={timed} onChange={(e) => setTimed(e.target.checked)} />
             <span>Timed: {Math.round(limit / 60)} minutes (it finishes itself when time runs out)</span>
           </label>
@@ -121,7 +120,7 @@ function Sitting({ exam }: { exam: ExamDef }) {
         </div>
         <div className="card card-pad">
           <p className="text-xs text-muted m-0 mb-1 font-semibold">Question {i + 1} of {items.length} · {TRACK_BY_ID.get(q.track)!.title}</p>
-          <p className="font-semibold text-heading mt-0 text-[1.02rem]" id="exam-q"><Rich text={q.q} /></p>
+          <p className="font-semibold text-heading mt-0 text-base" id="exam-q"><Rich text={q.q} /></p>
           <div className="grid gap-2" role="radiogroup" aria-labelledby="exam-q">
             {arrangeChoices(q).order.map((k, pos) => (
               <button key={k} type="button" role="radio" aria-checked={answers[q.id] === k} className="btn !justify-start text-left !h-auto py-2.5 !font-medium"
@@ -151,7 +150,7 @@ function Sitting({ exam }: { exam: ExamDef }) {
       <a href={href('exam')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Exams</a>
       <section className="card card-pad mb-4" aria-labelledby="res-h" role="status">
         <p className="eyebrow m-0">{exam.title}</p>
-        <h1 id="res-h" className="text-[1.6rem] font-extrabold mt-1">{pct(r.right, r.total)} % · {r.right} of {r.total}</h1>
+        <h1 id="res-h" className="text-2xl font-extrabold mt-1">{pct(r.right, r.total)} % · {r.right} of {r.total}</h1>
         <p className="m-0 mt-1">{passed ? 'Solid. Keep the weak topics below fresh with Review.' : `Not yet — ${Math.round(exam.pass * 100)} % is the practice target. Revisit the lessons below and try a new set.`}{gain ? ` +${gain} XP.` : ''}</p>
         <p className="text-sm text-muted m-0 mt-2 flex items-start gap-1.5"><Icon name="shield" size={16} className="flex-none mt-0.5" /> <span>{PRACTICE_RECORD}</span></p>
         <div className="flex flex-wrap gap-2 mt-3">

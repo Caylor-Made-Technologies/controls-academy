@@ -182,7 +182,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
       })()}
       <div className={hidePanel ? '' : 'grid gap-3 lg:grid-cols-[minmax(0,420px)_minmax(0,1fr)] items-start'}>
         {!hidePanel && (
-          <div className="lg:sticky lg:top-[72px]">
+          <div className="lg:sticky lg:top-18">
             {rt.scene.ui ? <MachinePanel rt={rt} onDevice={(id) => setDevice(id)} /> : <MotorPanel rt={rt} onDevice={(id) => setDevice(id)} compact={view3d} />}
           </div>
         )}
@@ -215,20 +215,20 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
               {p.mode}
             </button>
             <label className="sr-only" htmlFor="skin-select">Brand skin</label>
-            <select id="skin-select" className="input !min-h-[44px] !w-auto !py-0 text-sm max-w-[15rem]" value={skinId} onChange={(e) => setPrefs({ skin: e.target.value as SkinId, hwModel: '' })}>
+            <select id="skin-select" className="input !min-h-11 !w-auto !py-0 text-sm max-w-[15rem]" value={skinId} onChange={(e) => setPrefs({ skin: e.target.value as SkinId, hwModel: '' })}>
               {skinsByMaker().map((g) => (
                 <optgroup key={g.maker} label={g.maker}>
                   {g.skins.map((s) => <option key={s.id} value={s.id}>{makerShort(s.maker)} — {s.family}</option>)}
                 </optgroup>
               ))}
             </select>
-            <span className="ml-auto text-[0.72rem] text-muted tabular-nums font-mono" aria-live="off">
+            <span className="ml-auto text-xs text-muted tabular-nums font-mono" aria-live="off">
               scan #{p.scanCount} · {(p.scanTimeUs / 1000).toFixed(2)} ms
             </span>
           </div>
 
           {rt.runMode === 'step' && (
-            <div className="px-3 py-2 text-[0.8rem] border-b border-line bg-warn-soft" style={{ background: 'var(--warn-soft)' }} role="status">
+            <div className="px-3 py-2 text-sm border-b border-line bg-warn-soft" style={{ background: 'var(--warn-soft)' }} role="status">
               <strong className="text-heading">Scan pointer: </strong>
               {!p.pointer && 'ready — tap Step to read inputs.'}
               {p.pointer?.phase === 'input' && 'about to READ INPUTS into memory.'}
@@ -302,7 +302,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
           </div>
 
           {selInstr && (
-            <div className="px-3 pb-3 text-[0.8rem] text-muted">
+            <div className="px-3 pb-3 text-sm text-muted">
               <strong className="text-heading">{selInstr.op}</strong> — {OPS[selInstr.op].summary}{' '}
               {selInstr.args[0] && /^[A-Za-z]/.test(selInstr.args[0]) && (
                 <button type="button" className="underline text-link" onClick={() => setXref(selInstr.args[0].split(/[.[]/)[0])}>Cross-reference {selInstr.args[0].split(/[.[]/)[0]}</button>
@@ -363,7 +363,7 @@ function CommentSheet({ open, onClose, initial, onSave }: { open: boolean; onClo
   useEffect(() => setV(initial), [initial, open]);
   return (
     <Sheet open={open} onClose={onClose} title="Rung comment">
-      <textarea className="input !min-h-[110px] py-2" value={v} onChange={(e) => setV(e.target.value)} maxLength={300} aria-label="Rung comment" data-autofocus />
+      <textarea className="input !min-h-27.5 py-2" value={v} onChange={(e) => setV(e.target.value)} maxLength={300} aria-label="Rung comment" data-autofocus />
       <p className="text-xs text-muted">Good comments say <em>why</em>, not just what. The next tech will thank you.</p>
       <div className="flex justify-end gap-2"><button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button><button type="button" className="btn btn-primary" onClick={() => { onSave(v); onClose(); }}>Save</button></div>
     </Sheet>
@@ -375,7 +375,7 @@ function TagMonitor({ rt, program, map }: { rt: SimRuntime; program: Program; ma
   const p = rt.plc;
   return (
     <details className="card" open={open} onToggle={(e) => setOpen((e.target as HTMLDetailsElement).open)}>
-      <summary className="cursor-pointer p-4 font-semibold text-heading min-h-[44px] flex items-center gap-2"><Icon name="layers" size={18} /> Tag monitor ({program.tags.length})</summary>
+      <summary className="cursor-pointer p-4 font-semibold text-heading min-h-11 flex items-center gap-2"><Icon name="layers" size={18} /> Tag monitor ({program.tags.length})</summary>
       {open && (
         <div className="px-3 pb-3 overflow-x-auto">
           <table className="w-full text-sm border-collapse">
