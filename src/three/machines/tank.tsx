@@ -62,7 +62,7 @@ function Scene(p: MachineSceneProps) {
 export const tankScene: MachineSceneDef = {
   id: 'tank',
   Scene,
-  camera: { pos: [3.1, 3.5, 5.3], target: [-0.3, 2.2, 0] },
+  camera: { pos: [3.85, 3.6, 6.5], target: [-0.3, 1.9, 0] },
   radius: 3.4,
   moving: (rt) => {
     const s = rt.scene.state as TankState;

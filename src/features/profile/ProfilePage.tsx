@@ -11,6 +11,7 @@ import { skinsByMaker, type SkinId } from '../../skins';
 import { usePrefs, type Goal, type Quality, type ThemePref } from '../../state/prefs';
 import { badges, level, streak, today, trackProgress, useProgress } from '../../state/progress';
 import { saveCertificate } from './certificate';
+import { Stat } from '../../components/ui';
 
 export default function ProfilePage() {
   const p = useProgress();
@@ -46,9 +47,9 @@ export default function ProfilePage() {
           <p className="m-0 text-sm text-muted tabular-nums">{p.xp} XP{lv.next ? ` · ${lv.next - p.xp} to next` : ' · max level'}</p>
         </div>
         <div className="grid grid-cols-3 gap-2 text-center w-full sm:w-auto">
-          {[[String(streak(p.days)), 'day streak'], [String(Object.keys(p.lessons).length), 'lessons'], [String(Object.keys(p.hunts).length), 'faults found']].map(([n, l]) => (
-            <div key={l} className="rounded-xl bg-raised px-3 py-2"><p className="m-0 font-head font-extrabold text-heading text-xl">{n}</p><p className="m-0 text-2xs text-muted">{l}</p></div>
-          ))}
+          <Stat label="Day streak" value={streak(p.days)} />
+          <Stat label="Lessons" value={Object.keys(p.lessons).length} />
+          <Stat label="Faults found" value={Object.keys(p.hunts).length} />
         </div>
       </section>
 

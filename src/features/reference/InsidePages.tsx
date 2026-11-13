@@ -44,7 +44,7 @@ export function InsideDetail({ id }: { id: string }) {
     <div>
       <a href={href('reference/inside')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> What's inside</a>
       <PageHead eyebrow="What's inside" title={device.title}>{device.summary}</PageHead>
-      <Callout tone="safety" className="mb-3">{device.safety}</Callout>
+      <Callout tone="safety" className="mb-3 text-sm">{device.safety}</Callout>
       {can3d && (
         <button type="button" className="btn btn-sm mb-2" aria-pressed={show3d} onClick={() => setShow3d(!show3d)}><Icon name="layers" size={16} /> {show3d ? 'Hide 3D view' : 'Show 3D view'}</button>
       )}

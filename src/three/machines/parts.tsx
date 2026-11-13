@@ -118,7 +118,7 @@ export function Lamp({ pos, color, on, r = 0.03, rot = [Math.PI / 2, 0, 0] }: { 
   const glow = useRef<Sprite>(null);
   const halo = useMemo(() => haloTexture(), []);
   // Off, the lens still shows its color (dimmed), so you can tell a red light from a green one before it lights.
-  const lens = useMemo(() => new Color(color).multiplyScalar(0.3), [color]);
+  const lens = useMemo(() => new Color(color).multiplyScalar(0.45), [color]);
   // Lit: the lens itself is bright and a soft sprite stands in for bloom (no post-processing pass needed).
   useFrame(() => {
     const lit = on();

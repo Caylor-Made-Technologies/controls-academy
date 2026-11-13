@@ -36,7 +36,6 @@
 .callout-row { display: flex; gap: var(--space-2h); align-items: flex-start; }
 .callout-icon { flex: none; margin-top: 2px; color: var(--blue-glow); }
 .callout-title { margin: 0 0 var(--space-1); font-weight: 700; color: var(--text-heading); }
-.callout-body { font-size: var(--text-sm); }
 .callout-body > :first-child { margin-top: 0; }
 .callout-body > :last-child { margin-bottom: 0; }
 .callout-safety { border-color: var(--safety); background: var(--safety-soft); }
@@ -137,5 +136,6 @@ a.row:active, button.row:active { transform: scale(0.99); }
 .readout-grid > :last-child:nth-child(odd) { grid-column: 1 / -1; }
 /* Anything that scrolls sideways fades out at its right edge, so a cut-off item reads as "more this way". */
 .overflow-x-auto { -webkit-mask-image: linear-gradient(90deg, var(--black) calc(100% - var(--space-7)), transparent); mask-image: linear-gradient(90deg, var(--black) calc(100% - var(--space-7)), transparent); }
-/* Ladder: the live 0/1 digit sits in its own gutter instead of on top of a long tag name. */
-.instr { padding-left: var(--space-3h); padding-right: var(--space-3h); }
+/* Ladder: the live 0/1 digit sits beside the symbol (above the wire), not on top of the tag name, so long
+   names stay readable without making every instruction wider on a phone. */
+.instr .state { top: var(--space-4h); right: 2px; line-height: 1; }

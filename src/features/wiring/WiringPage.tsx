@@ -46,7 +46,7 @@ function Trainer({ ex }: { ex: Exercise }) {
     <div>
       <a href={href('wiring')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Wiring trainer</a>
       <PageHead eyebrow="Wiring trainer" title={ex.title}>{ex.goal}</PageHead>
-      <Callout tone="safety" className="mb-3">{ex.safety}</Callout>
+      <Callout tone="safety" className="mb-3 text-sm">{ex.safety}</Callout>
 
       {can3d && (
         <div className="seg mb-2" role="group" aria-label="Board view">

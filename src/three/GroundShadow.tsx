@@ -26,15 +26,17 @@ export function paintShadows(ctx: CanvasRenderingContext2D, px: number, w: numbe
   for (const r of rects) {
     if (r.lift > reach) continue;
     const k = 1 - r.lift / reach; // 1 touching … 0 at the edge of reach
-    const blur = (0.035 + r.lift * 0.55) * Math.min(sx, sy);
+    const soft = w * 0.016 + r.lift * 0.55; // meters: wider for bigger scenes and for parts held off the surface
+    const blur = soft * Math.min(sx, sy);
+    const grow = soft * 0.5;
     ctx.shadowColor = `rgba(0, 0, 0, ${(0.2 + 0.6 * k).toFixed(3)})`;
     ctx.shadowBlur = Math.max(2, blur);
     // Draw the rectangle far off-canvas and let only its blurred shadow land on it.
     ctx.shadowOffsetX = px * 3;
     ctx.fillStyle = '#000';
-    const x = (r.x0 + w / 2) * sx;
-    const y = (h / 2 - r.y1) * sy;
-    ctx.fillRect(x - px * 3, y, Math.max(1, (r.x1 - r.x0) * sx), Math.max(1, (r.y1 - r.y0) * sy));
+    const x = (r.x0 - grow + w / 2) * sx;
+    const y = (h / 2 - r.y1 - grow) * sy;
+    ctx.fillRect(x - px * 3, y, Math.max(1, (r.x1 - r.x0 + grow * 2) * sx), Math.max(1, (r.y1 - r.y0 + grow * 2) * sy));
     drawn++;
   }
   ctx.shadowOffsetX = 0;

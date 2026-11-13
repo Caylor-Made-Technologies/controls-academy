@@ -6,6 +6,7 @@ import { Rich } from '../../components/RichText';
 import { BRAND_GUIDES } from '../../content/brands';
 import { CATEGORY_ONE, CATEGORY_TEXT, HARDWARE, HARDWARE_BY_ID, STATUS_TEXT, UNIT_INFO, categoryOf, type HwCategory, type HwModel } from '../../content/hardware';
 import { href } from '../../lib/router';
+import { vtName } from '../../lib/motion';
 import { SKINS } from '../../skins';
 import { usePrefs } from '../../state/prefs';
 import { prefer3D } from '../../three/support';
@@ -32,7 +33,7 @@ const ioPoints = (u: HwModel['shape']['units'][number]) => {
 export function HardwareCard({ m }: { m: HwModel }) {
   return (
     <a href={href(`reference/hw/${m.id}`)} className="card card-link card-pad flex flex-col gap-2 hw-card">
-      <span className="block rounded-lg overflow-hidden hw-thumb">
+      <span className="block rounded-lg overflow-hidden hw-thumb" style={{ viewTransitionName: vtName('hw', m.id) }}>
         <HwFront model={m} className="block w-full h-24 hw-thumb-svg" title={`${m.name} front view`} />
       </span>
       <span className="flex items-start justify-between gap-2">
@@ -141,7 +142,7 @@ export function HardwareDetail({ id }: { id: string }) {
         <span className="text-sm text-muted">{STATUS_TEXT[m.status]}</span>
       </div>
 
-      <section className="card overflow-hidden mb-3" aria-label={`${m.name} model`}>
+      <section className="card overflow-hidden mb-3" aria-label={`${m.name} model`} style={{ viewTransitionName: vtName('hw', m.id) }}>
         {want3d ? (
           painted ? <Suspense fallback={loading3d}><Hardware3D model={m} selected={sel} onSelect={setSel} /></Suspense> : loading3d
         ) : (

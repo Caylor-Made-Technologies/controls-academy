@@ -86,12 +86,13 @@ export function Cable({ from, to, color = '#1f2328', r = 0.006, sag = 0.06, ferr
   );
 }
 
-export function Label({ text, pos, w = 0.06, h = 0.015, fg, bg, rot }: { text: string; pos: [number, number, number]; w?: number; h?: number; fg?: string; bg?: string; rot?: [number, number, number] }) {
+/** `overlay` draws the label on top of everything (call-out names in exploded views). */
+export function Label({ text, pos, w = 0.06, h = 0.015, fg, bg, rot, overlay }: { text: string; pos: [number, number, number]; w?: number; h?: number; fg?: string; bg?: string; rot?: [number, number, number]; overlay?: boolean }) {
   const tex = useMemo(() => labelTexture(text, { fg: fg ?? '#11161d', bg: bg ?? '#f2f4f7', w: Math.round(w * 4000), h: Math.round(h * 4000), size: Math.round(h * 4000 * 0.62) }), [text, fg, bg, w, h]);
   return (
-    <mesh position={pos} rotation={rot}>
+    <mesh position={pos} rotation={rot} renderOrder={overlay ? 10 : 0}>
       <planeGeometry args={[w, h]} />
-      <meshBasicMaterial map={tex} transparent toneMapped={false} />
+      <meshBasicMaterial map={tex} transparent toneMapped={false} depthTest={!overlay} />
     </mesh>
   );
 }

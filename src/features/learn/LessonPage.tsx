@@ -17,6 +17,7 @@ import { OrderDrill, SortDrill } from './Drills';
 import { Figure } from './Figures';
 import { QuestionCard } from './Quiz';
 import { createChecker, taskProgram, taskSetup } from './tasks';
+import { Callout } from '../../components/ui';
 
 function BlockView({ b }: { b: Block }) {
   const skinId = usePrefs((s) => s.skin);
@@ -35,15 +36,7 @@ function BlockView({ b }: { b: Block }) {
     }
     case 'callout':
       return (
-        <div className={`callout callout-${b.tone} my-4`} role={b.tone === 'safety' ? 'note' : undefined}>
-          {b.title && (
-            <p className="m-0 mb-1 font-bold text-heading flex items-center gap-2">
-              <Icon name={b.tone === 'safety' ? 'shield' : b.tone === 'gotcha' ? 'warn' : b.tone === 'brand' ? 'layers' : 'info'} size={18} />
-              {b.title}
-            </p>
-          )}
-          <p className="m-0"><Rich text={b.text} /></p>
-        </div>
+        <Callout tone={b.tone} title={b.title} role={b.tone === 'safety' ? 'note' : undefined} className="my-4"><Rich text={b.text} /></Callout>
       );
     case 'figure':
       return (
@@ -126,16 +119,12 @@ function OnTheJob({ lesson }: { lesson: Lesson }) {
         </section>
       )}
       {lesson.mistakes && lesson.mistakes.length > 0 && (
-        <div className="callout callout-gotcha my-4">
-          <p className="m-0 mb-1 font-bold text-heading flex items-center gap-2"><Icon name="warn" size={18} /> Common mistakes</p>
+        <Callout tone="gotcha" title="Common mistakes" className="my-4">
           <ul className="pl-5 list-disc space-y-1 m-0">{lesson.mistakes.map((m, i) => <li key={i}><Rich text={m} /></li>)}</ul>
-        </div>
+        </Callout>
       )}
       {lesson.safety && 'note' in lesson.safety && (
-        <div className="callout callout-safety my-4" role="note">
-          <p className="m-0 mb-1 font-bold text-heading flex items-center gap-2"><Icon name="shield" size={18} /> Safety first</p>
-          <p className="m-0"><Rich text={lesson.safety.note} /></p>
-        </div>
+        <Callout tone="safety" title="Safety first" role="note" className="my-4"><Rich text={lesson.safety.note} /></Callout>
       )}
     </>
   );

@@ -111,7 +111,7 @@ function Bench({ points, mode, at, reading, onMode, onLand, onLift }: BenchProps
   const jack = useMemo(() => new Vector3(L.meterAt.x - 0.11, L.meterAt.y - 0.12, 0.04), [L]);
   return (
     <group>
-      <Box size={[L.width, L.top - L.termBottom + 0.04, 0.01]} pos={[0, (L.top + L.termBottom) / 2, -0.03]} color="#aab2bb" s="galvanized" />
+      <Box size={[L.width, L.top - L.termBottom + 0.04, 0.01]} pos={[0, (L.top + L.termBottom) / 2, -0.03]} color="#8f98a3" s="powderCoat" />
       {points.map((p, i) => {
         const sp = L.spots[i];
         const on = at === p.id;
