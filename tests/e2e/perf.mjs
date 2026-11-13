@@ -25,6 +25,9 @@ for (const tier of ['high', 'low']) {
   p = await ctx.newPage();
   p.on('console', (m) => { if (m.type() === 'error' || m.type() === 'warning') errors.push(m.text()); });
   for (const [route, name] of VIEWS) {
+    // A fresh document per view: a hash change keeps the previous view's stage alive for a moment, and its
+    // numbers must not be read as this view's.
+    await p.goto('about:blank');
     await p.goto(BASE + '#/' + route);
     await p.waitForSelector('canvas', { timeout: 30000 });
     await p.waitForFunction(() => { const s = window.__ca3d.stats(); return s.live > 0 && s.stages.every((x) => x.frames > 0 && x.calls > 0); }, null, { timeout: 30000 });
@@ -55,6 +58,7 @@ for (const tier of ['high', 'low']) {
 }
 // Frame rate with the conveyor running, 4× CPU throttle (information).
 const cdp = await ctx.newCDPSession(p);
+await p.goto('about:blank');
 await p.goto(BASE + '#/sim?m=conveyor');
 await p.waitForSelector('canvas');
 await p.getByRole('button', { name: /^Start/ }).first().click();
