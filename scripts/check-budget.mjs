@@ -3,7 +3,7 @@
 import { readFileSync, readdirSync } from 'node:fs';
 import { gzipSync } from 'node:zlib';
 
-export const MAIN_GZIP_CEILING_KB = 118;
+export const MAIN_GZIP_CEILING_KB = 80;
 
 const dir = new URL('../dist/assets/', import.meta.url);
 const html = readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8');

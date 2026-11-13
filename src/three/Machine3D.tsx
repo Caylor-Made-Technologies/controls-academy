@@ -77,12 +77,16 @@ function Glide({ goal, controls, onArrive }: { goal: { pos: Vector3; target: Vec
   return null;
 }
 
+type ViewId = 'overview' | 'front' | 'side' | 'above';
+const VIEWS: { id: ViewId; label: string }[] = [{ id: 'overview', label: 'Reset view' }, { id: 'front', label: 'Front' }, { id: 'side', label: 'Side' }, { id: 'above', label: 'Above' }];
+
 function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => void }) {
   const def = MACHINE_SCENES[rt.scene.id];
   const quality = usePrefs((s) => s.quality);
   const [capTier, setCapTier] = useState<Tier | undefined>(undefined);
   const tier = capped(pickTier(quality, probeDevice()), capTier);
   const [selected, setSelected] = useState<string | null>(null);
+  const [view, setView] = useState<ViewId | null>('overview');
   const [goal, setGoal] = useState<{ pos: Vector3; target: Vector3 } | null>(null);
   const [drawn, setDrawn] = useState(false);
   const controls = useRef<OrbitControlsImpl | null>(null);
@@ -94,6 +98,7 @@ function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) =
   const dist = Math.hypot(...def.camera.pos.map((v, i) => v - def.camera.target[i]));
   const pick = useCallback((id: string, at?: [number, number, number]) => {
     setSelected(id);
+    setView(null);
     onDevice?.(id);
     // Focus: glide toward the tapped part, keeping the current viewing direction.
     const c = controls.current;
@@ -105,11 +110,17 @@ function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) =
   }, [onDevice, def, reduce]);
   const SceneC = useMemo(() => memo(def.Scene), [def]);
   const wrap = useRef<HTMLDivElement>(null);
-  const resetView = () => {
+  // Named camera views. The camera eases to each one (instant with reduced motion); dragging takes over at once.
+  const goTo = (id: ViewId) => {
     const el = wrap.current;
     const aspect = el ? el.clientWidth / Math.max(1, el.clientHeight) : 1.5;
-    const g = { pos: framed(def.camera.pos, def.camera.target, aspect), target: new Vector3(...def.camera.target) };
-    if (reduce && controls.current) { controls.current.object.position.copy(g.pos); controls.current.target.copy(g.target); controls.current.update(); } else setGoal(g);
+    const target = new Vector3(...def.camera.target);
+    const home = framed(def.camera.pos, def.camera.target, aspect);
+    const d = home.distanceTo(target);
+    const pos = id === 'front' ? target.clone().add(new Vector3(0, d * 0.12, d)) : id === 'side' ? target.clone().add(new Vector3(d, d * 0.12, d * 0.08)) : id === 'above' ? target.clone().add(new Vector3(d * 0.02, d * 0.98, d * 0.2)) : home;
+    setView(id);
+    setSelected(null);
+    if (reduce && controls.current) { controls.current.object.position.copy(pos); controls.current.target.copy(target); controls.current.update(); } else setGoal({ pos, target });
   };
 
   return (
@@ -142,15 +153,19 @@ function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) =
               dampingFactor={0.12}
               minDistance={r * 0.4}
               maxDistance={r * 4.5}
-              maxPolarAngle={Math.PI * 0.48}
-              onStart={() => setGoal(null)}
+              maxPolarAngle={Math.PI * 0.49}
+              onStart={() => { setGoal(null); setView(null); }}
             />
             <FitOnResize def={def} controls={controls} />
             <Glide goal={goal} controls={controls} onArrive={() => setGoal(null)} />
           </>}
         </Stage>
         <div className="absolute bottom-2 left-2 right-2 flex gap-1.5 items-end overflow-x-auto hud-row" role="toolbar" aria-label="3D tools">
-          <button type="button" className="hud-chip" onClick={resetView} aria-label="Reset view"><Icon name="reset" size={14} /> <span className="max-sm:hidden">Reset view</span></button>
+          {VIEWS.map((v) => (
+            <button key={v.id} type="button" className="hud-chip" aria-pressed={view === v.id} onClick={() => goTo(v.id)} aria-label={v.id === 'overview' ? 'Reset view' : `${v.label} view`}>
+              {v.id === 'overview' && <Icon name="reset" size={14} />} <span className={v.id === 'overview' ? 'max-sm:hidden' : undefined}>{v.label}</span>
+            </button>
+          ))}
           <HudReadout rt={rt} read={def.readout} />
           <span role="note" className="hud-chip !cursor-default max-sm:!hidden" aria-label={`3D quality ${tier}`}>{tier.toUpperCase()}</span>
         </div>

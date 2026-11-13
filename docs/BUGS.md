@@ -12,14 +12,18 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 | B-004 | High | Phase 0 | Fixed in 0.5.1 |
 | B-003 | High | Phase 0 | Fixed in 0.5.1 |
 | B-002 | Low | Phase 0 (Lighthouse) | Fixed in 0.5.1 |
-| B-010 | Medium | Phase 3 gate (Lighthouse live) | Open: Phase 4 / 6.1 |
+| B-010 | Medium | Phase 3 gate (Lighthouse live) | Fixed 4.1 (local 1.6 s; confirm on live at the gate) |
 | B-009 | Low | Phase 3 review | Fixed 3.6 |
 | B-008 | High | Phase 3 review | Fixed 3.3 |
 | B-001 | Medium | Phase 0 (Lighthouse) | Fixed 3.1–3.8 (live 45 → 95) |
 
 ## B-010 — LCP 2.7 s on Simulator, Troubleshoot and Wiring (budget 2.5 s)
 - **Found by:** Lighthouse mobile on the live v0.8.0 site: `#/sim`, `#/troubleshoot`, `#/wiring` LCP 2.7 s (Learn 2.4 s). Performance score is 95 on all four, CLS 0.
-- **Plan:** Phase 4 (fonts, first-paint content, route chunk sizes) and Phase 6.1 (Lighthouse 95+ everywhere, LCP < 2.5 s).
+- **Cause:** the largest element (the page heading) could only paint after the main bundle (React + an animation library, 115 KB gz) had downloaded and run, and then the route's chunk after that.
+- **Fix (4.1):** `index.html` now carries the header bar and each top-level screen's real heading (a hashed inline script picks it from the URL), so it paints with the HTML. The same script preloads the route's chunks in parallel with the main bundle. The animation library is gone (CSS + View Transitions); main bundle 115 → 76 KB gz. Workbench and machine code are separate chunks. Fonts subset (86 → 52 KB), logo 99 → 7 KB.
+- **Measured (local, throttled network + 4× CPU, 3 runs):** Learn, Simulator, Troubleshoot, Wiring, Reference, Profile all 1.6–1.7 s LCP, CLS 0.
+- **Guards:** `features.mjs` "Static shell" checks (heading is in the HTML before any script, matches the app word for word, and doesn't move), `tests/unit/routes.test.ts`, `npm run lighthouse`.
+- **Still open for 6.1:** Skill map, About and Review screens (not key routes) need the same treatment for first-visit; Review has a layout shift of 0.17.
 
 ## B-009 — Small buttons are 36 px tall (target 44 px)
 - **Found by:** Phase 3 review. `.btn-sm` is `min-height: 36px` across the app; the project rule is 44 px touch targets. The 3D HUD chips were fixed (now 44 px) in 3.3.

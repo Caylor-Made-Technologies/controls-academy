@@ -39,3 +39,15 @@ Reasonable choices made where the build prompt was open. Newest first.
 - **Generic drills (`order`, `sort`) before bespoke figures.** They make any lesson interactive from data alone; bespoke figures are kept for things that need a picture (series/parallel).
 - **Lesson text is lazy.** The main bundle carries a generated catalog (ids, titles, minutes, summary); bodies load with the lesson/review/search screens. `npm run catalog` (also run by `build`) regenerates it and a test fails if it's stale. Why: Track 0 pushed the main bundle 16 KB over budget; the split took it to 124 KB.
 - **Circuit math lives in `src/lib/circuits.ts`** and every number in a lesson question or worked example is recomputed in `tests/unit/lesson-math.test.ts`.
+
+## v0.8.0 → 0.9.0 (Phase 4)
+- **The heading of each top-level screen is written into `index.html`** (static shell + a small inline script whose hash is in the CSP). Why: with hash routes the server can't know the screen, and waiting for React made LCP 2.7 s. One table (`src/content/heads.ts`) feeds the page, the loading placeholder and the shell; an e2e test fails if they drift.
+- **Route chunks are preloaded by that same script** (`scripts/route-preload.ts`), from `src/routes.json`. Why: the route's code used to start downloading only after the main bundle had run.
+- **`src/routes.json` is the one list of screens.** `App.tsx` is typed against it, the e2e gate and `npm run shots` read it. Why: a new screen can't ship untested or unphotographed.
+- **Framer Motion removed; motion is CSS + View Transitions.** Why: it was ~40 KB gz on every route's critical path, and Phase 4 wants transform/opacity only with one easing set in tokens anyway. Sheets keep drag-to-dismiss with a few lines of pointer code.
+- **Poster stills are generated from the real 3D scenes** (`npm run posters` reads each scene's meshes and camera and writes box/cylinder lists; a 3 KB projector draws them as SVG). Why: hand-drawn posters would drift from the scenes; this keeps the same angle by construction and needs no image files.
+- **Poster style is a blueprint line drawing**, not a blurred render. Why: it is honest about being a placeholder, costs nothing to draw and fits the "industrial precision" direction.
+- **Workbench, machine code and hunt screens are their own chunks.** Why: a page heading shouldn't wait for the PLC engine and every machine's physics.
+- **Tokens are enforced by tests, not review** (`tests/unit/tokens.test.ts`): no raw colors or pixel sizes in stylesheets and components; AA contrast in both themes. 3D material colors and the certificate canvas are the listed exceptions.
+- **Safety notes are safety yellow; faults stay red.** Why: red was doing two jobs. Yellow is used nowhere else.
+- **Lighthouse is run with real throttling against localhost** (`THROTTLE=devtools`). Why: the default simulation can't tell what loaded before first paint when everything arrives in 100 ms; against the live site the default is fine.

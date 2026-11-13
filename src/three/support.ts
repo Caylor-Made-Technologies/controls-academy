@@ -56,7 +56,7 @@ export function capped(t: Tier, cap?: Tier): Tier {
 export function tierSettings(tier: Tier, d: Pick<DeviceProbe, 'dpr'>): TierSettings {
   const dpr = Math.max(1, d.dpr || 1);
   switch (tier) {
-    case 'high': return { tier, dpr: Math.min(2, dpr), antialias: true, shadows: true, envRes: 128, contactRes: 512, maxFps: 60 };
+    case 'high': return { tier, dpr: Math.min(2, dpr), antialias: true, shadows: false, envRes: 128, contactRes: 512, maxFps: 60 };
     case 'medium': return { tier, dpr: Math.min(1.5, dpr), antialias: true, shadows: false, envRes: 64, contactRes: 256, maxFps: 60 };
     default: return { tier, dpr: 1, antialias: false, shadows: false, envRes: 0, contactRes: 0, maxFps: 30 };
   }

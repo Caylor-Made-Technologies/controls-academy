@@ -38,19 +38,19 @@ Light theme is the same panel in daylight: same layout, same meanings, colors re
 | Well / readout | `--surface-sunk` | `#0e131a` | `#e8eef6` |
 | Hairline | `--border` | `#253043` | `#d5deea` |
 | Strong hairline | `--border-strong` | `#34425a` | `#b7c4d6` |
-| Brand / selected | `--blue-glow` | `#3d8bff` | `#1b5fd9` |
+| Brand / selected | `--blue-glow` | `#3d8bff` | `#1958cc` |
 | Brand fill (buttons) | `--blue-button` | `#1b63eb` | `#1b63eb` |
 | Brand accent | `--cyan` | `#22d3ee` | `#0e7490` |
 | Heading text | `--text-heading` | `#ffffff` | `#0b1220` |
 | Body text | `--text-body` | `#c9d3e0` | `#26323f` |
 | Muted text | `--text-muted` | `#9aa7b8` | `#556274` |
-| **Live** (energized, true, done) | `--live` | `#3ddc97` | `#0a7550` |
+| **Live** (energized, true, done) | `--live` | `#3ddc97` | `#086a48` |
 | **Warn** (forces, caution) | `--warn` | `#ffb547` | `#8a4b00` |
-| **Fault** (alarms, wrong) | `--alarm` | `#ff6b6b` | `#c62828` |
+| **Fault** (alarms, wrong) | `--alarm` | `#ff6b6b` | `#bd2323` |
 | **Safety** (safety notes only) | `--safety` | `#ffd60a` | `#7a5c00` |
 | Dead (de-energized, false) | `--dead` | `#5b6a80` | `#8794a8` |
 
-Each state color has a `-soft` tint for backgrounds. Text on every surface meets WCAG AA (4.5:1; 3:1
+Each state color has a `-soft` tint for backgrounds; tinted chips and callouts sit on the page or on a card, never on a raised control (the contrast test checks those two). Text on every surface meets WCAG AA (4.5:1; 3:1
 for large headings and for state colors used as non-text indicators). The token test checks the pairs.
 
 ## Type

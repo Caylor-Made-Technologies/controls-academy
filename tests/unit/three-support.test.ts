@@ -32,7 +32,9 @@ describe('device test → tier', () => {
   it('tier settings get cheaper going down', () => {
     const h = tierSettings('high', phone), m = tierSettings('medium', phone), l = tierSettings('low', phone);
     expect([h.dpr, m.dpr, l.dpr]).toEqual([2, 1.5, 1]);
-    expect(h.shadows && !m.shadows && !l.shadows).toBe(true);
+    // Real-time shadow maps are off on every tier: depth comes from the baked contact shadow.
+    expect(h.shadows || m.shadows || l.shadows).toBe(false);
+    expect(h.contactRes).toBeGreaterThan(m.contactRes);
     expect(l.envRes).toBe(0);
     expect(l.contactRes).toBe(0);
     expect(l.maxFps).toBe(30);

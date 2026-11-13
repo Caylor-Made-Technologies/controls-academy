@@ -28,7 +28,7 @@ Caylor Made Technologies and a sibling of the Critical Facilities Simulator.
 
 ## Stack
 Vite 6 + React 19 + TypeScript (strict) · Tailwind 4 + CSS tokens (`src/styles/tokens.css`) ·
-Framer Motion · Zustand · idb-keyval (IndexedDB, localStorage fallback, all in try/catch) ·
+CSS motion + View Transitions (no animation library) · Zustand · idb-keyval (IndexedDB, localStorage fallback, all in try/catch) ·
 vite-plugin-pwa · Vitest · Playwright (pre-installed in cloud sessions) · GitHub Actions → Pages.
 3D (three / React Three Fiber) is planned as a lazy-loaded layer; nothing in the course is 3D-only.
 
@@ -49,6 +49,8 @@ docs/           BASELINE, HOW_WE_BEAT_IT, DECISIONS, VERIFY, CHECKLIST, CONTENT_
 
 ## Run / test / deploy
 - `npm run dev` · `npm test` · `npm run typecheck` · `npm run lint` · `npm run build`
+- `npm run verify` runs the whole gate (unit, lint, typecheck, build, budget, every e2e suite, branding check) and prints one table. `npm run verify:live` runs the e2e suites against the live site.
+- `npm run shots [-- --grid]` screenshots every route in `src/routes.json`; `npm run posters` regenerates the 3D poster stills; `npm run lighthouse` (set `THROTTLE=devtools` against localhost).
 - `npm run e2e` builds nothing; run `npm run build` first. It serves `dist/` and drives Chromium.
 - Push to `main` → `.github/workflows/deploy.yml` → https://caylor-made-technologies.github.io/controls-academy/
 - Pages source must be **GitHub Actions** (Settings → Pages), not "Deploy from a branch".

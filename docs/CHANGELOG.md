@@ -1,5 +1,20 @@
 # Changelog
 
+## Unreleased — Phase 4: premium UI, 3D and motion (in progress, will ship as 0.9.0)
+### Added
+- The page heading now appears with the HTML, before any app code has loaded (first paint about 1 s sooner on a slow phone).
+- Every 3D view opens on a blueprint-style still of the same scene from the same angle, then fades into the live view.
+- Screen changes crossfade, and a lesson card grows into its lesson (browsers with View Transitions; others get a short fade). Reduced motion makes every change instant.
+- A design system: `docs/DESIGN-SYSTEM.md`, tokens for color, size, type, depth and motion, a component kit, and a styleguide page (About → Styleguide).
+- Toast messages, empty-state and error-state components.
+- `npm run verify` (the whole gate, one table), `verify:live`, `shots`, `posters`, `lighthouse`.
+### Changed
+- Safety notes are safety yellow (faults stay red).
+- Main bundle 115 → 76 KB gzipped; fonts 86 → 52 KB; logo image 99 → 7 KB.
+- The saved theme applies before first paint (no dark flash for light-theme users).
+### Fixed
+- B-010: LCP 2.7 s on Simulator, Troubleshoot and Wiring. Now about 1.6 s in local throttled runs.
+
 ## 0.8.0 — 2026-11-07 · Phase 3: graphics
 ### Added
 - One shared 3D stage for every 3D view: quality tiers from a device test, render only on change, pause off-screen, clean disposal.

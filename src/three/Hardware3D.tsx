@@ -69,6 +69,13 @@ function TurnIn({ children, still }: { children: ReactNode; still: boolean }) {
   return <group ref={g}>{children}</group>;
 }
 
+/** Asks for one frame a few times a second so blinking LEDs update without a continuous render loop. */
+function LedTick() {
+  const invalidate = useThree((s) => s.invalidate);
+  useEffect(() => { const t = setInterval(() => invalidate(), 450); return () => clearInterval(t); }, [invalidate]);
+  return null;
+}
+
 export default function Hardware3D({ model, selected, onSelect }: { model: HwModel; selected: number | null; onSelect: (i: number | null) => void }) {
   const quality = usePrefs((s) => s.quality);
   const reduce = useMemo(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches, []);
@@ -78,6 +85,15 @@ export default function Hardware3D({ model, selected, onSelect }: { model: HwMod
   const [nonce, setNonce] = useState(0);
   const [spread, setSpread] = useState(false);
   const controls = useRef<OrbitControlsImpl | null>(null);
+  // Draw continuously only while something is gliding (turn-in, a camera move, modules spreading). After that
+  // the scene is drawn on demand, plus a slow tick so the demo status LEDs still blink.
+  const [busy, setBusy] = useState(!reduce);
+  useEffect(() => {
+    if (reduce) return;
+    setBusy(true);
+    const t = setTimeout(() => setBusy(false), 2200);
+    return () => clearTimeout(t);
+  }, [model.id, view, nonce, spread, reduce]);
   const pick = (v: View) => { setView(v); setNonce((n) => n + 1); };
   const { width, height } = useMemo(() => layoutShape(model.shape), [model]);
   // Fit inside a 0.5 m × 0.3 m box so every model frames the same way.
@@ -89,7 +105,7 @@ export default function Hardware3D({ model, selected, onSelect }: { model: HwMod
     <div className="relative h-[clamp(300px,52svh,460px)] panel3d-bg">
       <Stage
         quality={quality}
-        animate={!reduce}
+        animate={busy}
         camera={{ position: [0.26, 0.1, 0.8], fov: 36, near: 0.02, far: 10 }}
         onPointerMissed={() => onSelect(null)}
         aria-label={`3D model of ${model.name}. Drag to turn it, tap a module to learn what it does. The module list below has the same information.`}
@@ -97,6 +113,7 @@ export default function Hardware3D({ model, selected, onSelect }: { model: HwMod
         lostFallback={<p className="p-4 text-sm m-0" role="status">The 3D view lost its graphics context. Use the 2D front view, or reload to try again.</p>}
       >
         {(q, look) => <>
+        {!reduce && !busy && <LedTick />}
         <CameraRig w={Math.min(fit[0], (width + 0.02) * s) + (spread ? model.shape.units.length * 0.012 * s : 0)} h={h} view={view} nonce={nonce} controls={controls} />
         <StudioLights look={look} q={q} keyPos={[0.8, 1.2, 1.4]} shadowBox={{ left: -0.4, right: 0.4, top: 0.3, bottom: -0.3 }} mapSize={512} />
         <TurnIn key={model.id} still={reduce}>

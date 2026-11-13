@@ -116,6 +116,22 @@ describe('contrast (WCAG AA) in both themes', () => {
       }
       expect(bad, bad.join('\n')).toEqual([]);
     });
+    it(`${name}: state text on its own soft tint (chips, callouts)`, () => {
+      const bad: string[] = [];
+      for (const [fg, soft] of [['--live', '--live-soft'], ['--warn', '--warn-soft'], ['--alarm', '--alarm-soft'], ['--safety', '--safety-soft'], ['--blue-glow', '--blue-soft']]) {
+        const m = /rgba\((\d+),\s*(\d+),\s*(\d+),\s*([\d.]+)\)/.exec(t[soft]);
+        expect(m, `${soft} should be an rgba() tint`).toBeTruthy();
+        const [r, g, b, a] = m!.slice(1).map(Number);
+        // Tinted chips and callouts sit on the page or on a card (not on raised controls): see DESIGN-SYSTEM.md.
+        for (const s of ['--bg', '--surface']) {
+          const base = rgb(t[s]);
+          const mix = '#' + [r, g, b].map((c, i) => Math.round(c * a + base[i] * (1 - a)).toString(16).padStart(2, '0')).join('');
+          const ratio = contrast(t[fg], mix);
+          if (ratio < 4.5) bad.push(`${fg} ${t[fg]} on ${soft} over ${s} (${mix}) = ${ratio.toFixed(2)}`);
+        }
+      }
+      expect(bad, bad.join('\n')).toEqual([]);
+    });
   }
   it('knows a failing pair when it sees one', () => {
     expect(contrast('#777777', '#ffffff')).toBeLessThan(4.5);

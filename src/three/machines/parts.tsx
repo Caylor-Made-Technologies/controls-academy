@@ -7,10 +7,12 @@ import { Billboard, Edges } from '@react-three/drei';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
-  CanvasTexture, CatmullRomCurve3, DoubleSide, Quaternion, RepeatWrapping, SRGBColorSpace, Vector3,
-  type Group, type Mesh, type MeshStandardMaterial, type Texture,
+  AdditiveBlending, CanvasTexture, CatmullRomCurve3, DoubleSide, Quaternion, RepeatWrapping, SRGBColorSpace, Vector3,
+  type Group, type Mesh, type MeshStandardMaterial, type Sprite, type Texture,
 } from 'three';
-import { Box, Label } from '../kit';
+import { Box, Label, Nameplate, ScrewHead } from '../kit';
+import { surface } from '../materials';
+import { haloTexture } from '../textures';
 import { floorTexture } from '../textures';
 import type { Look } from '../look';
 
@@ -70,36 +72,39 @@ export function Pick({ id, label, size, pos = [0, 0, 0], selected, onPick, child
 
 /** TEFC induction motor lying along +x (shaft end at +x). `rps` is shaft rev/s. */
 export function Motor({ pos, rot = [0, 0, 0], rps, scale = 1, color = PAINT.motor }: { pos: [number, number, number]; rot?: [number, number, number]; rps: () => number; scale?: number; color?: string }) {
-  const fins = useMemo(() => Array.from({ length: 9 }, (_, i) => (i / 9) * Math.PI * 2), []);
+  const fins = useMemo(() => Array.from({ length: 14 }, (_, i) => (i / 14) * Math.PI * 2), []);
+  const paint = surface('enamel', color);
   return (
     <group position={pos} rotation={rot} scale={scale}>
-      <mesh rotation={[0, 0, Math.PI / 2]} castShadow receiveShadow>
-        <cylinderGeometry args={[0.13, 0.13, 0.36, 28]} />
-        <meshStandardMaterial color={color} metalness={0.35} roughness={0.5} />
-      </mesh>
+      {/* frame with cooling fins */}
+      <mesh rotation={[0, 0, Math.PI / 2]} material={paint}><cylinderGeometry args={[0.13, 0.13, 0.34, 28]} /></mesh>
       {fins.map((a) => (
-        <mesh key={a} position={[0, Math.sin(a) * 0.135, Math.cos(a) * 0.135]} rotation={[-a, 0, 0]} castShadow>
-          <boxGeometry args={[0.34, 0.012, 0.02]} />
-          <meshStandardMaterial color={color} metalness={0.35} roughness={0.5} />
+        <mesh key={a} position={[0, Math.sin(a) * 0.136, Math.cos(a) * 0.136]} rotation={[-a, 0, 0]} material={paint}>
+          <boxGeometry args={[0.3, 0.014, 0.012]} />
         </mesh>
       ))}
-      {/* fan cover at the back */}
-      <mesh position={[-0.22, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow>
-        <cylinderGeometry args={[0.125, 0.12, 0.09, 28]} />
-        <meshStandardMaterial color="#3b4350" metalness={0.5} roughness={0.45} />
-      </mesh>
-      {/* conduit box */}
-      <Box size={[0.12, 0.08, 0.1]} pos={[0.02, 0.16, 0.05]} color={color} metal={0.3} rough={0.5} />
-      {/* feet */}
-      <Box size={[0.3, 0.03, 0.26]} pos={[0, -0.145, 0]} color="#2a313b" metal={0.4} rough={0.6} />
+      {/* end bells: drive end (shaft side) and the fan cowl at the back */}
+      <mesh position={[0.185, 0, 0]} rotation={[0, 0, Math.PI / 2]} material={paint}><cylinderGeometry args={[0.105, 0.138, 0.04, 28]} /></mesh>
+      <mesh position={[0.21, 0, 0]} rotation={[0, 0, Math.PI / 2]} material={surface('castIron')}><cylinderGeometry args={[0.05, 0.06, 0.02, 20]} /></mesh>
+      <mesh position={[-0.215, 0, 0]} rotation={[0, 0, Math.PI / 2]} material={surface('plasticMatte', '#2a313b')}><cylinderGeometry args={[0.136, 0.13, 0.1, 28]} /></mesh>
+      <mesh position={[-0.268, 0, 0]} rotation={[0, 0, Math.PI / 2]} material={surface('castIron')}><cylinderGeometry args={[0.09, 0.09, 0.006, 20]} /></mesh>
+      {/* conduit box with its cover screws, and the nameplate */}
+      <Box size={[0.12, 0.07, 0.11]} pos={[0.02, 0.165, 0]} color={color} s="enamel" />
+      <Box size={[0.105, 0.008, 0.095]} pos={[0.02, 0.204, 0]} color="#3a4049" s="castIron" />
+      {[[-0.04, -0.035], [0.04, -0.035], [-0.04, 0.035], [0.04, 0.035]].map(([x, z]) => <ScrewHead key={`${x}${z}`} pos={[0.02 + x, 0.209, z]} r={0.006} rot={[-Math.PI / 2, 0, 0]} />)}
+      <Nameplate text="3~ MOTOR" pos={[-0.02, 0.02, 0.133]} w={0.11} h={0.045} />
+      {/* feet, bolted down */}
+      <Box size={[0.3, 0.022, 0.28]} pos={[0, -0.148, 0]} color="#2a313b" s="castIron" />
+      {[[-0.11, -0.115], [0.11, -0.115], [-0.11, 0.115], [0.11, 0.115]].map(([x, z]) => (
+        <mesh key={`${x}${z}`} position={[x, -0.13, z]} material={surface('galvanized')}><cylinderGeometry args={[0.012, 0.012, 0.016, 6]} /></mesh>
+      ))}
+      {/* lifting eye */}
+      <mesh position={[-0.08, 0.15, 0]} rotation={[0, Math.PI / 2, 0]} material={surface('galvanized')}><torusGeometry args={[0.018, 0.005, 6, 14]} /></mesh>
       {/* shaft with a painted key so you can see it turn */}
-      <group position={[0.23, 0, 0]}>
+      <group position={[0.25, 0, 0]}>
         <Spinner rps={rps} axis="x">
-          <mesh rotation={[0, 0, Math.PI / 2]} castShadow>
-            <cylinderGeometry args={[0.025, 0.025, 0.1, 16]} />
-            <meshStandardMaterial color="#d1d5db" metalness={0.9} roughness={0.25} />
-          </mesh>
-          <mesh position={[0.02, 0.026, 0]}><boxGeometry args={[0.05, 0.008, 0.012]} /><meshStandardMaterial color={PAINT.safety} /></mesh>
+          <mesh rotation={[0, 0, Math.PI / 2]} material={surface('machinedSteel')}><cylinderGeometry args={[0.025, 0.025, 0.1, 18]} /></mesh>
+          <mesh position={[0.02, 0.026, 0]} material={surface('enamel', PAINT.safety)}><boxGeometry args={[0.05, 0.008, 0.012]} /></mesh>
         </Spinner>
       </group>
     </group>
@@ -109,12 +114,25 @@ export function Motor({ pos, rot = [0, 0, 0], rps, scale = 1, color = PAINT.moto
 /** A pilot light (or stack-light segment): emissive when `on()`. */
 export function Lamp({ pos, color, on, r = 0.03, rot = [Math.PI / 2, 0, 0] }: { pos: [number, number, number]; color: string; on: () => boolean; r?: number; rot?: [number, number, number] }) {
   const m = useRef<MeshStandardMaterial>(null);
-  useFrame(() => { if (m.current) m.current.emissiveIntensity = on() ? 2.6 : 0.03; });
+  const glow = useRef<Sprite>(null);
+  const halo = useMemo(() => haloTexture(), []);
+  // Lit: the lens itself is bright and a soft sprite stands in for bloom (no post-processing pass needed).
+  useFrame(() => {
+    const lit = on();
+    if (m.current) m.current.emissiveIntensity = lit ? 2.6 : 0.04;
+    if (glow.current) glow.current.visible = lit;
+  });
   return (
-    <mesh position={pos} rotation={rot}>
-      <cylinderGeometry args={[r, r, r * 0.6, 24]} />
-      <meshStandardMaterial ref={m} color="#2a2f36" emissive={color} emissiveIntensity={0} toneMapped={false} roughness={0.3} />
-    </mesh>
+    <group position={pos}>
+      <mesh rotation={rot} material={surface('machinedSteel')}><cylinderGeometry args={[r * 1.18, r * 1.18, r * 0.35, 24]} /></mesh>
+      <mesh rotation={rot}>
+        <cylinderGeometry args={[r, r * 0.96, r * 0.7, 24]} />
+        <meshStandardMaterial ref={m} color="#2a2f36" emissive={color} emissiveIntensity={0} toneMapped={false} roughness={0.25} />
+      </mesh>
+      <sprite ref={glow} scale={[r * 7, r * 7, 1]} visible={false}>
+        <spriteMaterial map={halo} color={color} blending={AdditiveBlending} depthWrite={false} transparent opacity={0.7} />
+      </sprite>
+    </group>
   );
 }
 
@@ -126,11 +144,14 @@ export function Pipe({ from, to, r = 0.04, color = PAINT.pipe }: { from: [number
     const q = new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), dir.clone().normalize());
     return { mid: a.add(b).multiplyScalar(0.5), len: dir.length(), quat: q };
   }, [from, to]);
+  // Flanges at both ends, so a run of pipe reads as fitted sections.
   return (
-    <mesh position={mid} quaternion={quat} castShadow receiveShadow>
-      <cylinderGeometry args={[r, r, len, 16]} />
-      <meshStandardMaterial color={color} metalness={0.6} roughness={0.4} />
-    </mesh>
+    <group position={mid} quaternion={quat}>
+      <mesh material={surface('enamel', color)}><cylinderGeometry args={[r, r, len, 16]} /></mesh>
+      {len > r * 6 && [-1, 1].map((e) => (
+        <mesh key={e} position={[0, e * (len / 2 - r * 0.25), 0]} material={surface('galvanized')}><cylinderGeometry args={[r * 1.45, r * 1.45, r * 0.5, 16]} /></mesh>
+      ))}
+    </group>
   );
 }
 
@@ -147,12 +168,13 @@ export function Tank({ pos, r, h, level, liquid = PAINT.water, shell = '#cfd6de'
         <cylinderGeometry args={[r * 0.97, r * 0.97, h, 40]} />
         <meshStandardMaterial color={liquid} roughness={0.15} metalness={0.1} transparent opacity={0.85} />
       </mesh>
-      <mesh position={[0, h / 2, 0]} castShadow>
+      <mesh position={[0, h / 2, 0]} material={surface('glass', shell, 0.26)}>
         <cylinderGeometry args={[r, r, h, 40, 1, true]} />
-        <meshStandardMaterial color={shell} metalness={0.5} roughness={0.35} transparent opacity={0.28} side={DoubleSide} depthWrite={false} />
       </mesh>
-      <mesh position={[0, h + 0.01, 0]} castShadow><cylinderGeometry args={[r * 1.02, r * 1.02, 0.02, 40]} /><meshStandardMaterial color={shell} metalness={0.6} roughness={0.35} /></mesh>
-      <mesh position={[0, 0.01, 0]} receiveShadow><cylinderGeometry args={[r * 1.02, r * 1.02, 0.02, 40]} /><meshStandardMaterial color="#6b7280" metalness={0.5} roughness={0.5} /></mesh>
+      {/* rolled steel rims top and bottom, and a base ring */}
+      <mesh position={[0, h + 0.012, 0]} material={surface('brushedSteel')}><cylinderGeometry args={[r * 1.03, r * 1.03, 0.03, 40]} /></mesh>
+      <mesh position={[0, h, 0]} rotation={[Math.PI / 2, 0, 0]} material={surface('brushedSteel')}><torusGeometry args={[r * 1.01, 0.012, 8, 48]} /></mesh>
+      <mesh position={[0, 0.015, 0]} material={surface('castIron')}><cylinderGeometry args={[r * 1.05, r * 1.08, 0.03, 40]} /></mesh>
       {/* level marks every quarter */}
       {[0.25, 0.5, 0.75].map((f) => (
         <mesh key={f} position={[0, f * h, 0]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[r * 1.005, 0.004, 6, 48]} /><meshBasicMaterial color="#94a3b8" /></mesh>
@@ -167,9 +189,13 @@ export function Valve({ pos, open, failOpen = false }: { pos: [number, number, n
   useFrame(() => { if (stem.current) stem.current.position.y = 0.16 + Math.max(0, Math.min(1, open())) * 0.06; });
   return (
     <group position={pos}>
-      <mesh castShadow><sphereGeometry args={[0.07, 20, 14]} /><meshStandardMaterial color="#475569" metalness={0.6} roughness={0.4} /></mesh>
-      <mesh position={[0, 0.12, 0]} castShadow><cylinderGeometry args={[0.012, 0.012, 0.12, 10]} /><meshStandardMaterial color="#d1d5db" metalness={0.9} roughness={0.25} /></mesh>
-      <mesh position={[0, 0.27, 0]} castShadow><cylinderGeometry args={[0.1, 0.1, 0.07, 28]} /><meshStandardMaterial color="#64748b" metalness={0.3} roughness={0.45} /></mesh>
+      {/* cast body with a flange each side, polished stem, yoke and a painted diaphragm actuator */}
+      <mesh material={surface('castIron', '#4a5360')}><sphereGeometry args={[0.07, 20, 14]} /></mesh>
+      {[-1, 1].map((e) => <mesh key={e} position={[e * 0.085, 0, 0]} rotation={[0, 0, Math.PI / 2]} material={surface('galvanized')}><cylinderGeometry args={[0.062, 0.062, 0.02, 18]} /></mesh>)}
+      <mesh position={[0, 0.12, 0]} material={surface('machinedSteel')}><cylinderGeometry args={[0.012, 0.012, 0.12, 10]} /></mesh>
+      {[-1, 1].map((e) => <mesh key={e} position={[e * 0.04, 0.15, 0]} material={surface('castIron', '#4a5360')}><boxGeometry args={[0.012, 0.17, 0.02]} /></mesh>)}
+      <mesh position={[0, 0.27, 0]} material={surface('enamel', '#5b6b80')}><cylinderGeometry args={[0.1, 0.105, 0.05, 28]} /></mesh>
+      <mesh position={[0, 0.305, 0]} material={surface('enamel', '#5b6b80')}><cylinderGeometry args={[0.07, 0.1, 0.025, 28]} /></mesh>
       {/* Fail action tag, as on a P&ID: FO = fails open, FC = fails closed (on loss of air or signal). */}
       <Label text={failOpen ? 'FO' : 'FC'} pos={[0, 0.27, 0.102]} w={0.07} h={0.04} fg="#111" bg="#f8fafc" />
       <mesh ref={stem} position={[0, 0.16, 0.02]}><boxGeometry args={[0.04, 0.012, 0.012]} /><meshStandardMaterial color={PAINT.safety} /></mesh>
@@ -292,10 +318,21 @@ export function Beam({ from, to, blocked }: { from: [number, number, number]; to
 
 /** Generic sheet-steel cabinet with a name plate on the front. */
 export function Cabinet({ pos, size, label, color = PAINT.cabinet, children }: { pos: [number, number, number]; size: [number, number, number]; label?: string; color?: string; children?: ReactNode }) {
+  const [w, h, d] = size;
+  const z = d / 2;
+  const big = h > 0.5;
   return (
     <group position={pos}>
-      <Box size={size} pos={[0, size[1] / 2, 0]} color={color} metal={0.45} rough={0.45} />
-      {label && <Label text={label} pos={[0, size[1] - 0.06, size[2] / 2 + 0.002]} w={Math.min(size[0] * 0.8, label.length * 0.03 + 0.06)} h={0.055} fg="#e8f1ff" bg="#1e3a8a" />}
+      <Box size={size} pos={[0, h / 2, 0]} color={color} s="powderCoat" />
+      {/* door seam: a dark hairline gap around the door (scene parts mounted on the face stay in front of it);
+          hinges on the left, a handle or a quarter-turn latch on the right */}
+      {[[0, h * 0.97, w * 0.94, 0.004], [0, h * 0.03, w * 0.94, 0.004], [-w * 0.47, h / 2, 0.004, h * 0.94], [w * 0.47, h / 2, 0.004, h * 0.94]].map(([x, y, sw, sh], i) => (
+        <mesh key={i} position={[x, y, z + 0.0008]} material={surface('rubber')}><boxGeometry args={[sw, sh, 0.001]} /></mesh>
+      ))}
+      {big && [0.22, 0.78].map((f) => <mesh key={f} position={[-w * 0.47 - 0.006, h * f, z + 0.004]} material={surface('galvanized')}><cylinderGeometry args={[0.008, 0.008, 0.06, 8]} /></mesh>)}
+      {big && <Box size={[0.018, 0.09, 0.016]} pos={[w * 0.43, h * 0.5, z + 0.01]} color="#1f2328" s="plasticGloss" />}
+      {!big && <ScrewHead pos={[w * 0.43, h * 0.5, z + 0.002]} r={Math.min(0.012, w * 0.04)} />}
+      {label && <Nameplate text={label} pos={[0, h - Math.max(0.05, h * 0.12), z + 0.002]} w={Math.min(w * 0.8, label.length * 0.03 + 0.08)} h={0.055} fg="#e8f1ff" bg="#1e3a8a" />}
       {children}
     </group>
   );

@@ -36,8 +36,15 @@ phase report and vault update. Items found in the Phase 0 audit are marked **(au
 - [x] 3.2 Materials/lighting · [x] 3.3 3D scene per machine (engine-driven) · [x] 3.4 camera/press/pull-in/spark motion
 - [x] 3.5 3D meter probes · [x] 3.6 3D wiring trainer · [x] 3.7 exploded overload, prox, I/O card, VFD · [x] 3.8 performance pass
 
-## Phase 4 — UI and motion → v0.9.0
-- 4.1 Design system + `docs/DESIGN-SYSTEM.md` + `/styleguide` · 4.2 components everywhere · 4.3 motion (shared elements, springs, haptics, reduced-motion) · 4.4 empty/loading/error states · 4.5 polish at 320/375/768/1440 · 4.6 PWA feel (icons, splash, safe areas) **(audit: B-002 responsive icon sizes)**
+## Phase 4 — Premium UI, 3D and motion → v0.9.0
+- [x] 4.1 First paint (B-010): static shell with the real heading, route chunks preloaded, poster stills for every 3D view, fonts subset. LCP 2.7 s → 1.6 s on the key routes.
+- [x] 4.2 Art direction + tokens: `docs/DESIGN-SYSTEM.md`, color/size/type/depth/motion tokens, token + AA contrast tests
+- [ ] 4.3 3D visual upgrade: shared material + lighting library, detail, state-driven life, camera views, quality tiers e2e
+- [ ] 4.4 Components: kit in `src/components/ui` and `#/styleguide` are done; legacy call sites that still use the `.btn` / `.seg` / `.callout` classes directly need moving to the components
+- [ ] 4.5 Motion: CSS + View Transitions replace the animation library (done); shared elements for hardware card → viewer and machine picker → workbench, count-ups in place, haptics, badge moments still to do
+- [ ] 4.6 2D craft: schematics, meter face, wiring trainer redraw
+- [ ] 4.7 States: empty/loading/error on every route, error boundary, offline chunk notice
+- [ ] 4.8 Polish: grid screenshots, UI and 3D rubric reviews, PWA icons and splash **(audit: B-002 responsive icon sizes)**
 
 ## Phase 5 — Reference → v0.10.0
 - 5.1 Brand comparisons (addressing, timers, online, forcing, backups) · 5.2 field devices in the hardware library **(audit: none today)** · 5.3 troubleshooting flowcharts · 5.4 cheat sheets · 5.5 "Day one at a new plant" · 5.6 VERIFY sweep

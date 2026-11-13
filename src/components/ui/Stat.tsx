@@ -29,7 +29,8 @@ export function Stat({ label, value, unit, icon, tone, children }: { label: stri
   return (
     <div className={`stat ${tone ? `stat-${tone}` : ''}`}>
       <p className="stat-label">{icon && <Icon name={icon} size={14} />}{label}</p>
-      <p className="stat-value" aria-label={`${label}: ${value}${unit ? ` ${unit}` : ''}`}>
+      <p className="stat-value">
+        <span className="sr-only">{value}{unit ? ` ${unit}` : ''}</span>
         <span aria-hidden="true">{typeof value === 'number' ? n : value}</span>{unit && <span className="stat-unit" aria-hidden="true">{unit}</span>}
       </p>
       {children && <div className="stat-note">{children}</div>}
