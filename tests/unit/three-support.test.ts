@@ -80,8 +80,10 @@ describe('3D look per theme', () => {
     }
   });
   it('the canvas color matches the CSS backdrop behind it (no flash while 3D loads)', () => {
-    const css = readFileSync('src/styles/app.css', 'utf8');
-    expect(css).toContain(LOOKS.dark.bg);
-    expect(css).toContain(LOOKS.light.bg);
+    // The backdrop gradient's middle stop is the --stage-2 token; each theme's value must equal the 3D clear color.
+    const css = readFileSync('src/styles/tokens.css', 'utf8');
+    const stage2 = [...css.matchAll(/--stage-2:\s*(#[0-9a-f]{6});/g)].map((m) => m[1]);
+    expect(stage2).toEqual([LOOKS.dark.bg, LOOKS.light.bg]);
+    expect(readFileSync('src/styles/app.css', 'utf8')).toMatch(/\.panel3d-bg \{[^}]*var\(--stage-2\)/);
   });
 });
