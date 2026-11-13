@@ -7,7 +7,7 @@ export const MAIN_GZIP_CEILING_KB = 118;
 
 const dir = new URL('../dist/assets/', import.meta.url);
 const html = readFileSync(new URL('../dist/index.html', import.meta.url), 'utf8');
-const entry = html.match(/assets\/(index-[\w-]+\.js)/)?.[1];
+const entry = html.match(/<script type="module"[^>]*src="[^"]*assets\/(index-[\w-]+\.js)"/)?.[1];
 if (!entry) { console.error('✗ budget: no entry chunk found in dist/index.html'); process.exit(1); }
 const kb = gzipSync(readFileSync(new URL(entry, dir)), { level: 9 }).length / 1024;
 const css = readdirSync(dir).filter((f) => f.endsWith('.css')).map((f) => gzipSync(readFileSync(new URL(f, dir))).length / 1024).reduce((a, b) => a + b, 0);

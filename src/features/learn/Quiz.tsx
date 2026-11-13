@@ -1,4 +1,3 @@
-import { AnimatePresence, motion } from 'framer-motion';
 import { useMemo, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
@@ -41,15 +40,13 @@ export function QuestionCard({ q, onAnswer, n, of }: { q: Question; onAnswer: (c
           );
         })}
       </div>
-      <AnimatePresence>
         {done && (
-          <motion.div initial={{ opacity: 0, height: 0 }} animate={{ opacity: 1, height: 'auto' }} className="overflow-hidden">
+          <div data-enter="rise">
             <div className={`callout mt-3 ${right ? 'callout-tip' : 'callout-gotcha'}`} role="status">
               <strong className="text-heading">{right ? 'Correct.' : 'Not quite.'}</strong> <Rich text={q.why} />
             </div>
-          </motion.div>
+          </div>
         )}
-      </AnimatePresence>
     </div>
   );
 }

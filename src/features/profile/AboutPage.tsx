@@ -1,4 +1,4 @@
-import { PageHead } from '../../components/Brand';
+import { RouteHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { BUSINESS } from '../../lib/business';
 import { href } from '../../lib/router';
@@ -9,7 +9,7 @@ export default function AboutPage() {
   return (
     <div className="max-w-[72ch]">
       <a href={href('profile')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Profile</a>
-      <PageHead eyebrow="About" title="Controls Academy" />
+      <RouteHead seg="about" />
 
       <section className="card card-pad mb-4 flex gap-4 items-center">
         <img src={`${BASE}brand/logo-mark.png`} width={72} height={72} alt="Caylor Made Technologies CM circuit monogram" />

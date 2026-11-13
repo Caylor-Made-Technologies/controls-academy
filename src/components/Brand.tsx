@@ -1,11 +1,12 @@
 import type { ReactNode } from 'react';
 import { BUSINESS } from '../lib/business';
 import { href } from '../lib/router';
+import { ROUTE_HEADS } from '../content/heads';
 
 const BASE = import.meta.env.BASE_URL;
 
 export function AppMark({ size = 32 }: { size?: number }) {
-  return <img src={`${BASE}brand/app-mark.png`} width={size} height={size} alt="" className="rounded-[22%]" />;
+  return <img src={`${BASE}favicon.svg`} width={size} height={size} alt="" className="rounded-[22%]" />;
 }
 
 export function Wordmark({ compact = false }: { compact?: boolean }) {
@@ -41,15 +42,22 @@ export function Traces({ className = 'traces' }: { className?: string }) {
   );
 }
 
-export function PageHead({ eyebrow, title, children }: { eyebrow?: string; title: string; children?: ReactNode }) {
+/** `bare` leaves out the decorative traces (used by loading placeholders, so they don't redraw on swap). */
+export function PageHead({ eyebrow, title, children, bare }: { eyebrow?: string; title: string; children?: ReactNode; bare?: boolean }) {
   return (
     <header className="page-head">
-      <Traces />
+      {!bare && <Traces />}
       {eyebrow && <p className="eyebrow m-0 mb-1.5">{eyebrow}</p>}
       <h1 className="text-[1.6rem] sm:text-[2rem] font-extrabold">{title}</h1>
       {children && <div className="mt-2 text-muted max-w-[60ch]">{children}</div>}
     </header>
   );
+}
+
+/** The heading of a top-level screen, from the shared table (src/content/heads.ts). */
+export function RouteHead({ seg, eyebrow, title, bare }: { seg: string; eyebrow?: string; title?: string; bare?: boolean }) {
+  const h = ROUTE_HEADS[seg];
+  return <PageHead eyebrow={eyebrow ?? h.eyebrow} title={title ?? h.title} bare={bare}>{h.body}</PageHead>;
 }
 
 export function Disclaimer() {

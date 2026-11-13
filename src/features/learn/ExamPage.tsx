@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { PageHead } from '../../components/Brand';
+import { PageHead, RouteHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
 import { LESSON_BY_ID, TRACK_BY_ID } from '../../content';
@@ -19,9 +19,7 @@ function ExamHome() {
   return (
     <div>
       <a href={href('learn')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Learn</a>
-      <PageHead eyebrow="Learn" title="Practice exams">
-        Randomized from the question bank every time. Answers and explanations come at the end, like a real test. Missed questions go to Review.
-      </PageHead>
+      <RouteHead seg="exam" />
       <div className="grid gap-3 sm:grid-cols-2">
         {EXAMS.map((e) => {
           const r = exams[e.id];

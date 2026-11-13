@@ -876,6 +876,74 @@ await check('PWA: manifest + icons served; service worker controls the page; wor
   await ctx.close();
 });
 
+// ---------- First paint: static shell, route preload, poster stills (B-010) ----------
+const HEAD_ROUTES = ['learn', 'skills', 'exam', 'review', 'sim', 'wiring', 'troubleshoot', 'reference', 'profile', 'about'];
+await check('Static shell: every top-level heading is in the HTML before any app code runs, and matches the app', async () => {
+  // 1) With the app bundle held back, the heading must already be on screen.
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+  contexts.push(ctx);
+  await ctx.addInitScript(() => { localStorage.setItem('ca:prefs', JSON.stringify({ onboarded: true })); sessionStorage.setItem('ca:powered', '1'); });
+  await ctx.route(/assets\/.*\.js$/, () => {});
+  const page = await ctx.newPage();
+  lastPage = page;
+  const shell = {};
+  for (const r of HEAD_ROUTES) {
+    await page.goto('about:blank');
+    await page.goto(`${URL0}#/${r}`, { waitUntil: 'commit' });
+    await page.waitForSelector('#shell-head h1', { timeout: 10000 });
+    shell[r] = await page.evaluate(() => { const h = document.querySelector('#shell-head .page-head'); return { html: h.outerHTML, top: Math.round(h.getBoundingClientRect().top), h1: h.querySelector('h1').textContent }; });
+    const preloads = await page.evaluate(() => [...document.querySelectorAll('link[rel=modulepreload]')].map((l) => l.getAttribute('href')));
+    expect(preloads.length > 0, `${r}: no route chunks preloaded`);
+  }
+  await ctx.close();
+  // 2) The running app draws the same heading in the same place (ignoring the decorative traces).
+  const { ctx: c2, page: p2 } = await newPage({ w: 390, h: 844 });
+  for (const r of HEAD_ROUTES) {
+    await go(p2, r);
+    const app = await p2.evaluate(() => { const h = document.querySelector('main#main .page-head').cloneNode(true); h.querySelector('svg')?.remove(); const live = document.querySelector('main#main .page-head'); return { html: h.outerHTML, top: Math.round(live.getBoundingClientRect().top + window.scrollY) }; });
+    expect(app.html === shell[r].html, `${r}: shell heading differs from the app's\n shell: ${shell[r].html}\n app:   ${app.html}`);
+    expect(Math.abs(app.top - shell[r].top) <= 1, `${r}: heading moves when the app loads (${shell[r].top} → ${app.top})`);
+  }
+  await c2.close();
+});
+
+await check('Static shell: deeper pages get the header bar only, and a saved light theme applies before paint', async () => {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block' });
+  contexts.push(ctx);
+  await ctx.addInitScript(() => { localStorage.setItem('ca:prefs', JSON.stringify({ onboarded: true, theme: 'light' })); });
+  await ctx.route(/assets\/.*\.js$/, () => {});
+  const page = await ctx.newPage();
+  lastPage = page;
+  await page.goto(`${URL0}#/lesson/timers`, { waitUntil: 'commit' });
+  await page.waitForSelector('#root .app-header');
+  expect((await page.locator('#shell-head h1').count()) === 0, 'a lesson has no static heading');
+  expect((await page.evaluate(() => document.documentElement.dataset.theme)) === 'light', 'light theme set by the boot script');
+  await ctx.close();
+});
+
+await check('Poster stills: a drawing shows while the 3D code is still downloading, then fades out', async () => {
+  for (const [route, label] of [['sim', 'Loading 3D panel'], ['sim?m=tank', 'Loading 3D machine'], ['wiring/three-wire', 'Loading 3D board'], ['reference/inside/vfd', 'Loading 3D view'], ['troubleshoot/tk-wire', 'Loading 3D meter']]) {
+    const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block', reducedMotion: 'reduce', bypassCSP: true });
+    contexts.push(ctx);
+    await ctx.addInitScript(() => { localStorage.setItem('ca:prefs', JSON.stringify({ onboarded: true, quality: 'low' })); sessionStorage.setItem('ca:powered', '1'); });
+    let release;
+    const held = new Promise((r) => { release = r; });
+    await ctx.route(/assets\/(Lights|Machine3D|Panel3D|WiringBoard3D|Inside3D|MeterProbes3D)-.*\.js$/, async (r) => { await held; await r.continue(); });
+    const page = await ctx.newPage();
+    lastPage = page;
+    await page.goto(`${URL0}#/${route}`);
+    const frame = page.getByRole('status', { name: label });
+    await frame.waitFor({ timeout: 20000 });
+    expect((await frame.locator('svg.poster polygon').count()) > 3, `${route}: poster has no drawing`);
+    expect((await page.locator('canvas').count()) === 0, `${route}: canvas before the 3D code arrived`);
+    release();
+    await page.waitForSelector('canvas', { timeout: 30000 });
+    await page.waitForSelector('.stage-canvas[data-drawn="true"]', { timeout: 30000 });
+    await page.waitForSelector('svg.poster[data-fade="out"]', { state: 'attached', timeout: 10000 });
+    await ctx.close();
+  }
+});
+
 await browser.close();
 const relevant = errors.filter((e) => !/net::ERR_INTERNET_DISCONNECTED|Failed to load resource/.test(e));
 console.log(`\n${pass} passed, ${fail} failed`);

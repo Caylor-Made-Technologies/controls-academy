@@ -1,6 +1,5 @@
-import { motion, useReducedMotion } from 'framer-motion';
-import { useRef, useState } from 'react';
-import { PageHead } from '../../components/Brand';
+import { useRef, useState, type CSSProperties } from 'react';
+import { RouteHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { ProgressRing } from '../../components/ProgressRing';
 import { Sheet } from '../../components/Sheet';
@@ -18,7 +17,6 @@ export default function ProfilePage() {
   const prefs = usePrefs();
   const readiness = p.exams.readiness;
   const readinessOk = Boolean(readiness && readiness.best / readiness.total >= 0.8);
-  const reduce = useReducedMotion();
   const lv = level(p.xp);
   const bs = badges(p);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -37,7 +35,7 @@ export default function ProfilePage() {
 
   return (
     <div>
-      <PageHead eyebrow="Profile" title={prefs.name || 'Your progress'}>Everything here stays on this device. Nothing is uploaded.</PageHead>
+      <RouteHead seg="profile" title={prefs.name || undefined} />
 
       <section className="card card-pad flex flex-wrap items-center gap-4 mb-4">
         <ProgressRing pct={lv.pct} size={84} stroke={8} label="Level progress">
@@ -57,15 +55,14 @@ export default function ProfilePage() {
       <h2 className="text-lg font-bold mb-2">Badges</h2>
       <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2 mb-6">
         {bs.map((b, i) => (
-          <motion.div key={b.id} initial={reduce ? false : { opacity: 0, scale: 0.94 }} animate={{ opacity: 1, scale: 1 }} transition={{ delay: Math.min(i * 0.025, 0.3) }}
-            className="card p-3" style={b.earned ? { borderColor: 'var(--live)' } : { opacity: 0.6 }}>
+          <div key={b.id} data-enter="pop" className="card p-3" style={{ ...({ '--i': Math.min(i, 12) } as CSSProperties), ...(b.earned ? { borderColor: 'var(--live)' } : { opacity: 0.6 }) }}>
             <span className="w-9 h-9 rounded-full flex items-center justify-center mb-1.5" style={{ background: b.earned ? 'var(--grad-live)' : 'var(--surface-raised)' }}>
               <Icon name={b.earned ? 'trophy' : 'shield'} size={18} className={b.earned ? 'text-[#062a1b]' : 'text-muted'} />
             </span>
             <p className="m-0 font-bold text-heading text-sm">{b.title}</p>
             <p className="m-0 text-xs text-muted">{b.desc}</p>
             <span className="sr-only">{b.earned ? 'Earned' : 'Not earned yet'}</span>
-          </motion.div>
+          </div>
         ))}
       </div>
 

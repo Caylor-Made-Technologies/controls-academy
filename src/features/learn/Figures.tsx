@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { useReducedMotion } from 'framer-motion';
+import { useReducedMotion } from '../../lib/motion';
 import type { FigureId } from '../../content/types';
 import { twoLoads } from '../../lib/circuits';
 

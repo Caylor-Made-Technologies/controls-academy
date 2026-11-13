@@ -4,13 +4,16 @@
  */
 import { Billboard, OrbitControls } from '@react-three/drei';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
-import { memo, useMemo, useRef } from 'react';
+import { memo, useMemo, useRef, useState } from 'react';
 import { DoubleSide, Vector3, type Group } from 'three';
 import type { InsideDevice, InsidePart } from '../content/inside';
 import { usePrefs } from '../state/prefs';
 import { Label } from './kit';
 import { StudioLights } from './Lights';
 import { Stage } from './Stage';
+import { Poster } from './poster/Poster';
+import { FRAME } from './poster/frames';
+import { POSTERS } from './poster/inside.gen';
 
 function Part({ p, spread, size, selected, onPick, reduce }: { p: InsidePart; spread: number; size: number; selected: boolean; onPick: (id: string) => void; reduce: boolean }) {
   const g = useRef<Group>(null);
@@ -45,11 +48,14 @@ function Part({ p, spread, size, selected, onPick, reduce }: { p: InsidePart; sp
 
 function Inside3D({ device, spread, selected, onPick }: { device: InsideDevice; spread: number; selected: string | null; onPick: (id: string | null) => void }) {
   const quality = usePrefs((s) => s.quality);
+  const [drawn, setDrawn] = useState(false);
   const reduce = useMemo(() => Boolean(window.matchMedia?.('(prefers-reduced-motion: reduce)').matches), []);
   const d = device.size;
   return (
-    <div className="relative h-[clamp(300px,52svh,460px)] panel3d-bg rounded-xl overflow-hidden">
+    <div className={FRAME.inside}>
+      {POSTERS[device.id] && <Poster spec={POSTERS[device.id]} fade={drawn} />}
       <Stage
+        onFirstFrame={() => setDrawn(true)}
         quality={quality}
         animate={false}
         camera={{ position: [d * 0.75, d * 0.5, d * 1.45], fov: 38, near: 0.005, far: 20 }}

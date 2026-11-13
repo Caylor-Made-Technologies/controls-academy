@@ -1,4 +1,3 @@
-import { AnimatePresence, motion, useReducedMotion } from 'framer-motion';
 import { useState } from 'react';
 import { AppMark, Disclaimer, Traces } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
@@ -20,7 +19,6 @@ export function Onboarding({ onDone }: { onDone: (path?: string) => void }) {
   const [skin, setSkin] = useState<SkinId>('ab-logix');
   const [name, setName] = useState('');
   const setPrefs = usePrefs((s) => s.setPrefs);
-  const reduce = useReducedMotion();
 
   const finish = (start: boolean) => {
     setPrefs({ goal: goal ?? 'maintenance', skin, name: name.trim().slice(0, 30) });
@@ -96,11 +94,9 @@ export function Onboarding({ onDone }: { onDone: (path?: string) => void }) {
           <button type="button" className="btn btn-ghost btn-sm" onClick={() => finish(false)}>Skip</button>
         </div>
         <div className="flex-1">
-          <AnimatePresence mode="wait" initial={false}>
-            <motion.div key={step} initial={reduce ? { opacity: 0 } : { opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={reduce ? { opacity: 0 } : { opacity: 0, x: -24 }} transition={{ duration: 0.22 }}>
-              {screens[step]}
-            </motion.div>
-          </AnimatePresence>
+          <div key={step} data-enter={step === 0 ? undefined : 'slide'}>
+            {screens[step]}
+          </div>
         </div>
         <div className="flex gap-2 mt-6">
           {step > 0 && <button type="button" className="btn" onClick={() => setStep(step - 1)}><Icon name="back" size={18} /> Back</button>}

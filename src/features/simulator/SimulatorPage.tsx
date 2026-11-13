@@ -1,16 +1,16 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PageHead } from '../../components/Brand';
+import { RouteHead } from '../../components/Brand';
 import { href } from '../../lib/router';
 import { Icon } from '../../components/Icon';
 import { SkeletonPage } from '../../components/Skeleton';
 import type { Program } from '../../engine/types';
-import { MACHINES, MACHINE_BY_ID, createMachine } from '../../plant';
+import { MACHINE_INFO, MACHINE_INFO_BY_ID } from '../../plant/catalog';
 import { SKIN_LIST, addressMap } from '../../skins';
 import { debouncedSaver, load } from '../../state/persist';
 import { usePrefs } from '../../state/prefs';
 import { navigate, queryParam, useQueryParam } from '../../lib/router';
 import { decodeProgram, encodeProgram, validateProgram } from './edit';
-import { Workbench } from './Workbench';
+import { Workbench } from './LazyWorkbench';
 
 /** Each machine keeps its own saved program. The motor keeps the original key so old saves still load. */
 const storeKey = (m: string) => (m === 'motor' ? 'sim-program' : `sim-program:${m}`);
@@ -22,7 +22,7 @@ const saveProgram = (m: string, p: Program) => {
 
 export default function SimulatorPage() {
   const m = useQueryParam('m');
-  const machine = m && MACHINE_BY_ID.has(m) ? m : 'motor';
+  const machine = m && MACHINE_INFO_BY_ID.has(m) ? m : 'motor';
   return <MachineSim key={machine} machine={machine} />;
 }
 
@@ -39,8 +39,9 @@ function MachineSim({ machine }: { machine: string }) {
       const shared = queryParam('p');
       const fromLink = shared ? decodeProgram(shared) : null;
       const saved = validateProgram(await load(storeKey(machine)));
+      // The machine code (physics, faults, starter program) is its own chunk; the page heading shows first.
+      const p = fromLink ?? saved ?? (await import('../../plant')).createMachine(machine).program();
       if (!alive) return;
-      const p = fromLink ?? saved ?? createMachine(machine).program();
       if (fromLink) setMsg('Loaded a shared program from the link.');
       current.current = p;
       setInitial(p);
@@ -84,16 +85,14 @@ function MachineSim({ machine }: { machine: string }) {
 
   return (
     <div>
-      <PageHead eyebrow="Simulator" title="PLC workbench">
-        A real scan cycle driving a real-feeling machine. Press buttons, watch power flow, edit the logic online, switch brands.
-      </PageHead>
+      <RouteHead seg="sim" />
       <a href={href('wiring')} className="btn btn-sm mb-3"><Icon name="branch" size={16} /> Wiring trainer</a>
       <label className="flex flex-wrap items-center gap-2 mb-3">
         <span className="font-semibold text-heading text-sm">Machine</span>
         <select className="input !w-auto max-w-full" value={machine} onChange={(e) => navigate(e.target.value === 'motor' ? 'sim' : `sim?m=${e.target.value}`)} aria-label="Machine">
-          {MACHINES.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
+          {MACHINE_INFO.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
         </select>
-        <span className="text-xs text-muted">{MACHINE_BY_ID.get(machine)!.summary}</span>
+        <span className="text-xs text-muted">{MACHINE_INFO_BY_ID.get(machine)!.summary}</span>
       </label>
       {msg && <p className="callout callout-tip text-sm mb-3" role="status">{msg}</p>}
       {!initial ? (
@@ -111,7 +110,7 @@ function MachineSim({ machine }: { machine: string }) {
                 <button type="button" className="btn btn-sm" onClick={share}><Icon name="share" size={16} /> Share</button>
                 <button type="button" className="btn btn-sm" onClick={exportJson}><Icon name="download" size={16} /> Export</button>
                 <button type="button" className="btn btn-sm" onClick={() => fileRef.current?.click()}><Icon name="upload" size={16} /> Import</button>
-                <button type="button" className="btn btn-sm" onClick={() => loadProgram(createMachine(machine).program(), 'Restored the original program for this machine.')}><Icon name="reset" size={16} /> Original</button>
+                <button type="button" className="btn btn-sm" onClick={async () => loadProgram((await import('../../plant')).createMachine(machine).program(), 'Restored the original program for this machine.')}><Icon name="reset" size={16} /> Original</button>
               </>
             }
           />

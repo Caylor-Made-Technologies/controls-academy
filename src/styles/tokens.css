@@ -6,13 +6,13 @@
 
 @font-face {
   font-family: 'Inter';
-  src: url('/fonts/inter-latin-wght-normal.woff2') format('woff2');
+  src: url('/fonts/inter-sub.woff2') format('woff2');
   font-weight: 100 900;
   font-display: swap;
 }
 @font-face {
   font-family: 'Montserrat';
-  src: url('/fonts/montserrat-latin-wght-normal.woff2') format('woff2');
+  src: url('/fonts/montserrat-sub.woff2') format('woff2');
   font-weight: 100 900;
   font-display: swap;
 }
@@ -58,14 +58,48 @@
   --font-body: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, Arial, sans-serif;
   --font-head: 'Montserrat', 'Inter', system-ui, Arial, sans-serif;
   --font-mono: ui-monospace, 'SF Mono', 'Cascadia Mono', Menlo, Consolas, monospace;
+  /* Spacing (4 px grid) */
+  --space-1: 4px;
+  --space-2: 8px;
+  --space-3: 12px;
+  --space-4: 16px;
+  --space-5: 20px;
+  --space-6: 24px;
+  --space-8: 32px;
+  --space-10: 40px;
+  --space-12: 48px;
+  --radius-pill: 999px;
+  --text-xs: 0.75rem;
+  --dur-fast: 120ms;
+  --dur: 200ms;
+  --dur-slow: 420ms;
+  /* Poster stills (flat drawings shown before 3D loads) */
+  --poster-line: rgba(110, 166, 255, 0.7);
+  --poster-0: #16202e;
+  --poster-1: #1f2c3f;
+  --poster-2: #2a3b54;
+  --poster-3: #364b69;
+  --poster-glass: rgba(61, 139, 255, 0.07);
+  --scrim-chip: rgba(11, 15, 20, 0.72);
+  /* Motion: one easing set. --ease for fades and exits, --ease-spring for things that land (sheets, pills,
+     pops), --ease-bounce for small celebratory moments. linear() curves are sampled springs. */
   --ease: cubic-bezier(0.2, 0.8, 0.2, 1);
   --spring: cubic-bezier(0.34, 1.56, 0.64, 1);
+  --ease-spring: linear(0, 0.006, 0.025 2.8%, 0.101 6.1%, 0.539 18.9%, 0.721 25.3%, 0.849 31.5%, 0.937 38.1%, 0.968 41.8%, 0.991 45.7%, 1.006 50.1%, 1.015 55%, 1.017 63.9%, 1.001 85.9%, 1);
+  --ease-bounce: linear(0, 0.009, 0.035 2.1%, 0.141 4.4%, 0.723 12.9%, 0.938 16.7%, 1.017, 1.077, 1.121, 1.149 24.3%, 1.159, 1.163, 1.161, 1.154 29.9%, 1.129 32.8%, 1.051 39.6%, 1.017 43.1%, 0.991, 0.977 51%, 0.974 53.8%, 0.975 57.1%, 0.997 69.8%, 1.003 76.9%, 1.004 83.8%, 1);
+  --dur-move: 480ms;
+  --stagger: 30ms;
+  --press-scale: 0.97;
+  --scrim: rgba(3, 6, 10, 0.6);
 
   --safe-top: env(safe-area-inset-top, 0px);
   --safe-bottom: env(safe-area-inset-bottom, 0px);
   --safe-left: env(safe-area-inset-left, 0px);
   --safe-right: env(safe-area-inset-right, 0px);
   --header-h: 56px;
+  --rail-item: 46px;
+  --rail-gap: 6px;
+  --blue-line: rgba(61, 139, 255, 0.35);
   --tabbar-h: 64px;
 }
 
@@ -96,6 +130,13 @@
   --alarm: #c62828;
   --alarm-soft: rgba(198, 40, 40, 0.08);
   --select: #1b5fd9;
+  --poster-line: rgba(27, 95, 217, 0.55);
+  --poster-0: #bcc8d6;
+  --poster-1: #cdd7e2;
+  --poster-2: #dfe6ee;
+  --poster-3: #f3f6f9;
+  --poster-glass: rgba(27, 95, 217, 0.06);
+  --scrim-chip: rgba(255, 255, 255, 0.82);
   --shadow: 0 10px 30px rgba(15, 23, 42, 0.1);
   --glow: 0 0 0 1px rgba(27, 99, 235, 0.3), 0 8px 24px rgba(27, 99, 235, 0.12);
 }

@@ -1,0 +1,50 @@
+{
+  "learn": {
+    "page": "LearnPage",
+    "samples": ["learn"]
+  },
+  "skills": {
+    "page": "SkillMapPage",
+    "samples": ["skills"]
+  },
+  "exam": {
+    "page": "ExamPage",
+    "samples": ["exam", "exam/readiness"]
+  },
+  "summary": {
+    "page": "SummaryPage",
+    "samples": ["summary", "summary/t0"]
+  },
+  "lesson": {
+    "page": "LessonPage",
+    "samples": ["lesson/z-series-parallel", "lesson/three-wire", "lesson/sinking-sourcing"]
+  },
+  "review": {
+    "page": "ReviewPage",
+    "samples": ["review"]
+  },
+  "sim": {
+    "page": "SimulatorPage",
+    "samples": ["sim", "sim?m=vfd", "sim?m=fwdrev", "sim?m=conveyor", "sim?m=tank", "sim?m=pumps", "sim?m=datacenter", "sim?m=mixer"]
+  },
+  "wiring": {
+    "page": "WiringPage",
+    "samples": ["wiring", "wiring/three-wire", "wiring/loop"]
+  },
+  "troubleshoot": {
+    "page": "TroubleshootPage",
+    "samples": ["troubleshoot", "troubleshoot/mx-dc"]
+  },
+  "reference": {
+    "page": "ReferencePage",
+    "samples": ["reference", "reference/brand/rockwell", "reference/hardware", "reference/hw/controllogix", "reference/instructions", "reference/glossary", "reference/inside", "reference/inside/vfd"]
+  },
+  "profile": {
+    "page": "ProfilePage",
+    "samples": ["profile"]
+  },
+  "about": {
+    "page": "AboutPage",
+    "samples": ["about"]
+  }
+}

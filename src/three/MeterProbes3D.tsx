@@ -8,7 +8,7 @@
  */
 import { QuadraticBezierLine } from '@react-three/drei';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
-import { memo, useEffect, useMemo, useRef } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { PerspectiveCamera, Plane, Vector3, type Group } from 'three';
 import type { MeterMode } from '../features/troubleshoot/scoring';
 import { usePrefs } from '../state/prefs';
@@ -16,6 +16,9 @@ import { Box, Label } from './kit';
 import { StudioLights } from './Lights';
 import { Display } from './machines/parts';
 import { Stage } from './Stage';
+import { Poster } from './poster/Poster';
+import { FRAME } from './poster/frames';
+import type { PosterSpec } from './poster/project';
 
 export interface ProbePoint { id: string; label: string }
 
@@ -143,11 +146,14 @@ function Bench({ points, mode, at, reading, onMode, onLand, onLift }: BenchProps
   );
 }
 
-function MeterProbes3D({ points, mode, at, reading, onMode, onLand, onLift }: BenchProps) {
+function MeterProbes3D({ points, mode, at, reading, onMode, onLand, onLift, poster }: BenchProps & { poster?: PosterSpec }) {
   const quality = usePrefs((s) => s.quality);
+  const [drawn, setDrawn] = useState(false);
   return (
-    <div className="relative h-[clamp(360px,62svh,520px)] panel3d-bg rounded-xl overflow-hidden" style={{ touchAction: 'none' }}>
+    <div className={FRAME.meter} style={{ touchAction: 'none' }}>
+      {poster && <Poster spec={poster} fade={drawn} />}
       <Stage
+        onFirstFrame={() => setDrawn(true)}
         quality={quality}
         animate={false}
         camera={{ position: [0, 0, 1.4], fov: 42, near: 0.02, far: 10 }}

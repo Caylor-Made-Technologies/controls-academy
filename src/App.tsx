@@ -1,18 +1,18 @@
-import { lazy, Suspense, useEffect, useRef, useState } from 'react';
-import { AnimatePresence, LayoutGroup, MotionConfig, motion, useReducedMotion } from 'framer-motion';
-import { AppMark, Footer, Wordmark } from './components/Brand';
+import { lazy, Suspense, useEffect, useRef, useState, type CSSProperties, type ReactNode } from 'react';
+import { AppMark, Footer, RouteHead, Wordmark } from './components/Brand';
+import { headFor } from './content/heads';
 import { Icon, type IconName } from './components/Icon';
 import { SkeletonPage } from './components/Skeleton';
-import { href, navigate, useRoute } from './lib/router';
+import { href, navigate, useRoute, type RouteSeg } from './lib/router';
 import { sfx } from './lib/sound';
 import { installSpotlight } from './lib/spotlight';
 import { PowerOn } from './components/PowerOn';
 import { applyTheme, usePrefs } from './state/prefs';
 import { useProgress } from './state/progress';
-import LearnPage from './features/learn/LearnPage';
 
 const Onboarding = lazy(() => import('./features/onboarding/Onboarding').then((m) => ({ default: m.Onboarding })));
 const CommandPalette = lazy(() => import('./features/CommandPalette').then((m) => ({ default: m.CommandPalette })));
+const LearnPage = lazy(() => import('./features/learn/LearnPage'));
 const LessonPage = lazy(() => import('./features/learn/LessonPage'));
 const ReviewPage = lazy(() => import('./features/learn/ReviewPage'));
 const SkillMapPage = lazy(() => import('./features/learn/SkillMapPage'));
@@ -46,22 +46,37 @@ function tabFor(seg: string | undefined): TabId {
   }
 }
 
+/** One entry per first path segment. The keys must match src/routes.json, which the e2e gate and the
+ *  screenshot script read, so a new screen cannot ship without being tested and photographed. */
+const PAGES: Record<RouteSeg, (route: string[]) => ReactNode> = {
+  learn: () => <LearnPage />,
+  lesson: (r) => <LessonPage id={r[1] ?? ''} />,
+  review: () => <ReviewPage />,
+  skills: () => <SkillMapPage />,
+  exam: (r) => <ExamPage id={r[1]} />,
+  summary: (r) => <SummaryPage track={r[1]} />,
+  sim: () => <SimulatorPage />,
+  wiring: (r) => <WiringPage id={r[1]} />,
+  troubleshoot: (r) => <TroubleshootPage huntId={r[1]} />,
+  reference: (r) => <ReferencePage section={r[1]} item={r[2]} />,
+  profile: () => <ProfilePage />,
+  about: () => <AboutPage />,
+};
+
+/** While a screen's code loads: its real heading (top-level screens) over a skeleton. */
+function RouteFallback({ route }: { route: string[] }) {
+  const seg = route[0] ?? 'learn';
+  return (
+    <div>
+      {headFor(route) && <RouteHead seg={seg} bare />}
+      <SkeletonPage />
+    </div>
+  );
+}
+
 function Page({ route }: { route: string[] }) {
-  const [a, b] = route;
-  switch (a) {
-    case 'lesson': return <LessonPage id={b ?? ''} />;
-    case 'review': return <ReviewPage />;
-    case 'skills': return <SkillMapPage />;
-    case 'exam': return <ExamPage id={b} />;
-    case 'summary': return <SummaryPage track={b} />;
-    case 'sim': return <SimulatorPage />;
-    case 'wiring': return <WiringPage id={b} />;
-    case 'troubleshoot': return <TroubleshootPage huntId={b} />;
-    case 'reference': return <ReferencePage section={b} item={route[2]} />;
-    case 'profile': return <ProfilePage />;
-    case 'about': return <AboutPage />;
-    default: return <LearnPage />;
-  }
+  const seg = route[0] as RouteSeg | undefined;
+  return (seg && Object.hasOwn(PAGES, seg) ? PAGES[seg] : PAGES.learn)(route);
 }
 
 export default function App() {
@@ -70,13 +85,13 @@ export default function App() {
   const progressReady = useProgress((s) => s.hydrated);
   const setLastRoute = useProgress((s) => s.setLastRoute);
   const [paletteOpen, setPaletteOpen] = useState(false);
-  const reduce = useReducedMotion();
   const tab = tabFor(route[0]);
   const routeKey = route.join('/');
   // Direction-aware transitions: tabs slide sideways in tab order; drilling in (lesson, guide) rises up.
   const prev = useRef({ tab, depth: route.length });
   const dir = ORDER[tab] === ORDER[prev.current.tab] ? (route.length >= prev.current.depth ? 'in' : 'out') : ORDER[tab] > ORDER[prev.current.tab] ? 'right' : 'left';
   useEffect(() => { prev.current = { tab, depth: route.length }; });
+  useEffect(() => { document.documentElement.dataset.nav = dir; }, [dir]);
   const [scrolled, setScrolled] = useState(false);
   useEffect(() => {
     installSpotlight();
@@ -121,13 +136,17 @@ export default function App() {
     return () => window.removeEventListener('keydown', onKey);
   }, []);
 
+  // Before saved progress is read, show the same header and page heading the static shell in index.html
+  // already painted, so nothing jumps or flashes when the app takes over.
   if (!prefs.hydrated || !progressReady) {
     return (
-      <div className="min-h-dvh flex items-center justify-center" aria-busy="true">
-        <div className="flex flex-col items-center gap-3">
-          <AppMark size={72} />
-          <Wordmark />
-        </div>
+      <div className="with-rail" aria-busy="true">
+        <header className="app-header lg:hidden" data-scrolled="false">
+          <div className="app-header-inner">
+            <a href={href('learn')} className="flex items-center gap-2.5 no-underline min-w-0"><AppMark size={32} /><Wordmark compact /></a>
+          </div>
+        </header>
+        <main className="page"><RouteFallback route={route} /></main>
       </div>
     );
   }
@@ -135,8 +154,7 @@ export default function App() {
   const darkNow = document.documentElement.dataset.theme !== 'light';
 
   return (
-    <MotionConfig reducedMotion="user">
-    <LayoutGroup>
+    <>
       <PowerOn />
       <a className="skip-link" href="#main" onClick={(e) => { e.preventDefault(); document.getElementById('main')?.focus(); }}>Skip to content</a>
 
@@ -146,13 +164,15 @@ export default function App() {
           <AppMark size={40} />
           <Wordmark />
         </a>
+        <div className="rail-links" style={{ '--tab-i': ORDER[tab] } as CSSProperties}>
+          <span className="rail-pill" aria-hidden="true" />
         {TABS.map((t) => (
           <a key={t.id} href={href(t.path)} className="rail-link" aria-current={tab === t.id ? 'page' : undefined}>
-            {tab === t.id && <motion.span layoutId="rail-pill" className="rail-pill" transition={{ type: 'spring', stiffness: 500, damping: 40 }} />}
             <Icon name={t.icon} className="relative" />
             <span className="relative">{t.label}</span>
           </a>
         ))}
+        </div>
         <button type="button" className="rail-link mt-2" onClick={() => setPaletteOpen(true)}>
           <Icon name="search" /> <span>Search</span> <kbd className="ml-auto text-[0.7rem]">⌘K</kbd>
         </button>
@@ -181,36 +201,22 @@ export default function App() {
         </header>
 
         <main id="main" tabIndex={-1} className="page outline-none">
-          <AnimatePresence mode="wait" initial={false} custom={dir}>
-            <motion.div
-              key={routeKey.split('?')[0] || 'learn'}
-              custom={dir}
-              variants={{
-                enter: (d: string) => (reduce ? { opacity: 0 } : { opacity: 0, x: d === 'right' ? 28 : d === 'left' ? -28 : 0, y: d === 'in' ? 14 : d === 'out' ? -10 : 0}),
-                center: { opacity: 1, x: 0, y: 0 },
-                exit: (d: string) => (reduce ? { opacity: 0 } : { opacity: 0, x: d === 'right' ? -18 : d === 'left' ? 18 : 0, y: d === 'in' ? -6 : 0}),
-              }}
-              initial="enter"
-              animate="center"
-              exit="exit"
-              transition={reduce ? { duration: 0.01 } : { opacity: { duration: 0.16 }, default: { type: 'spring', stiffness: 420, damping: 36, mass: 0.8 } }}
-            >
-              <Suspense fallback={<SkeletonPage />}>
-                <Page route={route} />
-              </Suspense>
-            </motion.div>
-          </AnimatePresence>
+          <div key={routeKey.split('?')[0] || 'learn'} className="route-view" data-dir={dir}>
+            <Suspense fallback={<RouteFallback route={route} />}>
+              <Page route={route} />
+            </Suspense>
+          </div>
           <Footer />
         </main>
       </div>
 
       {/* Phone tab bar */}
       <nav className="tabbar lg:hidden" aria-label="Main">
-        <div className="tabbar-inner">
+        <div className="tabbar-inner" style={{ '--tab-i': ORDER[tab] } as CSSProperties}>
+          <span className="tab-pill" aria-hidden="true" />
+          <span className="tab-bus" aria-hidden="true" />
           {TABS.map((t) => (
             <a key={t.id} href={href(t.path)} className="tab" aria-current={tab === t.id ? 'page' : undefined} onClick={() => { if (tab === t.id) window.scrollTo({ top: 0, behavior: 'smooth' }); }}>
-              {tab === t.id && <motion.span layoutId="tab-pill" className="tab-pill" transition={{ type: 'spring', stiffness: 520, damping: 38 }} />}
-              {tab === t.id && <motion.span layoutId="tab-bus" className="tab-bus" transition={{ type: 'spring', stiffness: 380, damping: 30 }} />}
               <Icon name={t.icon} className="relative" />
               <span className="relative">{t.label}</span>
             </a>
@@ -220,7 +226,6 @@ export default function App() {
 
       {paletteOpen && <Suspense fallback={null}><CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} /></Suspense>}
       {!prefs.onboarded && <Suspense fallback={null}><Onboarding onDone={(path) => { prefs.setPrefs({ onboarded: true }); if (path) navigate(path); }} /></Suspense>}
-    </LayoutGroup>
-    </MotionConfig>
+    </>
   );
 }

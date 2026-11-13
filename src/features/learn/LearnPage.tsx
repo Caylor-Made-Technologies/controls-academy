@@ -1,5 +1,6 @@
-import { motion, useReducedMotion } from 'framer-motion';
-import { PageHead } from '../../components/Brand';
+import type { CSSProperties } from 'react';
+import { vtName } from '../../lib/motion';
+import { RouteHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { ProgressRing } from '../../components/ProgressRing';
 import { LESSON_META_BY_ID as LESSON_BY_ID, TRACKS } from '../../content/catalog';
@@ -38,7 +39,6 @@ export default function LearnPage() {
   const p = useProgress();
   const goal = usePrefs((s) => s.goal);
   const name = usePrefs((s) => s.name);
-  const reduce = useReducedMotion();
   const lv = level(p.xp);
   const st = streak(p.days);
   const due = dueReviews(p);
@@ -50,9 +50,7 @@ export default function LearnPage() {
 
   return (
     <div>
-      <PageHead eyebrow={name ? `Welcome back, ${name}` : 'Controls Academy'} title="From zero to panel-ready">
-        From "what's a volt?" to tuning PID loops and commissioning a machine — {TRACKS.reduce((n, t) => n + t.lessons.length, 0)} lessons in 4 levels: Beginner, Intermediate, Advanced, Expert.
-      </PageHead>
+      <RouteHead seg="learn" eyebrow={name ? `Welcome back, ${name}` : undefined} />
 
       {/* Stats strip */}
       <section className="card card-pad flex items-center gap-4 mb-4" aria-label="Your progress">
@@ -71,12 +69,12 @@ export default function LearnPage() {
 
       <div className="grid gap-3 sm:grid-cols-2 mb-6">
         {recLesson && (
-          <motion.a layoutId={reduce ? undefined : `lesson-${recLesson.id}`} href={href(`lesson/${recLesson.id}`)} className="card card-link card-pad relative overflow-hidden" style={{ boxShadow: 'var(--glow)' }}>
+          <a href={href(`lesson/${recLesson.id}`)} className="card card-link card-pad relative overflow-hidden" style={{ boxShadow: 'var(--glow)', viewTransitionName: vtName('lesson', recLesson.id) }}>
             <p className="eyebrow m-0">{doneLessons ? 'Up next' : 'Start here'}</p>
             <h2 className="text-lg font-bold mt-1">{recLesson.title}</h2>
             <p className="text-sm text-muted m-0 mt-1">{recLesson.summary}</p>
             <span className="btn btn-primary btn-sm mt-3">{doneLessons ? 'Continue' : 'Start lesson'} <Icon name="chevron" size={16} /></span>
-          </motion.a>
+          </a>
         )}
         {resume && (
           <a href={href(p.lastRoute)} className="card card-link card-pad">
@@ -117,14 +115,7 @@ export default function LearnPage() {
         {TRACKS.map((t, i) => {
           const tp = trackProgress(p, t.id);
           return (
-            <motion.li
-              key={t.id}
-              className="relative pl-[68px]"
-              initial={reduce ? false : { opacity: 0, y: 12 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: true, margin: '-40px' }}
-              transition={{ duration: 0.35, delay: Math.min(i * 0.03, 0.2) }}
-            >
+            <li key={t.id} className="relative pl-[68px]" data-enter="rise" style={{ '--i': Math.min(i, 6) } as CSSProperties}>
               <div className="absolute left-0 top-2">
                 <ProgressRing pct={tp.pct} size={56} live={tp.complete} label={`Track ${t.n} progress`}>
                   {tp.complete ? <Icon name="check" size={20} className="text-live" /> : t.n}
@@ -148,7 +139,7 @@ export default function LearnPage() {
                     const rec2 = p.lessons[id];
                     return (
                       <li key={id}>
-                        <motion.a layoutId={reduce || id === recLesson?.id ? undefined : `lesson-${id}`} href={href(`lesson/${id}`)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 bg-raised no-underline text-body hover:text-heading min-h-[48px]">
+                        <a style={id === recLesson?.id ? undefined : { viewTransitionName: vtName('lesson', id) }} href={href(`lesson/${id}`)} className="flex items-center gap-3 rounded-xl px-3 py-2.5 bg-raised no-underline text-body hover:text-heading min-h-[48px]">
                           <span className={`flex-none w-7 h-7 rounded-full flex items-center justify-center border-2 ${rec2 ? 'border-live bg-live text-[#062a1b]' : 'border-line-strong'}`} aria-hidden="true">
                             {rec2 ? <Icon name="check" size={15} /> : null}
                           </span>
@@ -158,7 +149,7 @@ export default function LearnPage() {
                           </span>
                           <span className="sr-only">{rec2 ? 'Completed' : 'Not started'}</span>
                           <Icon name="chevron" size={18} className="text-muted" />
-                        </motion.a>
+                        </a>
                       </li>
                     );
                   })}
@@ -171,7 +162,7 @@ export default function LearnPage() {
                   ))}
                 </ul>
               </div>
-            </motion.li>
+            </li>
           );
         })}
       </ol>

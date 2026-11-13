@@ -1,4 +1,4 @@
-import { motion, useReducedMotion } from 'framer-motion';
+import { vtName } from '../../lib/motion';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
@@ -12,7 +12,7 @@ import { usePrefs } from '../../state/prefs';
 import { useProgress } from '../../state/progress';
 import { Ladder } from '../simulator/Ladder';
 import type { SimRuntime } from '../simulator/runtime';
-import { Workbench } from '../simulator/Workbench';
+import { Workbench } from '../simulator/LazyWorkbench';
 import { OrderDrill, SortDrill } from './Drills';
 import { Figure } from './Figures';
 import { QuestionCard } from './Quiz';
@@ -143,7 +143,6 @@ function OnTheJob({ lesson }: { lesson: Lesson }) {
 
 export default function LessonPage({ id }: { id: string }) {
   const lesson = LESSON_BY_ID.get(id);
-  const reduce = useReducedMotion();
   const completeLesson = useProgress((s) => s.completeLesson);
   const completeTask = useProgress((s) => s.completeTask);
   const record = useProgress((s) => s.lessons[id]);
@@ -199,7 +198,7 @@ export default function LessonPage({ id }: { id: string }) {
   return (
     <article>
       <a href={href('learn')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Learn</a>
-      <motion.header layoutId={reduce ? undefined : `lesson-${lesson.id}`} className="card card-pad mb-5 relative overflow-hidden">
+      <header style={{ viewTransitionName: vtName('lesson', lesson.id) }} className="card card-pad mb-5 relative overflow-hidden">
         <p className="eyebrow m-0">Track {track.n} · {track.title}</p>
         <span className={`level-pill level-${track.level.toLowerCase()} mt-2`}>{track.level}</span>
         <h1 className="text-[1.5rem] sm:text-[1.9rem] font-extrabold mt-1">{lesson.title}</h1>
@@ -211,7 +210,7 @@ export default function LessonPage({ id }: { id: string }) {
           {lesson.task && <span className={`chip ${taskDone ? 'chip-live' : ''}`}>{taskDone ? <Icon name="check" size={14} /> : <Icon name="sim" size={14} />} Hands-on</span>}
           {record && <span className="chip chip-live"><Icon name="check" size={14} /> Completed · {record.score}/{record.total}</span>}
         </div>
-      </motion.header>
+      </header>
 
       <div className="max-w-[68ch]">
         {lesson.blocks.map((b, i) => <BlockView key={i} b={b} />)}
@@ -244,14 +243,14 @@ export default function LessonPage({ id }: { id: string }) {
               <button type="button" className="btn btn-primary" disabled={!allAnswered} onClick={finish}><Icon name="check" size={18} /> Finish lesson</button>
             </>
           ) : (
-            <motion.div initial={{ scale: 0.96, opacity: 0 }} animate={{ scale: 1, opacity: 1 }} className="flex flex-wrap items-center gap-3 w-full" role="status">
+            <div data-enter="pop" className="flex flex-wrap items-center gap-3 w-full" role="status">
               <span className="w-12 h-12 rounded-full flex items-center justify-center" style={{ background: 'var(--grad-live)' }}><Icon name="bolt" className="text-[#062a1b]" /></span>
               <div className="flex-1 min-w-[10rem]">
                 <p className="m-0 font-bold text-heading">Lesson complete{gained ? ` · +${gained} XP` : ''}</p>
                 <p className="m-0 text-sm text-muted">{score === lesson.quiz.length ? 'Perfect score.' : 'Missed questions come back in Review.'}</p>
               </div>
               {next ? <a className="btn btn-primary" href={href(`lesson/${next.id}`)}>Next: {next.title} <Icon name="chevron" size={16} /></a> : <a className="btn" href={href('learn')}>Back to Learn</a>}
-            </motion.div>
+            </div>
           )}
         </div>
       </section>

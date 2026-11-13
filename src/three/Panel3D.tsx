@@ -22,6 +22,9 @@ import { PARTS, TOURS, type PartId } from './info';
 import { PanelScene } from './PanelScene';
 import { panelSignature } from './signature';
 import { Stage } from './Stage';
+import { Poster } from './poster/Poster';
+import { CAPTION, FRAME } from './poster/frames';
+import { POSTERS } from './poster/sim.gen';
 import { StudioLights } from './Lights';
 import { capped, pickTier, probeDevice, type Tier } from './support';
 import { retainTextures } from './textures';
@@ -104,17 +107,16 @@ function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => 
 
   const part = info ? PARTS[info] : null;
   const initial = TOURS[0];
-  const reduceMotion = useMemo(() => window.matchMedia?.('(prefers-reduced-motion: reduce)').matches, []);
-  // Fly-in on open: start wide and high, glide to the overview (skipped with reduced motion).
-  const camera = useMemo(() => ({ position: (reduceMotion ? initial.pos : [2.1, 1.25, 3.6]) as [number, number, number], fov: 38, near: 0.02, far: 20 }), [initial.pos, reduceMotion]);
-  useEffect(() => {
-    if (!reduceMotion) setGoal({ pos: new Vector3(...initial.pos), target: new Vector3(...initial.target) });
-  }, [reduceMotion, initial]);
+  // Opens on the overview, the same angle as the poster still, so the canvas can fade in over it.
+  const camera = useMemo(() => ({ position: initial.pos, fov: 38, near: 0.02, far: 20 }), [initial.pos]);
+  const [drawn, setDrawn] = useState(false);
 
   return (
     <section className="card overflow-hidden relative" aria-label="3D control panel">
-      <div className="relative h-[clamp(380px,68svh,560px)] lg:h-[540px] panel3d-bg">
+      <div className={FRAME.panel}>
+        {POSTERS.panel && <Poster spec={POSTERS.panel} fade={drawn} />}
         <Stage
+          onFirstFrame={() => setDrawn(true)}
           quality={quality}
           animate={animating}
           capTier={capTier}
@@ -188,7 +190,7 @@ function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => 
           </div>
         )}
       </div>
-      <p className="text-xs text-muted px-3 py-2 m-0 border-t border-line">
+      <p className={CAPTION}>
         Drag to orbit, pinch to zoom. Tap any part to learn about it; tap the buttons on the operator station to run the motor. PLC hardware: {hw ? `${hw.name}, a simplified look-alike (no logos)` : 'a generic rack'}, labeled in the {skin.brand} style ({skin.family}). Pick another model with the hardware menu, or browse the <a className="underline" href={href('reference/hardware')}>hardware library</a>. Wire colors are examples; they vary by site and code.
       </p>
 

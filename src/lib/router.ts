@@ -1,4 +1,9 @@
 import { useSyncExternalStore } from 'react';
+import { withViewTransition } from './motion';
+import routes from '../routes.json';
+
+/** First path segments the app answers to. The list lives in src/routes.json (shared with the tests). */
+export type RouteSeg = keyof typeof routes;
 
 /** Hash routes: #/learn, #/lesson/three-wire, #/sim ... Works on GitHub Pages with no server rules. */
 function current(): string {
@@ -11,8 +16,21 @@ function subscribe(fn: () => void) {
   return () => window.removeEventListener('hashchange', fn);
 }
 
+/** Path changes (not query-only changes) animate as a view transition where the browser supports it. */
+let lastPath = typeof window === 'undefined' ? '' : current();
+function subscribePath(fn: () => void) {
+  const on = () => {
+    const next = current();
+    if (next === lastPath) return;
+    lastPath = next;
+    withViewTransition(fn);
+  };
+  window.addEventListener('hashchange', on);
+  return () => window.removeEventListener('hashchange', on);
+}
+
 export function useRoute(): string[] {
-  const path = useSyncExternalStore(subscribe, current, () => '');
+  const path = useSyncExternalStore(subscribePath, current, () => '');
   return path.split('/').filter(Boolean).map(decodeURIComponent);
 }
 

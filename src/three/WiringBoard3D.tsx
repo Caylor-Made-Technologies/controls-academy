@@ -4,13 +4,16 @@
  */
 import { QuadraticBezierLine } from '@react-three/drei';
 import { useThree, type ThreeEvent } from '@react-three/fiber';
-import { memo, useEffect, useMemo } from 'react';
+import { memo, useEffect, useMemo, useState } from 'react';
 import { PerspectiveCamera, Vector3 } from 'three';
 import { WIRE_COLORS, type Exercise, type Wire } from '../lib/wiring';
 import { usePrefs } from '../state/prefs';
 import { Box, Label } from './kit';
 import { StudioLights } from './Lights';
 import { Stage } from './Stage';
+import { Poster } from './poster/Poster';
+import { FRAME } from './poster/frames';
+import { POSTERS } from './poster/wiring.gen';
 
 const TW = 0.11; // terminal spacing
 const DEV_GAP = 0.06;
@@ -96,9 +99,12 @@ function Board({ ex, wires, colors, armed, onTap }: { ex: Exercise; wires: Wire[
 
 function WiringBoard3D({ ex, wires, colors, armed, onTap }: { ex: Exercise; wires: Wire[]; colors: string[]; armed: string | null; onTap: (id: string) => void }) {
   const quality = usePrefs((s) => s.quality);
+  const [drawn, setDrawn] = useState(false);
   return (
-    <div className="relative h-[clamp(320px,55svh,480px)] panel3d-bg rounded-xl overflow-hidden">
+    <div className={FRAME.wiring}>
+      {POSTERS[ex.id] && <Poster spec={POSTERS[ex.id]} fade={drawn} />}
       <Stage
+        onFirstFrame={() => setDrawn(true)}
         quality={quality}
         animate={false}
         camera={{ position: [0, 0, 1.6], fov: 40, near: 0.02, far: 10 }}

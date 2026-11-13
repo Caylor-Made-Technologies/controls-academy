@@ -8,28 +8,27 @@ import { createPumpsScene } from './pumps';
 import { createDatacenterScene } from './datacenter';
 import { createMixerScene } from './mixer';
 import type { FaultDef, PlantScene } from './types';
+import { MACHINE_INFO, type MachineInfo } from './catalog';
 
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export type AnyScene = PlantScene<any>;
 
-export interface MachineEntry {
-  id: string;
-  title: string;
-  summary: string;
-  site: 'mill' | 'datacenter' | 'water' | 'general';
+export interface MachineEntry extends MachineInfo {
   create: () => AnyScene;
 }
 
-export const MACHINES: MachineEntry[] = [
-  { id: 'motor', title: 'Motor start/stop station', summary: '3-wire control, seal-in, overload, hardwired E-stop.', site: 'general', create: createMotorScene },
-  { id: 'fwdrev', title: 'Forward/reverse screw conveyor', summary: 'Reversing starter, three interlock layers, zero-speed switch.', site: 'mill', create: createFwdRevScene },
-  { id: 'conveyor', title: 'Bag conveyor with photo-eyes', summary: 'Photo-eyes, bag counting, jam detection, pallet counter.', site: 'mill', create: createConveyorScene },
-  { id: 'tank', title: 'Tank level with PID', summary: '4–20 mA transmitter, PID fill valve, overshoot, fail-safe protection.', site: 'water', create: createTankScene },
-  { id: 'pumps', title: 'Lift station: pump lead/lag', summary: 'Lead/lag, alternation, fail-over, backup high-level float.', site: 'water', create: createPumpsScene },
-  { id: 'datacenter', title: 'Data center: ATS + CRAH', summary: 'Utility loss, generator start, transfer/retransfer, CRAH chilled-water PID.', site: 'datacenter', create: createDatacenterScene },
-  { id: 'mixer', title: 'Flour batch mixer', summary: 'Recipe weights, state machine with fault codes, dust-collector and gate interlocks.', site: 'mill', create: createMixerScene },
-  { id: 'vfd', title: 'Fan on a VFD', summary: 'Speed control, ramps, analog reference, STO and drive faults.', site: 'datacenter', create: createVfdScene },
-];
+const CREATE: Record<string, () => AnyScene> = {
+  motor: createMotorScene,
+  fwdrev: createFwdRevScene,
+  conveyor: createConveyorScene,
+  tank: createTankScene,
+  pumps: createPumpsScene,
+  datacenter: createDatacenterScene,
+  mixer: createMixerScene,
+  vfd: createVfdScene,
+};
+
+export const MACHINES: MachineEntry[] = MACHINE_INFO.map((m) => ({ ...m, create: CREATE[m.id] }));
 
 export const MACHINE_BY_ID = new Map(MACHINES.map((m) => [m.id, m]));
 

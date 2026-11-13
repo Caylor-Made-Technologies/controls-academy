@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
-import { PageHead } from '../../components/Brand';
+import { PageHead, RouteHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
 import { BRAND_GUIDES, PRACTICE_TOOLS } from '../../content/brands';
@@ -35,7 +35,7 @@ export default function ReferencePage({ section, item }: { section?: string; ite
   if (sec === 'inside') return item ? <InsideDetail id={item.split('?')[0]} /> : <InsideList />;
   return (
     <div>
-      <PageHead eyebrow="Reference" title="Field reference">Quick answers for the plant floor. Everything works offline.</PageHead>
+      <RouteHead seg="reference" />
       <a href={href('reference/hardware')} className="card card-link hw-card mb-3 block overflow-hidden" aria-label={`PLC hardware library: ${HARDWARE.length} 3D models of hardware you see in US plants`}>
         <span className="grid grid-cols-3 gap-1.5 p-2 hw-thumb">
           {['controllogix', 'powerflex-525', 's7-1200'].map((id) => {

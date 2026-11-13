@@ -18,5 +18,5 @@ export default tseslint.config(
     },
   },
   { files: ['**/*.{js,mjs,cjs}'], languageOptions: { globals: { ...globals.node } } },
-  { files: ['tests/e2e/**'], languageOptions: { globals: { ...globals.node, ...globals.browser } } },
+  { files: ['tests/e2e/**', 'scripts/shots.mjs', 'scripts/gen-posters.mjs', 'scripts/lighthouse.mjs'], languageOptions: { globals: { ...globals.node, ...globals.browser } } },
 );

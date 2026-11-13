@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { PageHead } from '../../components/Brand';
+import { RouteHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { LESSONS } from '../../content';
 import { href } from '../../lib/router';
@@ -20,9 +20,7 @@ export default function ReviewPage() {
   const q = qs[i];
   return (
     <div className="max-w-[68ch]">
-      <PageHead eyebrow="Review" title="Spaced repetition">
-        Missed questions come back tomorrow, then further apart each time you get them right (SM-2 spaced repetition). Weak topics come back sooner, and anything you miss today is asked once more at the end.
-      </PageHead>
+      <RouteHead seg="review" />
       {!q ? (
         <div className="card card-pad text-center">
           <Icon name="check" size={36} className="text-live mx-auto" />

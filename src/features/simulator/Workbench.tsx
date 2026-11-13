@@ -1,5 +1,4 @@
 import { lazy, Suspense, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore, type KeyboardEvent, type ReactNode } from 'react';
-import { AnimatePresence, motion } from 'framer-motion';
 import { Icon } from '../../components/Icon';
 import { Sheet } from '../../components/Sheet';
 import { OPS } from '../../engine/ops';
@@ -21,6 +20,8 @@ import { OperandSheet } from './OperandSheet';
 import { SimRuntime, type RunMode } from './runtime';
 import { hasWebGL, prefer3D } from '../../three/support';
 import { useAfterPaint } from '../../lib/afterPaint';
+import { MACHINE_CAPTION, PosterFrame } from '../../three/poster/frames';
+import { POSTERS } from '../../three/poster/sim.gen';
 
 const Panel3D = lazy(() => import('../../three/Panel3D'));
 const Machine3D = lazy(() => import('../../three/Machine3D'));
@@ -174,7 +175,8 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
         </div>
       )}
       {!hidePanel && view3d && (() => {
-        const loading = <div className="card skeleton h-[clamp(380px,68svh,560px)] lg:h-[540px]" role="status" aria-label="Loading 3D panel" aria-busy="true" />;
+        const panel = rt.scene.view3d === 'motor-panel';
+        const loading = <PosterFrame card kind={panel ? 'panel' : 'machine'} spec={POSTERS[panel ? 'panel' : rt.scene.id]} label={panel ? 'Loading 3D panel' : 'Loading 3D machine'} caption={panel ? 'Drag to orbit, pinch to zoom. Tap any part to learn about it; tap the buttons on the operator station to run the motor.' : MACHINE_CAPTION} />;
         // The 3D layer waits for first paint, so the page shows and responds before WebGL spins up (B-001).
         return painted ? <Suspense fallback={loading}>{rt.scene.view3d === 'motor-panel' ? <Panel3D rt={rt} onDevice={setDevice} /> : <Machine3D rt={rt} onDevice={setDevice} />}</Suspense> : loading;
       })()}
@@ -278,9 +280,8 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
             </div>
           )}
 
-          <AnimatePresence>
             {issues && (
-              <motion.div initial={{ height: 0, opacity: 0 }} animate={{ height: 'auto', opacity: 1 }} exit={{ height: 0, opacity: 0 }} className="border-b border-line overflow-hidden">
+              <div data-enter="drop" className="border-b border-line overflow-hidden">
                 <div className="p-3 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <strong className="text-heading text-sm">{issues.length === 0 ? 'Verify: no problems found.' : `Verify: ${issues.filter((i) => i.level === 'error').length} errors, ${issues.filter((i) => i.level === 'warning').length} warnings`}</strong>
@@ -293,9 +294,8 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
                     </button>
                   ))}
                 </div>
-              </motion.div>
+              </div>
             )}
-          </AnimatePresence>
 
           <div className="p-2 sm:p-3 outline-none" ref={ladderRef} tabIndex={-1} onClick={() => setSel(null)}>
             <Ladder program={program} skin={skin} plc={p} version={rt.version} selected={sel} onSelect={(s) => { setSel(s); buzz(4); }} onKey={onKey} pointerRung={pointerRung} />

@@ -19,7 +19,6 @@ await render(svg, 512, 'icon-512.png');
 await render(svg, 192, 'icon-192.png');
 await render(svg, 180, 'apple-touch-icon.png');
 await render(svg, 32, 'favicon-32.png');
-await render(svg, 192, 'brand/app-mark.png'); // 2× for the 96 px intro mark (sharp on phones)
 await render(maskable, 512, 'icon-maskable-512.png');
 await browser.close();
 console.log('icons written');

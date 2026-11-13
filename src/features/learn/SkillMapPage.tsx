@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
-import { PageHead } from '../../components/Brand';
+import { RouteHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { LESSONS, TRACKS } from '../../content';
 import { buildGraph, skillState, type SkillState } from '../../content/graph';
@@ -99,9 +99,7 @@ export default function SkillMapPage() {
   return (
     <div>
       <a href={href('learn')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Learn</a>
-      <PageHead eyebrow="Learn" title="Skill map">
-        Every lesson and what it builds on. Nothing is ever locked shut — "Locked" just means its prerequisites aren't done yet.
-      </PageHead>
+      <RouteHead seg="skills" />
 
       <div className="flex flex-wrap items-center gap-2 mb-3">
         <div className="seg" role="group" aria-label="View">

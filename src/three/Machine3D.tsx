@@ -18,6 +18,9 @@ import { machineSignature } from './signature';
 import { Stage } from './Stage';
 import { capped, pickTier, probeDevice, type Tier } from './support';
 import { retainTextures } from './textures';
+import { Poster } from './poster/Poster';
+import { CAPTION, FRAME, MACHINE_CAPTION } from './poster/frames';
+import { POSTERS } from './poster/sim.gen';
 
 function Invalidator({ rt, extra }: { rt: SimRuntime; extra?: (rt: SimRuntime) => string }) {
   const invalidate = useThree((s) => s.invalidate);
@@ -81,6 +84,7 @@ function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) =
   const tier = capped(pickTier(quality, probeDevice()), capTier);
   const [selected, setSelected] = useState<string | null>(null);
   const [goal, setGoal] = useState<{ pos: Vector3; target: Vector3 } | null>(null);
+  const [drawn, setDrawn] = useState(false);
   const controls = useRef<OrbitControlsImpl | null>(null);
   const moving = useSyncExternalStore(rt.subscribe, () => def.moving(rt));
   useEffect(() => retainTextures(), []);
@@ -110,8 +114,10 @@ function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) =
 
   return (
     <section className="card overflow-hidden relative" aria-label="3D machine view">
-      <div ref={wrap} className="relative h-[clamp(340px,60svh,520px)] lg:h-[500px] panel3d-bg">
+      <div ref={wrap} className={FRAME.machine}>
+        {POSTERS[def.id] && <Poster spec={POSTERS[def.id]} fade={drawn} />}
         <Stage
+          onFirstFrame={() => setDrawn(true)}
           quality={quality}
           animate={moving || Boolean(goal)}
           capTier={capTier}
@@ -149,9 +155,7 @@ function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) =
           <span role="note" className="hud-chip !cursor-default max-sm:!hidden" aria-label={`3D quality ${tier}`}>{tier.toUpperCase()}</span>
         </div>
       </div>
-      <p className="text-xs text-muted px-3 py-2 m-0 border-t border-line">
-        Drag to orbit, pinch to zoom. Everything moves from the live simulation: outputs drive the machine, the machine drives the inputs. Tap a part for its wiring card. Spinning parts are shown slowed down so you can see them turn.
-      </p>
+      <p className={CAPTION}>{MACHINE_CAPTION}</p>
     </section>
   );
 }

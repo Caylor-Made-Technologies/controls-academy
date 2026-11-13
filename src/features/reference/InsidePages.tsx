@@ -3,6 +3,8 @@ import { PageHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { INSIDE, INSIDE_BY_ID } from '../../content/inside';
 import { useAfterPaint } from '../../lib/afterPaint';
+import { PosterFrame } from '../../three/poster/frames';
+import { POSTERS } from '../../three/poster/inside.gen';
 import { href } from '../../lib/router';
 import { usePrefs } from '../../state/prefs';
 import { hasWebGL, prefer3D } from '../../three/support';
@@ -48,10 +50,10 @@ export function InsideDetail({ id }: { id: string }) {
       {can3d && show3d && (
         <div className="mb-3">
           {painted ? (
-            <Suspense fallback={<div className="skeleton h-[clamp(300px,52svh,460px)] rounded-xl" role="status" aria-label="Loading 3D view" />}>
+            <Suspense fallback={<PosterFrame kind="inside" spec={POSTERS[device.id]} label="Loading 3D view" />}>
               <Inside3D device={device} spread={spread} selected={sel} onPick={setSel} />
             </Suspense>
-          ) : <div className="skeleton h-[clamp(300px,52svh,460px)] rounded-xl" role="status" aria-label="Loading 3D view" />}
+          ) : <PosterFrame kind="inside" spec={POSTERS[device.id]} label="Loading 3D view" />}
           <label className="flex items-center gap-3 mt-2 text-sm">
             <span className="font-semibold text-heading">Explode</span>
             <input type="range" min={0} max={1} step={0.05} value={spread} onChange={(e) => setSpread(Number(e.target.value))} className="flex-1 min-h-[44px]" aria-label="How far apart the parts are" />

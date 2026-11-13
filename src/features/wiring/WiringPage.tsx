@@ -1,7 +1,9 @@
 import { lazy, Suspense, useMemo, useState } from 'react';
-import { PageHead } from '../../components/Brand';
+import { PageHead, RouteHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { useAfterPaint } from '../../lib/afterPaint';
+import { PosterFrame } from '../../three/poster/frames';
+import { POSTERS } from '../../three/poster/wiring.gen';
 import { href } from '../../lib/router';
 import { EXERCISES, EXERCISE_BY_ID, WIRE_COLORS, checkWiring, type CheckResult, type Exercise, type Wire } from '../../lib/wiring';
 import { usePrefs } from '../../state/prefs';
@@ -53,10 +55,10 @@ function Trainer({ ex }: { ex: Exercise }) {
       )}
       {can3d && view3d && (
         painted ? (
-          <Suspense fallback={<div className="card skeleton h-[clamp(320px,55svh,480px)] mb-3" role="status" aria-label="Loading 3D board" />}>
+          <Suspense fallback={<div className="mb-3"><PosterFrame kind="wiring" spec={POSTERS[ex.id]} label="Loading 3D board" /></div>}>
             <div className="mb-3"><WiringBoard3D ex={ex} wires={wires} colors={colors} armed={armed} onTap={tap} /></div>
           </Suspense>
-        ) : <div className="card skeleton h-[clamp(320px,55svh,480px)] mb-3" role="status" aria-label="Loading 3D board" />
+        ) : <div className="mb-3"><PosterFrame kind="wiring" spec={POSTERS[ex.id]} label="Loading 3D board" /></div>
       )}
 
       <p className="text-sm m-0 mb-2" role="status" aria-live="polite">
@@ -127,7 +129,7 @@ export default function WiringPage({ id }: { id?: string }) {
   return (
     <div>
       <a href={href('sim')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Simulator</a>
-      <PageHead eyebrow="Practice" title="Wiring trainer">Wire real circuits terminal by terminal. The checker powers your circuit, runs it through a test and explains the first thing that goes wrong.</PageHead>
+      <RouteHead seg="wiring" />
       <div className="grid gap-2 sm:grid-cols-2">
         {EXERCISES.map((e) => (
           <a key={e.id} href={href(`wiring/${e.id}`)} className="card card-link card-pad">

@@ -63,6 +63,9 @@ const offscreen = (await frames()) - f0;
 ok(offscreen <= 1, `off-screen panel pauses (${offscreen} frames in 1 s)`);
 await p.evaluate(() => { document.body.style.paddingBottom = ''; window.scrollTo(0, 0); });
 await p.getByRole('button', { name: /^Stop/ }).first().click();
+// Let the motor coast to a stop first: a spinning scene holds a few extra objects (arc, motion parts), and the
+// memory comparison below must look at the same state both times.
+await p.getByText('Motor stopped').first().waitFor({ timeout: 30000 });
 
 // Leak test: open and close the 3D panel 20 times.
 const first = await stats();
