@@ -55,16 +55,34 @@ export const SURFACES: Record<Surface, Recipe> = {
 
 const cache = new Map<string, Material>();
 
+/**
+ * Low quality tier: no clear-coat layer (it roughly doubles the shading cost per pixel) and no reflection map.
+ * The Stage sets this from the device tier before any scene renders.
+ */
+let lite = false;
+export function setLiteMaterials(on: boolean): void {
+  lite = on;
+}
+/** True on the low tier. Detail parts (screws, rivets, seams, flanges) check this and are left out: every
+ *  extra part is a draw call, and a weak or software GPU pays for each one. */
+export function lowDetail(): boolean {
+  return lite;
+}
+
 /** The shared material for a surface, optionally recolored (paint, plastic) or made see-through. */
 export function surface(s: Surface, color?: string, opacity?: number): MeshStandardMaterial {
   const r = SURFACES[s];
   const a = opacity ?? r.opacity;
-  const key = `${s}|${color ?? ''}|${a ?? ''}`;
+  const key = `${s}|${color ?? ''}|${a ?? ''}|${lite ? 'l' : 'f'}`;
   const hit = cache.get(key);
   if (hit) return hit as MeshStandardMaterial;
-  const base = { color: color ?? r.color, metalness: r.metalness, roughness: r.roughness, envMapIntensity: r.env ?? 1, transparent: a !== undefined, opacity: a ?? 1, ...(a !== undefined ? { depthWrite: false, side: DoubleSide } : {}) };
-  const m = r.clearcoat ? new MeshPhysicalMaterial({ ...base, clearcoat: r.clearcoat, clearcoatRoughness: r.clearcoatRoughness ?? 0.3 }) : new MeshStandardMaterial(base);
-  if (r.brushed && typeof document !== 'undefined') { m.roughnessMap = brushedTexture(); m.roughnessMap.repeat.set(2, 2); }
+  // Without a reflection map (low tier) a pure metal has nothing to reflect and goes black, so it is drawn as a
+  // semi-metal with a little more roughness instead.
+  const metalness = lite ? Math.min(r.metalness, 0.55) : r.metalness;
+  const roughness = lite && r.metalness > 0.5 ? Math.max(r.roughness, 0.45) : r.roughness;
+  const base = { color: color ?? r.color, metalness, roughness, envMapIntensity: r.env ?? 1, transparent: a !== undefined, opacity: a ?? 1, ...(a !== undefined ? { depthWrite: false, side: DoubleSide } : {}) };
+  const m = r.clearcoat && !lite ? new MeshPhysicalMaterial({ ...base, clearcoat: r.clearcoat, clearcoatRoughness: r.clearcoatRoughness ?? 0.3 }) : new MeshStandardMaterial(base);
+  if (r.brushed && !lite && typeof document !== 'undefined') { m.roughnessMap = brushedTexture(); m.roughnessMap.repeat.set(2, 2); }
   m.name = key;
   cache.set(key, m);
   return m;

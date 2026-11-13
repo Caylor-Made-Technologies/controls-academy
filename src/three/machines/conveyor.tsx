@@ -117,7 +117,7 @@ function DustFilm({ x, on }: { x: number; on: () => boolean }) {
 export const conveyorScene: MachineSceneDef = {
   id: 'conveyor',
   Scene,
-  camera: { pos: [1.2, 2.6, 4.6], target: [0.2, 0.6, -0.2] },
+  camera: { pos: [0.7, 2.0, 3.4], target: [-0.05, 0.75, -0.2] },
   radius: 3.6,
   moving: (rt) => (rt.scene.state as ConveyorState).motor.rpm > 1,
   readout: (rt) => {

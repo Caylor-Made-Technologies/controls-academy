@@ -3,7 +3,8 @@
  * Everything live (LEDs, contactor armature, overload flag, motor shaft, current flow)
  * is read from the SimRuntime inside useFrame, so the scan never triggers React renders.
  */
-import { Billboard, ContactShadows, Edges, Instances, Instance } from '@react-three/drei';
+import { Billboard, Edges, Instances, Instance } from '@react-three/drei';
+import { GroundShadow } from './GroundShadow';
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import {
@@ -39,7 +40,7 @@ export interface SceneProps {
 }
 
 const C = {
-  steel: '#bcc4cc', plate: '#d9dde2', module: '#2b3240', moduleLight: '#3a4456', din: '#9aa3ad',
+  steel: '#bcc4cc', plate: '#b3bac3', module: '#2b3240', moduleLight: '#3a4456', din: '#9aa3ad',
   duct: '#8e98a3', ductCover: '#a8b1bb', copper: '#c7804a', red: '#c0392b', blue: '#2563eb',
   black: '#15181d', white: '#e8ecf0', yellow: '#f5c400', green: '#16a34a', select: '#3d8bff',
 };
@@ -151,6 +152,9 @@ function Wire({ curve, color, radius = 0.0032 }: { curve: CatmullRomCurve3; colo
 const v = (x: number, y: number, z: number) => new Vector3(x, y, z);
 
 // ---------- the scene ----------
+
+/** Backplate area that receives the baked shadow (meters). */
+const PLATE_SIZE: [number, number] = [0.84, 1.1];
 
 export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, look = LOOKS.dark, aoRes = 0 }: SceneProps) {
   const s = () => rt.scene.state;
@@ -278,13 +282,9 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
         <Label text="MCP-1  MOTOR CONTROL PANEL" pos={[0, 0.535, -0.008]} w={0.3} h={0.026} fg="#e8f1ff" bg="#1e3a8a" />
         {/* back plate */}
         <Box size={[0.84, 1.1, 0.006]} pos={[0, 0, -0.012]} color={C.plate} metal={0.35} rough={0.6} />
-        {/* Ambient-occlusion feel: a contact shadow baked onto the backplate from everything mounted on it.
-            Re-baked when the PLC hardware changes; off on the low tier. */}
-        {aoRes > 0 && (
-          <group key={hw?.id ?? 'generic'} position={[0, 0, -0.0086]} rotation={[Math.PI / 2, 0, 0]}>
-            <ContactShadows scale={[0.84, 1.1]} far={0.14} blur={1.6} opacity={look.ao * 0.85} resolution={aoRes} frames={1} color="#0b1220" />
-          </group>
-        )}
+        {/* Depth on the backplate: a soft shadow baked under everything mounted on it, so parts sit on the plate
+            instead of looking pasted on. Re-baked when the PLC hardware changes. */}
+        {aoRes > 0 && <GroundShadow key={hw?.id ?? 'generic'} axis="z" size={PLATE_SIZE} at={-0.009} reach={0.16} opacity={look.ao * 0.9} res={512} />}
         {/* door, hinged on the left and swung open */}
         <group position={[-0.45, 0, 0.275]} rotation={[0, -2.7, 0]}>
           <mesh position={[0.45, 0, 0]} castShadow receiveShadow>

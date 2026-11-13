@@ -39,11 +39,11 @@ phase report and vault update. Items found in the Phase 0 audit are marked **(au
 ## Phase 4 — Premium UI, 3D and motion → v0.9.0
 - [x] 4.1 First paint (B-010): static shell with the real heading, route chunks preloaded, poster stills for every 3D view, fonts subset. LCP 2.7 s → 1.6 s on the key routes.
 - [x] 4.2 Art direction + tokens: `docs/DESIGN-SYSTEM.md`, color/size/type/depth/motion tokens, token + AA contrast tests
-- [ ] 4.3 3D visual upgrade: shared material + lighting library, detail, state-driven life, camera views, quality tiers e2e
+- [ ] 4.3 3D visual upgrade. Done: material library (`src/three/materials.ts`), room reflections, baked contact shadows (`GroundShadow`), detailed shared parts, Reset/Front/Side/Above views, on-demand hardware viewer, perf test on high + low tiers. **Still open (3D review, scores under 4):** exploded views are still plain colored boxes with no on-model labels; generator, utility transformer, wet-well and mixer feeders need identity detail; conveyor needs rollers and a drive; meter needs jacks and leads; PanelScene and the per-machine files still have inline materials; per-scene named views ("terminals", "inside")
 - [ ] 4.4 Components: kit in `src/components/ui` and `#/styleguide` are done; legacy call sites that still use the `.btn` / `.seg` / `.callout` classes directly need moving to the components
 - [ ] 4.5 Motion: CSS + View Transitions replace the animation library (done); shared elements for hardware card → viewer and machine picker → workbench, count-ups in place, haptics, badge moments still to do
 - [ ] 4.6 2D craft: schematics, meter face, wiring trainer redraw
-- [ ] 4.7 States: empty/loading/error on every route, error boundary, offline chunk notice
+- [ ] 4.7 States. Done: error boundary with friendly recovery and an offline "didn't download" notice (e2e blocks a chunk). Still open: designed empty states on every route (Review, Profile badges, search with no results)
 - [ ] 4.8 Polish: grid screenshots, UI and 3D rubric reviews, PWA icons and splash **(audit: B-002 responsive icon sizes)**
 
 ## Phase 5 — Reference → v0.10.0

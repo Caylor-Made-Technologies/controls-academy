@@ -2,7 +2,8 @@
  * Lazy-loaded 3D view of the motor-station control panel, synced to the live engine.
  * Quality tiers adapt to the device; render loop runs on demand when nothing moves.
  */
-import { ContactShadows, OrbitControls, PerformanceMonitor } from '@react-three/drei';
+import { OrbitControls, PerformanceMonitor } from '@react-three/drei';
+import { GroundShadow } from './GroundShadow';
 import { useFrame, useThree } from '@react-three/fiber';
 import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Vector3 } from 'three';
@@ -62,6 +63,9 @@ function CameraRig({ goal, controls, onArrive }: { goal: { pos: Vector3; target:
   });
   return null;
 }
+
+const FLOOR_SIZE: [number, number] = [4, 4];
+const FLOOR_CENTER: [number, number] = [0.3, -0.4];
 
 function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => void }) {
   const quality = usePrefs((s) => s.quality);
@@ -138,7 +142,7 @@ function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => 
           <StudioLights look={look} q={q} keyPos={[1.6, 2.2, 2.4]} shadowBox={{ left: -1.5, right: 1.8, top: 1.2, bottom: -1.2 }} />
           <pointLight position={[0, 0.3, 0.6]} intensity={0.6} distance={2} color="#e8f1ff" />
           <PanelScene rt={rt} skin={skin} selected={selected} onSelect={onSelect} xray={xray} explode={explode} shadows={q.shadows} hw={hw} look={look} aoRes={q.contactRes} />
-          {q.contactRes > 0 && <ContactShadows position={[0.3, -0.748, 0.4]} opacity={look.ao} scale={4} blur={2.4} far={1.2} resolution={q.contactRes} frames={1} />}
+          {q.contactRes > 0 && <GroundShadow size={FLOOR_SIZE} center={FLOOR_CENTER} at={-0.748} reach={0.9} opacity={look.ao} res={512} />}
           <OrbitControls
             ref={controls}
             makeDefault

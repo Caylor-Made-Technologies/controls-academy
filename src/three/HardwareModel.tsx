@@ -136,7 +136,7 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
     <group scale={scale} position={[-(width / 2) * scale, 0, 0]}>
       {/* mounting: DIN rail or chassis */}
       {shape.mount === 'plate' && (
-        <Box size={[width + 0.12, height + 0.08, 0.002]} pos={[width / 2, 0, -0.002]} color="#c9cfd5" metal={0.55} rough={0.45} round={0} />
+        <Box size={[width + 0.12, height + 0.08, 0.002]} pos={[width / 2, 0, -0.002]} color="#9fa8b2" s="galvanized" round={0} />
       )}
       {shape.mount === 'panel' && (
         <Box size={[width + 0.07, height + 0.07, 0.002]} pos={[width / 2, 0, depth - 0.007]} color="#b9c0c7" metal={0.2} rough={0.55} round={0} />

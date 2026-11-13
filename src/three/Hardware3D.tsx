@@ -2,7 +2,8 @@
  * Lazy-loaded 3D viewer for one hardware-library model. Orbit, pinch, tap a module to learn
  * what it is. LEDs run a demo pattern (inputs flicker, outputs follow) so the hardware looks alive.
  */
-import { ContactShadows, OrbitControls } from '@react-three/drei';
+import { OrbitControls } from '@react-three/drei';
+import { GroundShadow } from './GroundShadow';
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, useState, type ReactNode } from 'react';
 import { MathUtils, PerspectiveCamera, Vector3, type Group } from 'three';
@@ -69,6 +70,9 @@ function TurnIn({ children, still }: { children: ReactNode; still: boolean }) {
   return <group ref={g}>{children}</group>;
 }
 
+const HW_FLOOR: [number, number] = [1.2, 0.8];
+const HW_CENTER: [number, number] = [0, -0.08];
+
 /** Asks for one frame a few times a second so blinking LEDs update without a continuous render loop. */
 function LedTick() {
   const invalidate = useThree((s) => s.invalidate);
@@ -118,8 +122,8 @@ export default function Hardware3D({ model, selected, onSelect }: { model: HwMod
         <StudioLights look={look} q={q} keyPos={[0.8, 1.2, 1.4]} shadowBox={{ left: -0.4, right: 0.4, top: 0.3, bottom: -0.3 }} mapSize={512} />
         <TurnIn key={model.id} still={reduce}>
           <HardwareModel shape={model.shape} live={reduce ? STATIC_LIVE : DEMO_LIVE} selected={selected} onSelect={onSelect} fit={fit} spread={spread} tags />
+          {q.contactRes > 0 && <GroundShadow key={`${model.id}-${spread}`} size={HW_FLOOR} center={HW_CENTER} at={-h / 2 - 0.012} reach={0.25} opacity={look.ao} res={256} />}
         </TurnIn>
-        {q.contactRes > 0 && <ContactShadows position={[0, -h / 2 - 0.01, 0.08]} opacity={look.ao} scale={1.2} blur={2.2} far={0.4} resolution={256} frames={1} />}
         <OrbitControls ref={controls} makeDefault target={[0, 0, 0.04]} enableDamping dampingFactor={0.12} minDistance={0.25} maxDistance={2.2} maxPolarAngle={Math.PI * 0.7} minAzimuthAngle={-1.3} maxAzimuthAngle={1.3} />
         </>}
       </Stage>

@@ -42,8 +42,8 @@ export function StudioLights({ look, q, keyPos, shadowBox, mapSize = 1024, fog }
       <color attach="background" args={[look.bg]} />
       <fog attach="fog" args={[look.bg, (fog ?? look.fog)[0], (fog ?? look.fog)[1]]} />
       {/* Most fill light now comes from the room reflections; ambient and sky are only a floor under them. */}
-      <ambientLight intensity={look.ambient} />
-      <hemisphereLight args={look.hemi} />
+      <ambientLight intensity={look.ambient + (q.envRes > 0 ? 0 : 0.24)} />
+      <hemisphereLight args={[look.hemi[0], look.hemi[1], look.hemi[2] + (q.envRes > 0 ? 0 : 0.3)]} />
       <directionalLight
         position={keyPos}
         intensity={look.key[1]}
@@ -60,7 +60,8 @@ export function StudioLights({ look, q, keyPos, shadowBox, mapSize = 1024, fog }
       />
       <directionalLight position={[-keyPos[0] * 1.4, keyPos[1] * 0.6, -keyPos[2] * 0.25]} intensity={look.rim[1]} color={look.rim[0]} />
       <directionalLight position={[keyPos[0], -keyPos[1] * 0.3, keyPos[2] * 0.75]} intensity={look.fill[1]} color={look.fill[0]} />
-      <RoomReflections intensity={look.envIntensity} />
+      {/* Low tier: no reflection map; a little more ambient and sky light stands in for it. */}
+      {q.envRes > 0 && <RoomReflections intensity={look.envIntensity} />}
     </>
   );
 }

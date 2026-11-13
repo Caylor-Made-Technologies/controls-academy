@@ -3,6 +3,7 @@ import { AppMark, Footer, RouteHead, Wordmark } from './components/Brand';
 import { headFor } from './content/heads';
 import { Icon, type IconName } from './components/Icon';
 import { SkeletonPage } from './components/Skeleton';
+import { ErrorBoundary } from './components/ErrorBoundary';
 import { Toaster } from './components/ui/Toast';
 import { href, navigate, useRoute, type RouteSeg } from './lib/router';
 import { sfx } from './lib/sound';
@@ -205,9 +206,11 @@ export default function App() {
 
         <main id="main" tabIndex={-1} className="page outline-none">
           <div key={routeKey.split('?')[0] || 'learn'} className="route-view" data-dir={dir}>
-            <Suspense fallback={<RouteFallback route={route} />}>
-              <Page route={route} />
-            </Suspense>
+            <ErrorBoundary resetKey={routeKey}>
+              <Suspense fallback={<RouteFallback route={route} />}>
+                <Page route={route} />
+              </Suspense>
+            </ErrorBoundary>
           </div>
           <Footer />
         </main>

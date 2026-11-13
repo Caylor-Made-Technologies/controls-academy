@@ -134,7 +134,7 @@ function Scene(p: MachineSceneProps) {
 export const mixerScene: MachineSceneDef = {
   id: 'mixer',
   Scene,
-  camera: { pos: [1.4, 3.4, 5.4], target: [0.2, 1.3, 0] },
+  camera: { pos: [1.15, 3.0, 4.3], target: [0.2, 1.3, 0] },
   radius: 3.2,
   moving: (rt) => {
     const s = rt.scene.state as MixerState;

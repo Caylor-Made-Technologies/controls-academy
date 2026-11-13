@@ -11,6 +11,7 @@ import { useEffect, useRef, useState, type ReactNode } from 'react';
 import { Box3, Quaternion, Vector3, type Mesh, type PerspectiveCamera, type WebGLRenderer } from 'three';
 import { capped, probeDevice, pickTier, tierSettings, type Tier, type TierSettings } from './support';
 import { textureCacheSize } from './textures';
+import { setLiteMaterials } from './materials';
 import { useLook, type Look } from './look';
 
 interface Live { id: number; gl: WebGLRenderer | null; state: RootState | null }
@@ -153,6 +154,7 @@ export function Stage({ quality, animate, lostFallback, capTier, children, onCre
   const probe = probeDevice();
   const tier = capped(pickTier(quality, probe), capTier);
   const s = tierSettings(tier, probe);
+  setLiteMaterials(tier === 'low');
   const look = useLook();
   const id = useRef(0);
 

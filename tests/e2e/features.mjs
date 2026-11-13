@@ -946,6 +946,29 @@ await check('Poster stills: a drawing shows while the 3D code is still downloadi
   }
 });
 
+// ---------- States: a screen that fails to download, and recovery ----------
+await check('Offline notice: when a screen\'s code can\'t download, a friendly message offers a way back (no blank page)', async () => {
+  const ctx = await browser.newContext({ viewport: { width: 390, height: 844 }, serviceWorkers: 'block', reducedMotion: 'reduce' });
+  contexts.push(ctx);
+  await ctx.addInitScript(() => { localStorage.setItem('ca:prefs', JSON.stringify({ onboarded: true })); sessionStorage.setItem('ca:powered', '1'); });
+  await ctx.route(/assets\/ReferencePage-.*\.js$/, (r) => r.abort());
+  const page = await ctx.newPage(); // no console listener: the browser logs the failed request, which is the point
+  lastPage = page;
+  await page.goto(`${URL0}#/learn`);
+  await page.waitForSelector('main#main h1');
+  await page.goto(`${URL0}#/reference`);
+  const alert = page.getByRole('alert');
+  await alert.waitFor({ timeout: 15000 });
+  expect((await alert.textContent()).includes("didn't download"), 'explains that the screen did not download');
+  expect(await page.getByRole('button', { name: 'Try again' }).isVisible(), 'offers Try again');
+  expect(await page.locator('.tabbar a').first().isVisible(), 'navigation still works');
+  // Going somewhere else clears the error.
+  await page.getByRole('link', { name: 'Go to Learn' }).click();
+  await page.waitForSelector('main#main h1:has-text("From zero to panel-ready")');
+  expect((await page.getByRole('alert').count()) === 0, 'error cleared after navigating away');
+  await ctx.close();
+});
+
 await browser.close();
 const relevant = errors.filter((e) => !/net::ERR_INTERNET_DISCONNECTED|Failed to load resource/.test(e));
 console.log(`\n${pass} passed, ${fail} failed`);

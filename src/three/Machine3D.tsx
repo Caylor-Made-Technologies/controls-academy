@@ -3,7 +3,7 @@
  * The scene reads the live engine every frame it draws; the host draws only when the I/O image changes
  * or the scene says something is moving. Tap a part to open its device card (wiring, I/O point).
  */
-import { ContactShadows, OrbitControls, PerformanceMonitor } from '@react-three/drei';
+import { OrbitControls, PerformanceMonitor } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Vector3 } from 'three';
@@ -16,6 +16,7 @@ import { MACHINE_SCENES } from './machines';
 import { Room } from './machines/parts';
 import { machineSignature } from './signature';
 import { Stage } from './Stage';
+import { GroundShadow } from './GroundShadow';
 import { capped, pickTier, probeDevice, type Tier } from './support';
 import { retainTextures } from './textures';
 import { Poster } from './poster/Poster';
@@ -76,6 +77,10 @@ function Glide({ goal, controls, onArrive }: { goal: { pos: Vector3; target: Vec
   });
   return null;
 }
+
+/** Ground patch that receives the baked contact shadows (meters), from the scene radius. Stable per radius. */
+const sizes = new Map<number, [number, number]>();
+const SHADOW_SIZE = (r: number): [number, number] => { if (!sizes.has(r)) sizes.set(r, [r * 3.2, r * 3.2]); return sizes.get(r)!; };
 
 type ViewId = 'overview' | 'front' | 'side' | 'above';
 const VIEWS: { id: ViewId; label: string }[] = [{ id: 'overview', label: 'Reset view' }, { id: 'front', label: 'Front' }, { id: 'side', label: 'Side' }, { id: 'above', label: 'Above' }];
@@ -144,7 +149,8 @@ function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) =
             <StudioLights look={look} q={q} keyPos={[r * 0.8, r * 1.4, r * 1.2]} shadowBox={{ left: -r, right: r, top: r, bottom: -r }} fog={[dist * 1.3, dist * 3.2]} />
             <Room look={look} size={Math.max(12, r * 6)} />
             <SceneC rt={rt} selected={selected} onPick={pick} />
-            {q.contactRes > 0 && <ContactShadows position={[0, 0.002, 0]} opacity={look.ao} scale={r * 2.6} blur={2.4} far={r} resolution={q.contactRes} frames={1} />}
+            {/* Not on the low tier: a floor-sized blended layer costs a weak GPU a third of its frame rate. */}
+            {q.contactRes > 0 && <GroundShadow size={SHADOW_SIZE(r)} opacity={look.ao} res={512} reach={Math.max(0.5, r * 0.25)} />}
             <OrbitControls
               ref={controls}
               makeDefault

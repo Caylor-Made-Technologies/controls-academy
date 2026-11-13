@@ -6,7 +6,7 @@ import { RoundedBox } from '@react-three/drei';
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, type ReactNode } from 'react';
 import { AdditiveBlending, CatmullRomCurve3, TubeGeometry, Vector3, type Mesh, type MeshStandardMaterial, type Sprite } from 'three';
-import { surface, surfaceFor, type Surface } from './materials';
+import { lowDetail, surface, surfaceFor, type Surface } from './materials';
 import { haloTexture, labelTexture } from './textures';
 
 /**
@@ -16,7 +16,9 @@ import { haloTexture, labelTexture } from './textures';
  */
 export function Box({ size, pos, color, rough = 0.6, metal = 0.1, children, mref, opacity, round, s }: { size: [number, number, number]; pos: [number, number, number]; color: string; rough?: number; metal?: number; children?: ReactNode; mref?: React.Ref<Mesh>; opacity?: number; round?: number; s?: Surface }) {
   const minDim = Math.min(...size);
-  const r = round ?? (minDim >= 0.03 ? Math.min(0.0055, minDim * 0.12) : minDim >= 0.008 ? minDim * 0.18 : 0);
+  // Only parts big enough to show a bevel get one: a beveled box is ~10× the triangles of a plain one, and a
+  // panel has hundreds of small parts.
+  const r = round ?? (minDim >= 0.03 ? Math.min(0.0055, minDim * 0.12) : 0);
   const mat = surface(s ?? surfaceFor(metal, rough), color, opacity);
   if (r > 0) {
     return (
@@ -35,6 +37,7 @@ export function Box({ size, pos, color, rough = 0.6, metal = 0.1, children, mref
 
 /** A pan-head screw seen from the front (faces +z). Small, so it is a 10-sided disc with a slot. */
 export function ScrewHead({ pos, r = 0.006, rot }: { pos: [number, number, number]; r?: number; rot?: [number, number, number] }) {
+  if (lowDetail()) return null;
   return (
     <group position={pos} rotation={rot}>
       <mesh rotation={[Math.PI / 2, 0, 0]} material={surface('machinedSteel')}><cylinderGeometry args={[r, r * 1.05, r * 0.5, 10]} /></mesh>
@@ -45,6 +48,7 @@ export function ScrewHead({ pos, r = 0.006, rot }: { pos: [number, number, numbe
 
 /** A riveted nameplate: brushed plate, printed text, a rivet at each end. Faces +z. */
 export function Nameplate({ text, pos, w = 0.12, h = 0.04, rot, fg = '#11161d', bg = '#d9dde2' }: { text: string; pos: [number, number, number]; w?: number; h?: number; rot?: [number, number, number]; fg?: string; bg?: string }) {
+  if (lowDetail()) return <Label text={text} pos={pos} w={w * 0.86} h={h * 0.78} fg={fg} bg={bg} rot={rot} />;
   return (
     <group position={pos} rotation={rot}>
       <mesh material={surface('brushedSteel')}><boxGeometry args={[w, h, 0.0015]} /></mesh>

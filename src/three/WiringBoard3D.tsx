@@ -64,7 +64,7 @@ function Board({ ex, wires, colors, armed, onTap }: { ex: Exercise; wires: Wire[
   const tap = (id: string) => (e: ThreeEvent<MouseEvent>) => { e.stopPropagation(); onTap(id); };
   return (
     <group>
-      <Box size={[L.width + 0.1, L.top - L.bottom + 0.1, 0.01]} pos={[0, (L.top + L.bottom) / 2, -0.04]} color="#d9dde2" metal={0.3} rough={0.6} />
+      <Box size={[L.width + 0.1, L.top - L.bottom + 0.1, 0.01]} pos={[0, (L.top + L.bottom) / 2, -0.04]} color="#aab2bb" s="galvanized" />
       {ex.devices.map((d) => {
         const b = L.blocks.find((k) => k.id === d.id)!;
         return (

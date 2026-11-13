@@ -7,11 +7,18 @@
 - Screen changes crossfade, and a lesson card grows into its lesson (browsers with View Transitions; others get a short fade). Reduced motion makes every change instant.
 - A design system: `docs/DESIGN-SYSTEM.md`, tokens for color, size, type, depth and motion, a component kit, and a styleguide page (About → Styleguide).
 - Toast messages, empty-state and error-state components.
+- 3D: one material library (brushed and machined steel, copper, tinned, powder coat, enamel, plastics, rubber, glass), room reflections, soft baked contact shadows under equipment and on the panel backplate.
+- 3D detail on shared parts: motor fins, end bells, terminal box screws, nameplate and lifting eye; cabinet door seam, hinges and handle; pipe flanges; valve yoke; riveted nameplates. Pilot lights show their color when off and glow when on.
+- Machine scenes have Reset / Front / Side / Above views with an eased camera move.
+- If a screen can't download (offline) or crashes, a message explains it and offers a way back instead of a blank page.
 - `npm run verify` (the whole gate, one table), `verify:live`, `shots`, `posters`, `lighthouse`.
 ### Changed
 - Safety notes are safety yellow (faults stay red).
 - Main bundle 115 → 76 KB gzipped; fonts 86 → 52 KB; logo image 99 → 7 KB.
 - The saved theme applies before first paint (no dark flash for light-theme users).
+- The hardware viewer draws only when something changes (it used to redraw about 10 times a second forever).
+- 3D overlay buttons no longer blur the scene behind them.
+- Light theme: green, red and blue text darkened slightly to meet AA contrast on tinted chips.
 ### Fixed
 - B-010: LCP 2.7 s on Simulator, Troubleshoot and Wiring. Now about 1.6 s in local throttled runs.
 

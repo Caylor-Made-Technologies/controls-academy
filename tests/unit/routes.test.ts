@@ -35,3 +35,13 @@ describe('top-level headings (src/content/heads.ts)', () => {
     expect(headFor(['reference', 'hardware'])).toBeUndefined();
   });
 });
+
+import { isChunkError } from '../../src/components/ErrorBoundary';
+
+describe('error boundary', () => {
+  it('tells a failed download from an app bug', () => {
+    expect(isChunkError(new TypeError('Failed to fetch dynamically imported module: https://x/assets/ReferencePage-abc.js'))).toBe(true);
+    expect(isChunkError(new Error('Importing a module script failed.'))).toBe(true);
+    expect(isChunkError(new TypeError("Cannot read properties of undefined (reading 'title')"))).toBe(false);
+  });
+});
