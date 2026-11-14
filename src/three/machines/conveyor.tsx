@@ -5,6 +5,7 @@ import { MOTOR_RPM } from '../../plant/motor';
 import { BAG_M, BELT_M, BELT_SPEED, PE1_AT, PE2_AT, blocks, type ConveyorState } from '../../plant/conveyor';
 import { Box, Label } from '../kit';
 import { Beam, Belt, Cabinet, Lamp, Motor, PAINT, Pick } from './parts';
+import { lowDetail, surface } from '../materials';
 import { Contactor, StarterDoorNote } from './fwdrev';
 import type { MachineSceneDef, MachineSceneProps } from './types';
 
@@ -64,7 +65,27 @@ function Scene(p: MachineSceneProps) {
     <group>
       {/* frame, rollers, belt */}
       <Box size={[BELT_M + 0.2, 0.12, 0.5]} pos={[0, H - 0.07, 0]} color={PAINT.steel} metal={0.6} rough={0.4} />
-      {[-2.8, -1.4, 0, 1.4, 2.8].map((x) => <Box key={x} size={[0.06, H - 0.13, 0.4]} pos={[x, (H - 0.13) / 2, 0]} color="#4b5563" metal={0.5} rough={0.5} />)}
+      {/* legs: two posts with a foot plate and a cross brace per stand (a slab on the low tier) */}
+      {[-2.8, -1.4, 0, 1.4, 2.8].map((x) => (lowDetail() ? (
+        <Box key={x} size={[0.06, H - 0.13, 0.4]} pos={[x, (H - 0.13) / 2, 0]} color="#4b5563" metal={0.5} rough={0.5} />
+      ) : (
+        <group key={x} position={[x, 0, 0]}>
+          {[-0.2, 0.2].map((z) => <Box key={z} size={[0.05, H - 0.13, 0.05]} pos={[0, (H - 0.13) / 2, z]} color="#4b5563" s="enamel" />)}
+          {[-0.2, 0.2].map((z) => <Box key={`f${z}`} size={[0.14, 0.012, 0.1]} pos={[0, 0.006, z]} color="#3a4049" s="castIron" />)}
+          <Box size={[0.03, 0.03, 0.4]} pos={[0, (H - 0.13) * 0.35, 0]} color="#4b5563" s="enamel" />
+        </group>
+      )))}
+      {/* head and tail pulleys, and idler rollers under the belt, so it reads as a conveyor and not a table */}
+      {!lowDetail() && [X0 + 0.02, X0 + BELT_M - 0.02].map((x) => (
+        <mesh key={x} position={[x, H - 0.045, 0]} rotation={[Math.PI / 2, 0, 0]} material={surface('machinedSteel')}><cylinderGeometry args={[0.06, 0.06, 0.46, 20]} /></mesh>
+      ))}
+      {!lowDetail() && [-2.1, -0.7, 0.7, 2.1].map((x) => (
+        <mesh key={x} position={[x, H - 0.16, 0]} rotation={[Math.PI / 2, 0, 0]} material={surface('galvanized')}><cylinderGeometry args={[0.03, 0.03, 0.44, 12]} /></mesh>
+      ))}
+      {/* side rails that keep bags on the belt */}
+      {!lowDetail() && [-0.24, 0.24].map((z) => <Box key={z} size={[BELT_M + 0.2, 0.05, 0.02]} pos={[0, H + 0.03, z]} color={PAINT.steel} s="brushedSteel" />)}
+      {/* gearbox between the motor and the head pulley */}
+      {!lowDetail() && <Box size={[0.2, 0.22, 0.18]} pos={[X0 + BELT_M + 0.05, H - 0.06, 0.3]} color="#3a4049" s="castIron" />}
       <Belt length={BELT_M} width={0.42} speed={speed} pos={[0, H + 0.002, 0]} />
       <Bags s={s} />
       <Eye at={PE1_AT} id="pe1" label="PE1 entry eye" sees={() => blocks(s().bags, PE1_AT) || p.rt.scene.activeFault === 'cv-pe1-dirty'} dirty={() => p.rt.scene.activeFault === 'cv-pe1-dirty'} p={p} />
@@ -117,7 +138,7 @@ function DustFilm({ x, on }: { x: number; on: () => boolean }) {
 export const conveyorScene: MachineSceneDef = {
   id: 'conveyor',
   Scene,
-  camera: { pos: [1.1, 2.4, 4.15], target: [0.2, 0.65, -0.2] },
+  camera: { pos: [3.0, 2.3, 3.6], target: [0.3, 0.65, -0.1] },
   radius: 3.6,
   moving: (rt) => (rt.scene.state as ConveyorState).motor.rpm > 1,
   readout: (rt) => {

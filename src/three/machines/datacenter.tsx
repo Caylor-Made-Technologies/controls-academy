@@ -1,10 +1,12 @@
 import { useFrame } from '@react-three/fiber';
-import { useRef } from 'react';
+import { useMemo, useRef } from 'react';
 import type { Group } from 'three';
 import type { DcState } from '../../plant/datacenter';
 import { Box, Label } from '../kit';
 import { Cabinet, Display, FanWheel, Lamp, Pick, Pipe, Valve } from './parts';
 import type { MachineSceneDef, MachineSceneProps } from './types';
+import { lowDetail, surface } from '../materials';
+import { rackFrontTexture } from '../textures';
 
 /** ATS position pointer: left = Normal (utility), center = open (moving), right = Emergency (generator). */
 function AtsPointer({ pos }: { pos: () => DcState['ats'] }) {
@@ -24,19 +26,33 @@ function AtsPointer({ pos }: { pos: () => DcState['ats'] }) {
 function Scene(p: MachineSceneProps) {
   const s = () => p.rt.scene.state as DcState;
   const sel = (id: string) => p.selected === id;
+  const fine = !lowDetail();
+  const rack = useMemo(() => rackFrontTexture(), []);
   // A start request isn't a running engine: with a dead battery (dc-gen) it never turns over.
   const genRunning = () => s().genTime >= 0 && p.rt.scene.activeFault !== 'dc-gen';
   return (
     <group>
       {/* utility transformer (pad-mount) */}
       <Pick id="util" label="Utility sensing" size={[0.9, 0.9, 0.8]} pos={[-2.6, 0.45, -0.3]} selected={sel('util')} onPick={p.onPick}>
-        <Box size={[0.8, 0.8, 0.7]} pos={[-2.6, 0.4, -0.3]} color="#3f6b4f" metal={0.3} rough={0.6} />
+        <Box size={[0.8, 0.8, 0.7]} pos={[-2.6, 0.4, -0.3]} color="#3f6b4f" s="enamel" />
+        {/* pad-mount transformer: concrete pad, cooling fins down both sides, three bushings on top */}
+        {fine && <Box size={[1.1, 0.06, 1.0]} pos={[-2.6, 0.03, -0.3]} color="#8a9099" s="plasticMatte" />}
+        {fine && [-1, 1].flatMap((side) => [-0.24, -0.12, 0, 0.12, 0.24].map((z) => (
+          <Box key={`${side}${z}`} size={[0.07, 0.6, 0.02]} pos={[-2.6 + side * 0.43, 0.42, -0.3 + z]} color="#35594a" s="enamel" round={0} />
+        )))}
+        {fine && [-0.2, 0, 0.2].map((x) => (
+          <mesh key={x} position={[-2.6 + x, 0.87, -0.3]} material={surface('plasticGloss', '#7c5a3a')}><cylinderGeometry args={[0.03, 0.045, 0.14, 12]} /></mesh>
+        ))}
         <Label text="UTILITY" pos={[-2.6, 0.65, 0.052]} w={0.3} h={0.07} fg="#fff" bg="#1f2937" />
         <Lamp pos={[-2.6, 0.5, 0.06]} color="#3ddc97" on={() => s().utility} r={0.03} />
       </Pick>
       {/* generator */}
       <Pick id="gen" label="Generator" size={[1.4, 0.9, 0.8]} pos={[-2.4, 0.45, 1.2]} selected={sel('gen')} onPick={p.onPick}>
-        <Box size={[1.3, 0.8, 0.7]} pos={[-2.4, 0.4, 1.2]} color="#d4a017" metal={0.3} rough={0.5} />
+        <Box size={[1.3, 0.8, 0.7]} pos={[-2.4, 0.44, 1.2]} color="#d4a017" s="enamel" />
+        {/* generator set: steel skid, access-door seams, radiator louvers at the fan end */}
+        {fine && <Box size={[1.4, 0.06, 0.8]} pos={[-2.4, 0.03, 1.2]} color="#2a313b" s="castIron" />}
+        {fine && [-2.75, -2.3].map((x) => <Box key={x} size={[0.008, 0.66, 0.004]} pos={[x, 0.44, 1.552]} color="#1b1e22" s="rubber" round={0} />)}
+        {fine && [0.2, 0.32, 0.44, 0.56, 0.68].map((y) => <Box key={y} size={[0.3, 0.035, 0.012]} pos={[-1.95, y, 1.556]} color="#a8820f" s="enamel" round={0} />)}
         <Label text="GENERATOR" pos={[-2.4, 0.65, 1.552]} w={0.36} h={0.07} fg="#111" bg="#fde68a" />
         <Label text="MAY START AUTOMATICALLY" pos={[-2.4, 0.3, 1.552]} w={0.5} h={0.06} fg="#fff" bg="#b91c1c" />
         <group position={[-1.74, 0.42, 1.2]}><FanWheel rps={() => (genRunning() ? 30 : 0)} r={0.26} /></group>
@@ -88,7 +104,11 @@ function Scene(p: MachineSceneProps) {
       </Pick>
       {/* server racks being cooled */}
       {[0, 1, 2].map((i) => (
-        <Box key={i} size={[0.6, 2.0, 1.0]} pos={[0.6 + i * 0.7, 1.0, -1.4]} color="#111827" metal={0.4} rough={0.5} />
+        <group key={i}>
+          <Box size={[0.6, 2.0, 1.0]} pos={[0.6 + i * 0.7, 1.0, -1.4]} color="#111827" metal={0.4} rough={0.5} />
+          {/* front door: rows of servers with status lights, so the racks read as racks */}
+          <mesh position={[0.6 + i * 0.7, 1.0, -0.897]}><planeGeometry args={[0.54, 1.9]} /><meshBasicMaterial map={rack} toneMapped={false} /></mesh>
+        </group>
       ))}
       <Pick id="sat" label="Supply-air temp" size={[0.12, 0.12, 0.12]} pos={[1.1, 0.25, 0.4]} selected={sel('sat')} onPick={p.onPick}>
         <Box size={[0.08, 0.08, 0.06]} pos={[1.1, 0.25, 0.33]} color="#1e40af" rough={0.45} />

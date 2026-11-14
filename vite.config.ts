@@ -30,6 +30,14 @@ export default defineConfig({
         background_color: '#0b0f14',
         theme_color: '#0b0f14',
         categories: ['education', 'productivity'],
+        id: base,
+        lang: 'en',
+        // Long-press the installed icon to jump straight to a section.
+        shortcuts: [
+          { name: 'Simulator', short_name: 'Simulator', url: base + '#/sim', icons: [{ src: 'icon-192.png', sizes: '192x192', type: 'image/png' }] },
+          { name: 'Fault Hunt', short_name: 'Fault Hunt', url: base + '#/troubleshoot', icons: [{ src: 'icon-192.png', sizes: '192x192', type: 'image/png' }] },
+          { name: 'Reference', short_name: 'Reference', url: base + '#/reference', icons: [{ src: 'icon-192.png', sizes: '192x192', type: 'image/png' }] },
+        ],
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },
           { src: 'icon-512.png', sizes: '512x512', type: 'image/png' },

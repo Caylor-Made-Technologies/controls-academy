@@ -252,3 +252,40 @@ export function hmiTexture(aspect: number): Texture {
 export function textureCacheSize(): number {
   return cache.size;
 }
+
+/** Front of a server rack: rows of 1U/2U server faces with drive bays and a few status LEDs. One texture, shared. */
+export function rackFrontTexture(): Texture {
+  const hit = cache.get('rack');
+  if (hit) return hit;
+  const c = document.createElement('canvas');
+  c.width = 128;
+  c.height = 512;
+  const g = c.getContext('2d')!;
+  g.fillStyle = '#0b0f14';
+  g.fillRect(0, 0, 128, 512);
+  let y = 10;
+  let i = 0;
+  while (y < 490) {
+    const h = i % 4 === 3 ? 34 : 17;
+    g.fillStyle = i % 2 ? '#1b2330' : '#202a39';
+    g.fillRect(8, y, 112, h - 3);
+    // drive bays
+    g.fillStyle = '#0f151d';
+    for (let x = 14; x < 84; x += 10) g.fillRect(x, y + 3, 7, h - 9);
+    // status LEDs: mostly green, the odd amber one
+    g.fillStyle = i % 7 === 5 ? '#ffb547' : '#3ddc97';
+    g.fillRect(100, y + 4, 4, 4);
+    g.fillStyle = '#3d8bff';
+    g.fillRect(108, y + 4, 4, 4);
+    y += h;
+    i++;
+  }
+  g.strokeStyle = '#3a4558';
+  g.lineWidth = 4;
+  g.strokeRect(2, 2, 124, 508);
+  const t = new CanvasTexture(c);
+  t.colorSpace = SRGBColorSpace;
+  t.anisotropy = 4;
+  cache.set('rack', t);
+  return t;
+}
