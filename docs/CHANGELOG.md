@@ -12,6 +12,9 @@
 - Machine scenes have Reset / Front / Side / Above views with an eased camera move.
 - What's inside: parts are drawn as what they are (capacitor cans, heatsink fins, coil windings, bimetal strips, terminal screws, circuit boards) and each carries its name once the device is pulled apart.
 - Tapping a hardware card grows it into its 3D viewer; Profile numbers count up.
+- Conveyor scene: head and tail pulleys, idler rollers, side rails, framed legs and a gearbox. Data center scene: server-rack fronts with status lights, a pad-mount transformer with fins and bushings, a generator on a skid with louvers.
+- Old or mistyped links (lesson, exam, hardware model, device, brand guide) and empty filters show a designed message with a way back.
+- Installed app: long-press the icon for Simulator, Fault Hunt and Reference shortcuts.
 - If a screen can't download (offline) or crashes, a message explains it and offers a way back instead of a blank page.
 - `npm run verify` (the whole gate, one table), `verify:live`, `shots`, `posters`, `lighthouse`.
 ### Changed
@@ -20,6 +23,7 @@
 - The saved theme applies before first paint (no dark flash for light-theme users).
 - The hardware viewer draws only when something changes (it used to redraw about 10 times a second forever).
 - 3D overlay buttons no longer blur the scene behind them.
+- Ladder logic packs tighter on a phone, so most rungs fit without sideways scrolling.
 - Light theme: green, red and blue text darkened slightly to meet AA contrast on tinted chips.
 ### Fixed
 - B-010: LCP 2.7 s on Simulator, Troubleshoot and Wiring. Now about 1.6 s in local throttled runs.
