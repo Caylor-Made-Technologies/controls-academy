@@ -12,6 +12,7 @@ import { HARDWARE, categoryOf } from '../../content/hardware';
 import { HardwareCard, HardwareDetail, HardwareLibrary } from './HardwarePages';
 import { HwFront } from '../../components/HwFront';
 import { InsideDetail, InsideList } from './InsidePages';
+import { EmptyState, NotFound } from '../../components/ui';
 
 const SECTIONS = [
   { id: 'brands', title: 'Brand field guides', desc: 'Software, hardware, addressing, first-day checklists, tips and gotchas.', icon: 'layers' as const },
@@ -102,7 +103,7 @@ function BrandGuide({ id }: { id: string }) {
   const b = BRAND_GUIDES.find((x) => x.id === id);
   const setPrefs = usePrefs((s) => s.setPrefs);
   const skin = usePrefs((s) => s.skin);
-  if (!b) return <div><Back to="reference/brands" label="Brands" /><p>Guide not found.</p></div>;
+  if (!b) return <NotFound what="Guide" backHref={href('reference/brands')} backLabel="Brand guides" />;
   const models = HARDWARE.filter((m) => m.brand === b.id);
   return (
     <div>
@@ -204,8 +205,8 @@ function Glossary() {
             <dd className="m-0 mt-1">{g.def}{g.aka && <span className="block text-sm text-muted mt-1">Also: {g.aka.join(', ')}</span>}</dd>
           </div>
         ))}
-        {list.length === 0 && <p className="text-muted">No terms match "{q}".</p>}
       </dl>
+      {list.length === 0 && <EmptyState title="No terms match">Nothing in the glossary matches "{q}". Try a shorter word, or search everything with the magnifier at the top.</EmptyState>}
     </div>
   );
 }

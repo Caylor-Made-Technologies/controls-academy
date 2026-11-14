@@ -969,6 +969,21 @@ await check('Offline notice: when a screen\'s code can\'t download, a friendly m
   await ctx.close();
 });
 
+await check('States: old or mistyped links and empty filters show a designed message with a way back', async () => {
+  const { ctx, page } = await newPage({ w: 390, h: 844 });
+  for (const [route, title, back] of [['lesson/no-such-lesson', 'Lesson not found', 'Back to Learn'], ['exam/no-such-exam', 'Exam not found', 'All practice exams'], ['reference/hw/no-such-model', 'Model not found', 'Hardware library'], ['reference/inside/no-such-device', 'Device not found', "What's inside"], ['reference/brand/no-such-brand', 'Guide not found', 'Brand guides']]) {
+    await go(page, route);
+    expect((await page.locator('main#main h1').textContent()) === title, `${route}: heading "${title}"`);
+    expect(await page.getByRole('link', { name: back }).isVisible(), `${route}: link "${back}"`);
+  }
+  await axe(page, 'not-found state');
+  await go(page, 'reference/glossary');
+  await page.getByLabel('Filter glossary').fill('zzzzqqq');
+  await page.getByText('No terms match').waitFor();
+  await axe(page, 'glossary empty state');
+  await ctx.close();
+});
+
 await browser.close();
 const relevant = errors.filter((e) => !/net::ERR_INTERNET_DISCONNECTED|Failed to load resource/.test(e));
 console.log(`\n${pass} passed, ${fail} failed`);

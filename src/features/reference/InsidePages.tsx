@@ -8,7 +8,7 @@ import { POSTERS } from '../../three/poster/inside.gen';
 import { href } from '../../lib/router';
 import { usePrefs } from '../../state/prefs';
 import { hasWebGL, prefer3D } from '../../three/support';
-import { Callout } from '../../components/ui';
+import { Callout, NotFound } from '../../components/ui';
 
 const Inside3D = lazy(() => import('../../three/Inside3D'));
 
@@ -38,7 +38,7 @@ export function InsideDetail({ id }: { id: string }) {
   const [show3d, setShow3d] = useState(() => prefer3D(quality));
   const [spread, setSpread] = useState(0.6);
   const [sel, setSel] = useState<string | null>(null);
-  if (!device) return <div><a href={href('reference/inside')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> What's inside</a><p>Not found.</p></div>;
+  if (!device) return <NotFound what="Device" backHref={href('reference/inside')} backLabel="What's inside" />;
   const part = device.parts.find((p) => p.id === sel) ?? null;
   return (
     <div>

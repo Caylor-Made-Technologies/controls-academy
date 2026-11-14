@@ -17,7 +17,7 @@ import { OrderDrill, SortDrill } from './Drills';
 import { Figure } from './Figures';
 import { QuestionCard } from './Quiz';
 import { createChecker, taskProgram, taskSetup } from './tasks';
-import { Callout } from '../../components/ui';
+import { Callout, NotFound } from '../../components/ui';
 
 function BlockView({ b }: { b: Block }) {
   const skinId = usePrefs((s) => s.skin);
@@ -163,14 +163,7 @@ export default function LessonPage({ id }: { id: string }) {
     });
   }, [lesson, completeTask]);
 
-  if (!lesson) {
-    return (
-      <div className="card card-pad">
-        <h1 className="text-xl font-bold">Lesson not found</h1>
-        <p>It may have moved. <a href={href('learn')}>Back to Learn</a></p>
-      </div>
-    );
-  }
+  if (!lesson) return <NotFound what="Lesson" backHref={href('learn')} backLabel="Back to Learn" />;
 
   const track = TRACK_BY_ID.get(lesson.track)!;
   const idx = LESSONS.findIndex((l) => l.id === id);

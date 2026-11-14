@@ -11,6 +11,7 @@ import { SKINS } from '../../skins';
 import { usePrefs } from '../../state/prefs';
 import { prefer3D } from '../../three/support';
 import { useAfterPaint } from '../../lib/afterPaint';
+import { EmptyState, NotFound } from '../../components/ui';
 
 const Hardware3D = lazy(() => import('../../three/Hardware3D'));
 
@@ -93,7 +94,7 @@ export function HardwareLibrary() {
         ))}
       </div>
       <p className="text-sm text-muted mb-3" aria-live="polite">{list.length === HARDWARE.length ? `All ${list.length} models` : `${list.length} of ${HARDWARE.length} models`}</p>
-      {list.length === 0 && <div className="card card-pad text-sm">No models match. Try a family name like "CompactLogix" or clear the filters.</div>}
+      {list.length === 0 && <EmptyState title="No models match">Try a family name like "CompactLogix", or clear the filters.</EmptyState>}
       {groups.map((b) => (
         <section key={b.id} className="mb-5" aria-labelledby={`hwb-${b.id}`}>
           <h2 id={`hwb-${b.id}`} className="text-base font-bold mb-2 flex items-center justify-between gap-2">
@@ -118,7 +119,7 @@ export function HardwareDetail({ id }: { id: string }) {
   const painted = useAfterPaint();
   const [sel, setSel] = useState<number | null>(null);
   useEffect(() => { setSel(null); window.scrollTo?.(0, 0); }, [id]);
-  if (!m) return <div><Back to="reference/hardware" label="Hardware library" /><p>Model not found.</p></div>;
+  if (!m) return <NotFound what="Model" backHref={href('reference/hardware')} backLabel="Hardware library" />;
   const unit = sel !== null ? m.shape.units[sel] : null;
   const loading3d = (
     <div className="h-[clamp(300px,52svh,460px)] relative panel3d-bg flex items-center justify-center p-4" role="status" aria-label="Loading 3D model">

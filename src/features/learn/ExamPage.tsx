@@ -9,6 +9,7 @@ import { href } from '../../lib/router';
 import { PRACTICE_RECORD } from '../../lib/practice';
 import { arrangeChoices } from '../../lib/shuffle';
 import { useProgress } from '../../state/progress';
+import { NotFound } from '../../components/ui';
 
 
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
@@ -205,6 +206,6 @@ function Sitting({ exam }: { exam: ExamDef }) {
 export default function ExamPage({ id }: { id?: string }) {
   const exam = id ? EXAM_BY_ID.get(id as ExamId) : undefined;
   if (!id) return <ExamHome />;
-  if (!exam) return <div className="card card-pad"><h1 className="text-xl font-bold">Exam not found</h1><a href={href('exam')}>All practice exams</a></div>;
+  if (!exam) return <NotFound what="Exam" backHref={href('exam')} backLabel="All practice exams" />;
   return <Sitting key={exam.id} exam={exam} />;
 }

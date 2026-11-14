@@ -19,11 +19,12 @@ function TraceArt({ broken }: { broken?: boolean }) {
 
 interface Action { label: string; href?: string; onClick?: () => void; icon?: IconName }
 
-function StateBox({ kind, title, children, action, secondary }: { kind: 'empty' | 'error'; title: string; children?: ReactNode; action?: Action; secondary?: Action }) {
+function StateBox({ kind, title, children, action, secondary, page }: { kind: 'empty' | 'error'; title: string; children?: ReactNode; action?: Action; secondary?: Action; page?: boolean }) {
+  const Heading = page ? 'h1' : 'h2';
   return (
     <div className="state-box" role={kind === 'error' ? 'alert' : 'status'}>
       <TraceArt broken={kind === 'error'} />
-      <h2 className="state-title">{title}</h2>
+      <Heading className="state-title">{title}</Heading>
       {children && <div className="state-body">{children}</div>}
       {(action || secondary) && (
         <div className="state-actions">
@@ -35,12 +36,21 @@ function StateBox({ kind, title, children, action, secondary }: { kind: 'empty' 
   );
 }
 
-/** Nothing here yet: say why, and offer the next step. */
-export function EmptyState(p: { title: string; children?: ReactNode; action?: Action; secondary?: Action }) {
+/** Nothing here yet: say why, and offer the next step. `page` makes the title the screen's main heading. */
+export function EmptyState(p: { title: string; children?: ReactNode; action?: Action; secondary?: Action; page?: boolean }) {
   return <StateBox kind="empty" {...p} />;
 }
 
 /** Something went wrong: say what, in plain words, and how to recover. */
 export function ErrorState(p: { title: string; children?: ReactNode; action?: Action; secondary?: Action }) {
   return <StateBox kind="error" {...p} />;
+}
+
+/** A link that points at something that isn't there (an old bookmark, a typo): say so and offer the way back. */
+export function NotFound({ what, backHref, backLabel }: { what: string; backHref: string; backLabel: string }) {
+  return (
+    <EmptyState page title={`${what} not found`} action={{ label: backLabel, href: backHref, icon: 'back' }}>
+      The link may be old or mistyped. Nothing is lost; your progress is still on this device.
+    </EmptyState>
+  );
 }

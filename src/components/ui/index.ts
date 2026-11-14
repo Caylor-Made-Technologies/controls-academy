@@ -4,7 +4,7 @@ export { Chip, type Tone } from './Chip';
 export { Card } from './Card';
 export { Segmented, type SegOption } from './Segmented';
 export { Callout, type CalloutTone } from './Callout';
-export { EmptyState, ErrorState } from './States';
+export { EmptyState, ErrorState, NotFound } from './States';
 export { Stat, useCountUp } from './Stat';
 export { ListRow } from './ListRow';
 export { Toaster, toast } from './Toast';
