@@ -139,3 +139,18 @@ a.row:active, button.row:active { transform: scale(0.99); }
 /* Ladder: the live 0/1 digit sits beside the symbol (above the wire), not on top of the tag name, so long
    names stay readable without making every instruction wider on a phone. */
 .instr .state { top: var(--space-4h); right: 2px; line-height: 1; }
+
+/* ---------- Ladder on a phone ---------- */
+/* Instructions pack tighter so a typical rung (3–5 instructions and a coil) fits a 375 px screen without
+   scrolling sideways; long tag names shorten with an ellipsis (tap the instruction for the full name). Touch
+   height stays 44 px. Wider rungs still scroll. */
+@media (max-width: 480px) {
+  .instr { min-width: var(--space-14); padding-left: 2px; padding-right: 2px; }
+  .instr .tagname { max-width: var(--size-84); font-size: var(--text-2xs); }
+  .instr .addr { max-width: var(--size-84); overflow: hidden; text-overflow: ellipsis; }
+  .wire { width: var(--space-1); }
+  .series-fill { min-width: var(--space-1h); }
+  .branch { padding: 0 var(--space-1); }
+  .rung { grid-template-columns: var(--space-6) 1fr; }
+  .box-instr { min-width: var(--size-110); padding: 2px var(--space-1h); }
+}
