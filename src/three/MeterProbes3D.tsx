@@ -119,8 +119,12 @@ function Bench({ points, mode, at, reading, onMode, onLand, onLift }: BenchProps
         const on = at === p.id;
         return (
           <group key={p.id} position={[sp.x, sp.y, 0]}>
-            <Box size={[0.08, 0.055, 0.04]} pos={[0, 0, -0.005]} color={p.id === 'psu' ? '#2563eb' : '#64748b'} rough={0.5} />
-            <mesh position={[0, 0, 0.017]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.014, 0.014, 0.004, 16]} /><meshStandardMaterial color={on ? '#facc15' : '#cbd5e1'} metalness={0.9} roughness={0.25} /></mesh>
+            {/* a feed-through terminal: molded body, screw clamp on top, test socket below it where the probe lands */}
+            <Box size={[0.07, 0.055, 0.04]} pos={[0, 0, -0.005]} color={p.id === 'psu' ? '#2563eb' : '#7b8592'} s="plasticMatte" />
+            <Box size={[0.07, 0.008, 0.042]} pos={[0, 0.03, -0.005]} color="#2b3038" s="plasticMatte" round={0} />
+            <mesh position={[0, 0.014, 0.017]} rotation={[Math.PI / 2, 0, 0]} material={surface('tinned')}><cylinderGeometry args={[0.009, 0.009, 0.004, 14]} /></mesh>
+            <mesh position={[0, 0.014, 0.0195]} material={surface('castIron')}><boxGeometry args={[0.012, 0.0022, 0.001]} /></mesh>
+            <mesh position={[0, -0.009, 0.017]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.008, 0.008, 0.004, 16]} /><meshStandardMaterial color={on ? '#facc15' : '#0f1318'} emissive={on ? '#facc15' : '#000000'} emissiveIntensity={on ? 0.6 : 0} roughness={0.4} /></mesh>
             <Label text={p.label} pos={[0, -0.058, 0.002]} w={0.47} h={0.05} fg="#11161d" bg="#f2f4f7" />
           </group>
         );
