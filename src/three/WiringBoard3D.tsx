@@ -52,9 +52,11 @@ function DeviceFace({ id, x, y, w }: { id: string; x: number; y: number; w: numb
       </group>
     );
     case 'X': return (
+      // a fuse holder: a hinged carrier with a cartridge fuse you can see through the window
       <group>
-        <Box size={[0.07, 0.034, 0.014]} pos={[x, y, 0.036]} color="#1f2937" s="plasticMatte" />
-        <mesh position={[x, y, 0.046]} rotation={[0, 0, Math.PI / 2]} material={surface('glass', '#e2e8f0', 0.6)}><cylinderGeometry args={[0.008, 0.008, 0.05, 12]} /></mesh>
+        <Box size={[0.1, 0.044, 0.016]} pos={[x, y, 0.037]} color="#1f2937" s="plasticMatte" />
+        <mesh position={[x, y, 0.05]} rotation={[0, 0, Math.PI / 2]} material={surface('plasticMatte', '#e8e2d0')}><cylinderGeometry args={[0.011, 0.011, 0.06, 14]} /></mesh>
+        {[-1, 1].map((e) => <mesh key={e} position={[x + e * 0.033, y, 0.05]} rotation={[0, 0, Math.PI / 2]} material={surface('tinned')}><cylinderGeometry args={[0.0118, 0.0118, 0.01, 14]} /></mesh>)}
       </group>
     );
     case 'PSU': return (
@@ -127,9 +129,11 @@ function Board({ ex, wires, colors, armed, onTap }: { ex: Exercise; wires: Wire[
     const t = Math.tan((camera.fov * Math.PI) / 360);
     const h = L.top - L.bottom;
     const cy = (L.top + L.bottom) / 2;
-    const d = Math.max(h / 2 / t, L.width / 2 / (t * aspect)) * 1.08;
-    camera.position.set(0, cy - d * 0.1, d);
-    camera.lookAt(0, cy, 0);
+    // Leave room at the bottom: on a phone the canvas bottom is often under the tab bar until you scroll.
+    const d = Math.max(h / 2 / t, L.width / 2 / (t * aspect)) * 1.16;
+    const look = cy - h * 0.07;
+    camera.position.set(0, look - d * 0.1, d);
+    camera.lookAt(0, look, 0);
   }, [camera, aspect, L]);
   const tap = (id: string) => (e: ThreeEvent<MouseEvent>) => { e.stopPropagation(); onTap(id); };
   return (

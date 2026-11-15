@@ -154,3 +154,11 @@ a.row:active, button.row:active { transform: scale(0.99); }
   .rung { grid-template-columns: var(--space-6) 1fr; }
   .box-instr { min-width: var(--size-110); padding: 2px var(--space-1h); }
 }
+
+/* ---------- Digital meter face ---------- */
+.meter-face { display: block; width: 100%; max-width: var(--size-320); height: auto; }
+.meter-glass { fill: var(--meter-bg); stroke: var(--meter-line); stroke-width: 2; }
+.seg-on { fill: var(--meter-ink); }
+.seg-off { fill: var(--meter-ink); opacity: 0.08; }
+.meter-anno { fill: var(--meter-ink); font-family: var(--font-mono); font-weight: 700; letter-spacing: 0.06em; opacity: 0.85; }
+.meter-unit { fill: var(--meter-ink); font-family: var(--font-mono); font-weight: 700; }

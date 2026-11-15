@@ -14,6 +14,7 @@ import { PosterFrame } from '../../three/poster/frames';
 import { POSTERS } from '../../three/poster/meter.gen';
 import { usePrefs } from '../../state/prefs';
 import { MODE_LABEL, huntScore, meterResult, type MeterMode, type Penalty } from './scoring';
+import { MeterFace } from '../../components/MeterFace';
 
 
 function fmtTime(ms: number) {
@@ -267,9 +268,7 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
       {/* Meter */}
       <section className="card card-pad mb-3" aria-label="Multimeter">
         <div className="flex flex-wrap gap-3 items-end">
-          <div className="meter-lcd rounded-xl px-4 py-2 font-mono text-2xl tabular-nums min-w-[9rem] text-center" aria-hidden="true">
-            {live ?? reading ?? '----'}
-          </div>
+          <div className="w-full sm:w-auto sm:min-w-[16rem]"><MeterFace display={live ?? reading ?? '----'} mode={mode} /></div>
           <p className="sr-only" role="status" aria-live="polite">{reading ? `Meter reads ${reading}` : ''}</p>
           {can3d && (
             <button type="button" className="btn btn-sm btn-ghost" aria-pressed={probes3d} onClick={() => setProbes3d(!probes3d)}><Icon name="meter" size={16} /> {probes3d ? 'Hide 3D probes' : '3D probes'}</button>
@@ -281,7 +280,7 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
             </div>
           </div>
           <label className="flex-1 min-w-[12rem]">
-            <span className="text-sm font-semibold text-heading flex items-center gap-1.5"><Icon name="meter" size={16} /> Meter — put your leads on</span>
+            <span className="text-sm font-semibold text-heading flex items-center gap-1.5"><Icon name="meter" size={16} /> Test point</span>
             <select className="input mt-1" value={meterPoint} onChange={(e) => { setMeterPoint(e.target.value); setPlaced(false); setReading(null); }}>
               <option value="">Choose a test point…</option>
               {rt?.scene.meterPoints(rt.io).map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}

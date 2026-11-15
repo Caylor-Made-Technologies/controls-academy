@@ -37,3 +37,27 @@ describe('camera fitting', () => {
     expect(Math.max(...xs)).toBeGreaterThan(0.85);
   });
 });
+
+import { fitViewInsets } from '../../src/three/fit';
+
+describe('camera fitting with covered edges', () => {
+  const min: V3 = [-2, 0, -0.6];
+  const max: V3 = [2, 2.6, 0.6]; // tall and deep: the case that used to leave empty sky
+  const inset = { top: 0.06, bottom: 0.26, left: 0.04, right: 0.04 };
+  for (const aspect of [0.55, 1.2, 2.2]) {
+    it(`keeps every corner inside the uncovered window at aspect ${aspect}, and uses it`, () => {
+      const v = fitViewInsets(min, max, [1, 2.5, 5], [0, 1, 0], 40, aspect, inset);
+      const pts = boxCorners(min, max).map((c) => ndc(c, v.pos, v.target, 40, aspect));
+      for (const [x, y] of pts) {
+        expect(x).toBeGreaterThanOrEqual(-1 + inset.left - 1e-3);
+        expect(x).toBeLessThanOrEqual(1 - inset.right + 1e-3);
+        expect(y).toBeGreaterThanOrEqual(-1 + inset.bottom - 1e-3);
+        expect(y).toBeLessThanOrEqual(1 - inset.top + 1e-3);
+      }
+      // the content touches the window on at least one axis (no wasted margin)
+      const spanX = Math.max(...pts.map((p) => p[0])) - Math.min(...pts.map((p) => p[0]));
+      const spanY = Math.max(...pts.map((p) => p[1])) - Math.min(...pts.map((p) => p[1]));
+      expect(Math.max(spanX / (2 - inset.left - inset.right), spanY / (2 - inset.top - inset.bottom))).toBeGreaterThan(0.9);
+    });
+  }
+});

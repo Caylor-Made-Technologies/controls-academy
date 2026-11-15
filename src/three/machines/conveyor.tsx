@@ -102,7 +102,11 @@ function Scene(p: MachineSceneProps) {
         <Label text="E-STOP — not modeled here; real conveyors have E-stops / pull-cords" pos={[0, 1.07, 0]} w={0.7} h={0.05} fg="#111" bg="#f5c400" />
       </group>
       {/* pallet at discharge */}
-      <Box size={[1.0, 0.12, 1.0]} pos={[X0 + BELT_M + 0.7, 0.06, 0]} color="#a16207" rough={0.9} />
+      {/* a wooden pallet: three runners and spaced deck boards, so it reads as a pallet and not a mat */}
+      <group position={[X0 + BELT_M + 0.7, 0, 0]}>
+        {[-0.42, 0, 0.42].map((z) => <Box key={z} size={[1.0, 0.09, 0.1]} pos={[0, 0.045, z]} color="#8a5a1c" s="plasticMatte" />)}
+        {[-0.42, -0.21, 0, 0.21, 0.42].map((x) => <Box key={x} size={[0.14, 0.022, 1.0]} pos={[x, 0.101, 0]} color="#b07a2e" s="plasticMatte" />)}
+      </group>
       {/* starter + stack light */}
       <Cabinet pos={[-1.6, 0, -1.0]} size={[0.7, 1.1, 0.25]} label="CONVEYOR STARTER">
         <StarterDoorNote y={1.15} />

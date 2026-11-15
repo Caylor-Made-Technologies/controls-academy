@@ -7,7 +7,9 @@ import { OrbitControls, PerformanceMonitor } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { Box3, Vector3, type Group, type Mesh } from 'three';
-import { fitView, type V3 as FitV3 } from './fit';
+import { fitViewInsets, type Insets, type V3 as FitV3 } from './fit';
+
+const MACHINE_INSETS: Insets = { top: 0.06, bottom: 0.26, left: 0.04, right: 0.04 };
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { Icon } from '../components/Icon';
 import type { SimRuntime } from '../features/simulator/runtime';
@@ -83,7 +85,8 @@ function MeasureScene({ group, onBounds }: { group: React.RefObject<Group | null
 /** Home camera for this canvas shape: the whole machine in view, seen from the scene's chosen direction. */
 export function homeView(def: { camera: { pos: FitV3; target: FitV3 } }, bounds: Bounds, aspect: number, fov = 40): { pos: Vector3; target: Vector3 } {
   if (!bounds) return { pos: framed(def.camera.pos, def.camera.target, aspect), target: new Vector3(...def.camera.target) };
-  const v = fitView(bounds.min, bounds.max, def.camera.pos, def.camera.target, fov, aspect);
+  // The tool row (Reset / Front / Side / Above and the readout) covers the bottom of the canvas.
+  const v = fitViewInsets(bounds.min, bounds.max, def.camera.pos, def.camera.target, fov, aspect, MACHINE_INSETS);
   return { pos: new Vector3(...v.pos), target: new Vector3(...v.target) };
 }
 
