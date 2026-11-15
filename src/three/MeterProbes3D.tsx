@@ -109,7 +109,7 @@ function Bench({ points, mode, at, reading, onMode, onLand, onLift }: BenchProps
     camera.position.set(0, cy, d);
     camera.lookAt(0, cy, 0);
   }, [camera, aspect, L]);
-  const jack = useMemo(() => new Vector3(L.meterAt.x - 0.142, L.meterAt.y - 0.135, 0.04), [L]);
+  const jack = useMemo(() => new Vector3(L.meterAt.x - 0.154, L.meterAt.y - 0.135, 0.04), [L]);
   const com = useMemo(() => new Vector3(L.meterAt.x + 0.34, L.meterAt.y + 0.03, 0), [L]);
   return (
     <group>
@@ -141,18 +141,18 @@ function Bench({ points, mode, at, reading, onMode, onLand, onLift }: BenchProps
             );
           })}
         </group>
-        <Label text="black lead: COM / 0 V (volts)" pos={[0, -0.1, 0.027]} w={0.22} h={0.026} fg="#e5e7eb" bg="#111827" />
+        <Label text="black lead: COM / 0 V (volts)" pos={[0, -0.1, 0.027]} w={0.185} h={0.022} fg="#e5e7eb" bg="#111827" />
         {/* input jacks: red for volts/ohms, black for common */}
-        <mesh position={[-0.105, -0.1, 0.028]} rotation={[Math.PI / 2, 0, 0]} material={surface('plasticGloss', '#dc2626')}><cylinderGeometry args={[0.01, 0.01, 0.008, 14]} /></mesh>
-        <mesh position={[0.105, -0.1, 0.028]} rotation={[Math.PI / 2, 0, 0]} material={surface('plasticGloss', '#0f1318')}><cylinderGeometry args={[0.01, 0.01, 0.008, 14]} /></mesh>
+        <mesh position={[-0.114, -0.1, 0.028]} rotation={[Math.PI / 2, 0, 0]} material={surface('plasticGloss', '#dc2626')}><cylinderGeometry args={[0.01, 0.01, 0.008, 14]} /></mesh>
+        <mesh position={[0.114, -0.1, 0.028]} rotation={[Math.PI / 2, 0, 0]} material={surface('plasticGloss', '#0f1318')}><cylinderGeometry args={[0.01, 0.01, 0.008, 14]} /></mesh>
       </group>
       {/* The black lead stays on common (0 V) for voltage readings, so it is parked on its own post. */}
       <group>
         <Box size={[0.08, 0.055, 0.04]} pos={[com.x, com.y, -0.005]} color="#1f2937" s="plasticMatte" />
         <mesh position={[com.x, com.y, 0.017]} rotation={[Math.PI / 2, 0, 0]} material={surface('tinned')}><cylinderGeometry args={[0.014, 0.014, 0.004, 16]} /></mesh>
         <mesh position={[com.x, com.y, 0.055]} rotation={[Math.PI / 2, 0, 0]} material={surface('rubber', '#14181d')}><cylinderGeometry args={[0.013, 0.008, 0.075, 12]} /></mesh>
-        <Label text="COM / 0 V" pos={[com.x, com.y - 0.052, 0.002]} w={0.17} h={0.03} fg="#e5e7eb" bg="#111827" />
-        <QuadraticBezierLine start={[L.meterAt.x + 0.142, L.meterAt.y - 0.135, 0.045]} end={[com.x, com.y, 0.09]} mid={[com.x - 0.02, com.y - 0.16, 0.12]} color="#4b5563" lineWidth={4} />
+        <Label text="COM / 0 V" pos={[com.x, com.y + 0.052, 0.002]} w={0.17} h={0.03} fg="#e5e7eb" bg="#111827" />
+        <QuadraticBezierLine start={[L.meterAt.x + 0.154, L.meterAt.y - 0.135, 0.045]} end={[com.x, com.y, 0.09]} mid={[com.x - 0.02, com.y - 0.16, 0.12]} color="#4b5563" lineWidth={4} />
       </group>
       <Probe spots={L.spots} ids={ids} home={L.home} onLand={onLand} onLift={onLift} at={at} meterJack={jack} />
     </group>

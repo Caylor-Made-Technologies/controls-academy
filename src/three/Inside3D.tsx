@@ -37,7 +37,8 @@ function Part({ p, spread, size, selected, onPick, reduce }: { p: InsidePart; sp
     <group ref={g} position={home} onClick={click}>
       <PartBody p={p} selected={selected} />
       {/* Every part carries its name once the device is pulled apart; the selected one is highlighted. */}
-      {(selected || spread > 0.3) && (
+      {/* A see-through enclosure is obvious and its label would sit on top of what is inside it. */}
+      {(selected || (spread > 0.3 && p.opacity === undefined)) && (
         <Billboard position={[0, top + size * 0.028, 0]}>
           <Label overlay text={label} pos={[0, 0, 0]} w={(selected ? 1.25 : 1) * (label.length * size * 0.0105 + size * 0.03)} h={(selected ? 1.25 : 1) * size * 0.03} fg="#ffffff" bg={selected ? '#1b63eb' : '#1f2937'} />
         </Billboard>

@@ -62,7 +62,7 @@ function Scene(p: MachineSceneProps) {
           <Box size={[0.05, 0.05, 0.73]} pos={[-1.5, VY + VH + 0.2, 0.02]} color="#4b5563" s="enamel" />
           {[-0.18, 0.22].map((z) => (
             <group key={z}>
-              <mesh position={[-1.5, VY + VH + 0.6, z]} rotation={[Math.PI, 0, 0]} material={surface('galvanized')}><coneGeometry args={[0.17, 0.24, 4, 1, true]} /></mesh>
+              <mesh position={[-1.5, VY + VH + 0.58, z]} rotation={[0, Math.PI / 4, 0]} material={surface('galvanized')}><cylinderGeometry args={[0.2, 0.08, 0.22, 4]} /></mesh>
               <Box size={[0.16, 0.18, 0.18]} pos={[-1.8, VY + VH + 0.35, z]} color={PAINT.motor} s="enamel" />
               <mesh position={[-0.44, VY + VH + 0.17, z * 0.8]} material={surface('galvanized')}><cylinderGeometry args={[0.07, 0.07, 0.3, 14]} /></mesh>
             </group>
