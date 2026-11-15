@@ -2,7 +2,8 @@ import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import { DoubleSide, type Mesh } from 'three';
 import { FLOAT_AT, LOW_CUTOUT, WELL_AREA, WELL_DEPTH, type PumpsState } from '../../plant/pumps';
-import { Box, Label } from '../kit';
+import { Box, Cable, Label } from '../kit';
+import { lowDetail, surface } from '../materials';
 import { Cabinet, Lamp, PAINT, Pick, Pipe, Spinner } from './parts';
 import type { MachineSceneDef, MachineSceneProps } from './types';
 
@@ -18,7 +19,8 @@ function Water({ level }: { level: () => number }) {
   return (
     <mesh ref={m}>
       <boxGeometry args={[W * 0.98, WELL_DEPTH, W * 0.98]} />
-      <meshStandardMaterial color="#3f6b5a" roughness={0.2} transparent opacity={0.82} />
+      {/* See-through enough that the pumps and floats stay visible under the surface. */}
+      <meshStandardMaterial color="#3d7f74" roughness={0.15} transparent opacity={0.42} depthWrite={false} />
     </mesh>
   );
 }
@@ -39,10 +41,18 @@ function Float({ x, z, at, swing, level, color, stuck }: { x: number; z: number;
 /** Submersible pump. Running is shown by flow in its discharge (a spinning sight-flow wheel), not by a lamp:
  * lights and overload flags live in the panel, where they are in real stations. */
 function Pump({ x, rps }: { x: number; rps: () => number }) {
+  const fine = !lowDetail();
   return (
     <group position={[x, 0, 0]}>
-      <mesh position={[0, 0.35, 0]} castShadow><cylinderGeometry args={[0.16, 0.18, 0.6, 24]} /><meshStandardMaterial color="#1d4ed8" metalness={0.4} roughness={0.45} /></mesh>
-      <mesh position={[0, 0.06, 0]}><cylinderGeometry args={[0.24, 0.24, 0.12, 24]} /><meshStandardMaterial color="#334155" metalness={0.5} roughness={0.5} /></mesh>
+      {/* motor housing with cooling ribs, cable cap and lifting bail, on a volute with a suction strainer */}
+      <mesh position={[0, 0.38, 0]} material={surface('enamel', '#1d4ed8')}><cylinderGeometry args={[0.16, 0.17, 0.5, 24]} /></mesh>
+      {fine && [0.24, 0.36, 0.48].map((y) => <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]} material={surface('enamel', '#1a44c2')}><torusGeometry args={[0.168, 0.012, 6, 24]} /></mesh>)}
+      <mesh position={[0, 0.66, 0]} material={surface('castIron')}><cylinderGeometry args={[0.1, 0.16, 0.07, 24]} /></mesh>
+      {fine && <mesh position={[0, 0.74, 0]} rotation={[0, Math.PI / 2, 0]} material={surface('galvanized')}><torusGeometry args={[0.06, 0.01, 6, 16, Math.PI]} /></mesh>}
+      <mesh position={[0, 0.09, 0]} material={surface('castIron', '#3a4350')}><cylinderGeometry args={[0.25, 0.22, 0.16, 24]} /></mesh>
+      {fine && <mesh position={[0, 0.012, 0]} material={surface('galvanized')}><cylinderGeometry args={[0.2, 0.2, 0.024, 12]} /></mesh>}
+      {/* power cable up to the junction box at the top of the well */}
+      {fine && <Cable from={[-0.1, 0.68, 0.05]} to={[-0.2, WELL_DEPTH + 0.05, -0.3]} r={0.012} sag={0.12} ferrules={false} />}
       <Pipe from={[0, 0.65, 0]} to={[0, WELL_DEPTH + 0.4, 0]} r={0.06} />
       {/* guide rail */}
       <Pipe from={[0.2, 0.1, -0.1]} to={[0.2, WELL_DEPTH + 0.1, -0.1]} r={0.012} color="#9ca3af" />
@@ -73,6 +83,7 @@ function Scene(p: MachineSceneProps) {
   const s = () => p.rt.scene.state as PumpsState;
   const level = () => s().level;
   const sel = (id: string) => p.selected === id;
+  const fine = !lowDetail();
   return (
     <group>
       {/* concrete well, front wall cut away so you can see inside */}
@@ -85,6 +96,13 @@ function Scene(p: MachineSceneProps) {
           <meshStandardMaterial color="#cbd5e1" transparent opacity={0.12} side={DoubleSide} depthWrite={false} />
         </mesh>
         {[1, 2, 3, 4].map((m) => <Label key={m} text={`${m} m`} pos={[-W / 2 + 0.12, m, -W / 2 + 0.002]} w={0.16} h={0.06} />)}
+        {/* poured-concrete coping around the top, an access ladder and a staff gauge on the back wall */}
+        {fine && [[0, -W / 2 - 0.05, W + 0.4, 0.2], [-W / 2 - 0.05, 0, 0.2, W], [W / 2 + 0.05, 0, 0.2, W]].map(([x, z, sx, sz], i) => (
+          <Box key={i} size={[sx, 0.08, sz]} pos={[x, WELL_DEPTH + 0.04, z]} color="#b4bac2" s="plasticMatte" />
+        ))}
+        {fine && [-1, 1].map((e) => <Box key={e} size={[0.03, WELL_DEPTH, 0.03]} pos={[0.7 + e * 0.15, WELL_DEPTH / 2, -W / 2 + 0.04]} color="#9aa3ad" s="galvanized" round={0} />)}
+        {fine && Array.from({ length: 8 }, (_, i) => <Box key={i} size={[0.3, 0.02, 0.02]} pos={[0.7, 0.4 + i * 0.5, -W / 2 + 0.04]} color="#9aa3ad" s="galvanized" round={0} />)}
+        {fine && <Box size={[0.05, WELL_DEPTH - 0.2, 0.004]} pos={[-W / 2 + 0.3, WELL_DEPTH / 2, -W / 2 + 0.003]} color="#f5c400" s="enamel" round={0} />}
       </group>
       <Water level={level} />
       {/* access hatch frame and confined-space sign */}

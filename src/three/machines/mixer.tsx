@@ -5,6 +5,7 @@ import type { MixerState } from '../../plant/mixer';
 import { Box, Label } from '../kit';
 import { Belt, Cabinet, Display, FanWheel, Lamp, PAINT, Pick, Pipe, Screw, Spinner } from './parts';
 import type { MachineSceneDef, MachineSceneProps } from './types';
+import { lowDetail, surface } from '../materials';
 
 const FULL_LB = 2000;
 const VY = 1.15; // weigh-mixer vessel bottom
@@ -36,6 +37,7 @@ function Scene(p: MachineSceneProps) {
   const s = () => p.rt.scene.state as MixerState;
   const sel = (id: string) => p.selected === id;
   const io = () => p.rt.io;
+  const fine = !lowDetail();
   const tag = (n: string) => { try { return p.rt.plc.tags.readNum(n); } catch { return 0; } };
   return (
     <group>
@@ -52,11 +54,31 @@ function Scene(p: MachineSceneProps) {
           <Screw length={1.25} r={0.11} rps={() => (io().DO[2] ? 2 : 0)} />
         </group>
       </Pick>
+      {/* What holds the feed screws up and where flour gets in and out: a support frame, an inlet hopper and a
+          gearmotor on each screw, and a drop spout into the vessel. */}
+      {fine && (
+        <group>
+          {[-0.32, 0.36].map((z) => <Box key={z} size={[0.05, VY + VH + 0.2, 0.05]} pos={[-1.5, (VY + VH + 0.2) / 2, z]} color="#4b5563" s="enamel" />)}
+          <Box size={[0.05, 0.05, 0.73]} pos={[-1.5, VY + VH + 0.2, 0.02]} color="#4b5563" s="enamel" />
+          {[-0.18, 0.22].map((z) => (
+            <group key={z}>
+              <mesh position={[-1.5, VY + VH + 0.6, z]} rotation={[Math.PI, 0, 0]} material={surface('galvanized')}><coneGeometry args={[0.17, 0.24, 4, 1, true]} /></mesh>
+              <Box size={[0.16, 0.18, 0.18]} pos={[-1.8, VY + VH + 0.35, z]} color={PAINT.motor} s="enamel" />
+              <mesh position={[-0.44, VY + VH + 0.17, z * 0.8]} material={surface('galvanized')}><cylinderGeometry args={[0.07, 0.07, 0.3, 14]} /></mesh>
+            </group>
+          ))}
+        </group>
+      )}
       {/* weigh-mixer: the vessel sits on load cells; the agitator mixes in it; the gate at its outlet discharges */}
       <Pick id="wt" label="Weigh-mixer on load cells" size={[1.05, VH + 0.2, 1.05]} pos={[0, VY + VH / 2, 0]} selected={sel('wt')} onPick={p.onPick}>
         <mesh position={[0, VY + VH / 2, 0]}><cylinderGeometry args={[0.47, 0.47, VH, 40, 1, true]} /><meshStandardMaterial color="#e2e8f0" metalness={0.75} roughness={0.25} transparent opacity={0.35} side={2} depthWrite={false} /></mesh>
         <mesh position={[0, VY - 0.08, 0]}><coneGeometry args={[0.47, 0.16, 40, 1, true]} /><meshStandardMaterial color="#e2e8f0" metalness={0.75} roughness={0.25} side={2} /></mesh>
         <Fill weight={() => s().weight} />
+        {/* support ring and lugs: the vessel hangs on the four load cells through these */}
+        {fine && <mesh position={[0, VY + 0.08, 0]} rotation={[Math.PI / 2, 0, 0]} material={surface('brushedSteel')}><torusGeometry args={[0.475, 0.018, 8, 40]} /></mesh>}
+        {fine && [[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]].map(([x, z]) => (
+          <mesh key={`lug${x}${z}`} position={[x * 0.84, VY + 0.075, z * 0.84]} rotation={[0, Math.atan2(-z, x), 0]} material={surface('brushedSteel')}><boxGeometry args={[0.34, 0.035, 0.08]} /></mesh>
+        ))}
         {[[-0.5, -0.5], [0.5, -0.5], [-0.5, 0.5], [0.5, 0.5]].map(([x, z]) => (
           <group key={`${x}${z}`}>
             <Box size={[0.06, VY - 0.08, 0.06]} pos={[x * 1.05, (VY - 0.08) / 2, z * 1.05]} color="#4b5563" metal={0.5} rough={0.5} />
