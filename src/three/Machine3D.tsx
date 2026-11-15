@@ -6,7 +6,8 @@
 import { OrbitControls, PerformanceMonitor } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import { Vector3 } from 'three';
+import { Box3, Vector3, type Group, type Mesh } from 'three';
+import { fitView, type V3 as FitV3 } from './fit';
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { Icon } from '../components/Icon';
 import type { SimRuntime } from '../features/simulator/runtime';
@@ -52,15 +53,52 @@ export function framed(pos: [number, number, number], target: [number, number, n
   return new Vector3(...pos).sub(t).multiplyScalar(k).add(t);
 }
 
-function FitOnResize({ def, controls }: { def: { camera: { pos: [number, number, number]; target: [number, number, number] } }; controls: React.RefObject<OrbitControlsImpl | null> }) {
+/** What the camera must keep in view: the machine's measured bounds (null until the scene has mounted). */
+type Bounds = { min: FitV3; max: FitV3 } | null;
+
+/** Measures the machine (not the room or floor) once, a frame after it mounts. */
+function MeasureScene({ group, onBounds }: { group: React.RefObject<Group | null>; onBounds: (b: Bounds) => void }) {
+  useEffect(() => {
+    const id = requestAnimationFrame(() => {
+      const g = group.current;
+      if (!g) return;
+      g.updateWorldMatrix(true, true);
+      // Only what is drawn counts: hidden objects (a pool of spare bags, a closed flag) must not widen the view.
+      const box = new Box3();
+      const part = new Box3();
+      g.traverseVisible((o) => {
+        const m = o as Mesh;
+        if (!m.isMesh || !m.geometry) return;
+        if (!m.geometry.boundingBox) m.geometry.computeBoundingBox();
+        part.copy(m.geometry.boundingBox!).applyMatrix4(m.matrixWorld);
+        box.union(part);
+      });
+      if (!box.isEmpty()) onBounds({ min: box.min.toArray() as FitV3, max: box.max.toArray() as FitV3 });
+    });
+    return () => cancelAnimationFrame(id);
+  }, [group, onBounds]);
+  return null;
+}
+
+/** Home camera for this canvas shape: the whole machine in view, seen from the scene's chosen direction. */
+export function homeView(def: { camera: { pos: FitV3; target: FitV3 } }, bounds: Bounds, aspect: number, fov = 40): { pos: Vector3; target: Vector3 } {
+  if (!bounds) return { pos: framed(def.camera.pos, def.camera.target, aspect), target: new Vector3(...def.camera.target) };
+  const v = fitView(bounds.min, bounds.max, def.camera.pos, def.camera.target, fov, aspect);
+  return { pos: new Vector3(...v.pos), target: new Vector3(...v.target) };
+}
+
+function FitOnResize({ def, controls, bounds }: { def: { camera: { pos: FitV3; target: FitV3 } }; controls: React.RefObject<OrbitControlsImpl | null>; bounds: Bounds }) {
   const camera = useThree((s) => s.camera);
   const size = useThree((s) => s.size);
+  const invalidate = useThree((s) => s.invalidate);
   const aspect = size.width / Math.max(1, size.height);
   useEffect(() => {
-    camera.position.copy(framed(def.camera.pos, def.camera.target, aspect));
-    controls.current?.target.set(...def.camera.target);
+    const h = homeView(def, bounds, aspect);
+    camera.position.copy(h.pos);
+    controls.current?.target.copy(h.target);
     controls.current?.update();
-  }, [camera, aspect, def, controls]);
+    invalidate();
+  }, [camera, aspect, def, controls, bounds, invalidate]);
   return null;
 }
 
@@ -114,13 +152,18 @@ function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) =
     if (reduce) { c.object.position.copy(pos); c.target.copy(target); c.update(); } else setGoal({ pos, target });
   }, [onDevice, def, reduce]);
   const SceneC = useMemo(() => memo(def.Scene), [def]);
+  const sceneGroup = useRef<Group>(null);
+  const [bounds, setBounds] = useState<Bounds>(null);
+  // Fog starts beyond the farthest the home camera sits (a portrait phone backs off the most).
+  const fogDist = useMemo(() => Math.max(dist, bounds ? homeView(def, bounds, 0.5).pos.distanceTo(homeView(def, bounds, 0.5).target) : 0), [dist, bounds, def]);
   const wrap = useRef<HTMLDivElement>(null);
   // Named camera views. The camera eases to each one (instant with reduced motion); dragging takes over at once.
   const goTo = (id: ViewId) => {
     const el = wrap.current;
     const aspect = el ? el.clientWidth / Math.max(1, el.clientHeight) : 1.5;
-    const target = new Vector3(...def.camera.target);
-    const home = framed(def.camera.pos, def.camera.target, aspect);
+    const h = homeView(def, bounds, aspect);
+    const target = h.target;
+    const home = h.pos;
     const d = home.distanceTo(target);
     const pos = id === 'front' ? target.clone().add(new Vector3(0, d * 0.12, d)) : id === 'side' ? target.clone().add(new Vector3(d, d * 0.12, d * 0.08)) : id === 'above' ? target.clone().add(new Vector3(d * 0.02, d * 0.98, d * 0.2)) : home;
     setView(id);
@@ -146,9 +189,10 @@ function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) =
           {(q, look) => <>
             <Invalidator rt={rt} extra={def.signature} />
             <PerformanceMonitor onDecline={() => { if (quality === 'auto') setCapTier('low'); }} />
-            <StudioLights look={look} q={q} keyPos={[r * 0.8, r * 1.4, r * 1.2]} shadowBox={{ left: -r, right: r, top: r, bottom: -r }} fog={[dist * 1.3, dist * 3.2]} />
+            <StudioLights look={look} q={q} keyPos={[r * 0.8, r * 1.4, r * 1.2]} shadowBox={{ left: -r, right: r, top: r, bottom: -r }} fog={[fogDist * 1.3, fogDist * 3.2]} />
             <Room look={look} size={Math.max(12, r * 6)} />
-            <SceneC rt={rt} selected={selected} onPick={pick} />
+            <group ref={sceneGroup}><SceneC rt={rt} selected={selected} onPick={pick} /></group>
+            <MeasureScene group={sceneGroup} onBounds={setBounds} />
             {/* Not on the low tier: a floor-sized blended layer costs a weak GPU a third of its frame rate. */}
             {q.contactRes > 0 && <GroundShadow size={SHADOW_SIZE(r)} opacity={look.ao} res={512} reach={Math.max(0.5, r * 0.25)} />}
             <OrbitControls
@@ -162,7 +206,7 @@ function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) =
               maxPolarAngle={Math.PI * 0.49}
               onStart={() => { setGoal(null); setView(null); }}
             />
-            <FitOnResize def={def} controls={controls} />
+            <FitOnResize def={def} controls={controls} bounds={bounds} />
             <Glide goal={goal} controls={controls} onArrive={() => setGoal(null)} />
           </>}
         </Stage>
