@@ -22,7 +22,7 @@ export function useReducedMotion(): boolean {
   return useSyncExternalStore(subscribe, prefersReducedMotion, () => false);
 }
 
-type VTDocument = Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void> } };
+type VTDocument = Document & { startViewTransition?: (cb: () => void) => { finished: Promise<void>; ready: Promise<void>; updateCallbackDone: Promise<void> } };
 
 /**
  * Run a state change inside a View Transition so shared elements (matching `view-transition-name`s) glide
@@ -33,7 +33,14 @@ export function withViewTransition(update: () => void): void {
   const doc = document as VTDocument;
   if (!doc.startViewTransition || prefersReducedMotion()) { update(); return; }
   try {
-    doc.startViewTransition(() => flushSync(update));
+    const t = doc.startViewTransition(() => flushSync(update));
+    // On a slow device a heavy screen (a 3D view mounting) can take longer than the browser's limit for the
+    // update; the browser then skips the animation and rejects these promises. The new screen is already in
+    // place, so that is not an error worth reporting (B-011).
+    const ignore = () => undefined;
+    t.ready.catch(ignore);
+    t.finished.catch(ignore);
+    t.updateCallbackDone.catch(ignore);
   } catch {
     update();
   }

@@ -12,10 +12,17 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 | B-004 | High | Phase 0 | Fixed in 0.5.1 |
 | B-003 | High | Phase 0 | Fixed in 0.5.1 |
 | B-002 | Low | Phase 0 (Lighthouse) | Fixed in 0.5.1 |
+| B-011 | Low | Phase 4 verify (3D suite) | Fixed 4.3 |
 | B-010 | Medium | Phase 3 gate (Lighthouse live) | Fixed 4.1 (local 1.6 s; confirm on live at the gate) |
 | B-009 | Low | Phase 3 review | Fixed 3.6 |
 | B-008 | High | Phase 3 review | Fixed 3.3 |
 | B-001 | Medium | Phase 0 (Lighthouse) | Fixed 3.1–3.8 (live 45 → 95) |
+
+## B-011 — "Transition was aborted" console error when opening a heavy 3D screen on a slow device
+- **Found by:** `tests/e2e/three.mjs` (no console errors) on the cloud software GPU, switching quickly between machine scenes.
+- **Cause:** screen changes run inside a View Transition. Mounting a 3D scene on a slow device can take longer than the browser's limit for the update (about 4 s); the browser then skips the animation and rejects the transition's promises, which nothing handled.
+- **Fix:** the promises are handled in `withViewTransition` (`src/lib/motion.ts`). The screen was always updated; only the animation is skipped.
+- **Guard:** the 3D suite's "no console errors/warnings" check, which caught it.
 
 ## B-010 — LCP 2.7 s on Simulator, Troubleshoot and Wiring (budget 2.5 s)
 - **Found by:** Lighthouse mobile on the live v0.8.0 site: `#/sim`, `#/troubleshoot`, `#/wiring` LCP 2.7 s (Learn 2.4 s). Performance score is 95 on all four, CLS 0.

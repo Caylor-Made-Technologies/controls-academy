@@ -14,6 +14,9 @@
 - Tapping a hardware card grows it into its 3D viewer; Profile numbers count up.
 - Conveyor scene: head and tail pulleys, idler rollers, side rails, framed legs and a gearbox. Data center scene: server-rack fronts with status lights, a pad-mount transformer with fins and bushings, a generator on a skid with louvers.
 - Pump station scene: clearer water so both pumps show, ribbed pumps with power cables, a concrete rim, an access ladder and a staff gauge. Mixer scene: the feed screws sit on a frame with hoppers, gearmotors and drop spouts, and the vessel hangs on its load cells. 3D meter: red and black jacks, and the black lead parked on a labelled common post.
+- Every machine scene frames itself to fit the screen you're on: the whole machine in view, nothing under the controls.
+- Fault Hunt has a real-looking meter display: seven-segment digits, the mode on the glass, autorange and a bar graph.
+- Wiring board devices have their own faces (fuse holder, pushbutton caps, contactor slots, overload dial, sensor barrel, LEDs, resistor bands); 3D meter test points look like terminals.
 - Old or mistyped links (lesson, exam, hardware model, device, brand guide) and empty filters show a designed message with a way back.
 - Installed app: long-press the icon for Simulator, Fault Hunt and Reference shortcuts.
 - If a screen can't download (offline) or crashes, a message explains it and offers a way back instead of a blank page.
@@ -28,6 +31,7 @@
 - Light theme: green, red and blue text darkened slightly to meet AA contrast on tinted chips.
 ### Fixed
 - B-010: LCP 2.7 s on Simulator, Troubleshoot and Wiring. Now about 1.6 s in local throttled runs.
+- B-011: on a slow device, opening a heavy 3D screen could log a "Transition was aborted" error. Now handled quietly; the screen always updated.
 
 ## 0.8.0 — 2026-11-07 · Phase 3: graphics
 ### Added
