@@ -4,8 +4,10 @@
  */
 import { Billboard, OrbitControls } from '@react-three/drei';
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
-import { memo, useMemo, useRef, useState } from 'react';
+import { memo, useEffect, useMemo, useRef, useState } from 'react';
 import { Vector3, type Group } from 'three';
+import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
+import { fitViewInsets, type V3 } from './fit';
 import type { InsideDevice, InsidePart } from '../content/inside';
 import { usePrefs } from '../state/prefs';
 import { Label } from './kit';
@@ -17,11 +19,14 @@ import { Poster } from './poster/Poster';
 import { FRAME } from './poster/frames';
 import { POSTERS } from './poster/inside.gen';
 
-function Part({ p, spread, size, selected, onPick, reduce }: { p: InsidePart; spread: number; size: number; selected: boolean; onPick: (id: string) => void; reduce: boolean }) {
+/** How far a part travels when the device is fully pulled apart, as a fraction of the device size. */
+export const reachOf = (d: InsideDevice) => d.reach ?? 0.45;
+
+function Part({ p, spread, size, reach, selected, onPick, reduce }: { p: InsidePart; spread: number; size: number; reach: number; selected: boolean; onPick: (id: string) => void; reduce: boolean }) {
   const g = useRef<Group>(null);
   const invalidate = useThree((s) => s.invalidate);
   const home = useMemo(() => new Vector3(...p.pos), [p]);
-  const away = useMemo(() => new Vector3(...p.dir).normalize().multiplyScalar(size * 0.45).add(home), [p, size, home]);
+  const away = useMemo(() => new Vector3(...p.dir).normalize().multiplyScalar(size * reach).add(home), [p, size, reach, home]);
   const goal = useMemo(() => home.clone().lerp(away, spread), [home, away, spread]);
   useFrame((_, dt) => {
     const o = g.current;
@@ -31,6 +36,9 @@ function Part({ p, spread, size, selected, onPick, reduce }: { p: InsidePart; sp
     if (o.position.distanceTo(goal) > 0.0005) invalidate();
   });
   const click = (e: ThreeEvent<MouseEvent>) => { e.stopPropagation(); onPick(p.id); };
+  // On a portrait phone the whole device is drawn smaller, so the name tags grow to stay readable.
+  const narrow = useThree((s) => s.size.width < s.size.height * 1.1);
+  const tag = (selected ? 1.25 : 1) * (narrow ? 1.4 : 1);
   const label = shortName(p.name);
   const top = p.shape.kind === 'box' ? p.shape.size[1] / 2 : p.shape.axis === 'y' || !p.shape.axis ? p.shape.h / 2 : p.shape.r;
   return (
@@ -40,7 +48,7 @@ function Part({ p, spread, size, selected, onPick, reduce }: { p: InsidePart; sp
       {/* A see-through enclosure is obvious and its label would sit on top of what is inside it. */}
       {(selected || (spread > 0.3 && p.opacity === undefined)) && (
         <Billboard position={[0, top + size * 0.028, 0]}>
-          <Label overlay text={label} pos={[0, 0, 0]} w={(selected ? 1.25 : 1) * (label.length * size * 0.0105 + size * 0.03)} h={(selected ? 1.25 : 1) * size * 0.03} fg="#ffffff" bg={selected ? '#1b63eb' : '#1f2937'} />
+          <Label overlay text={label} pos={[0, 0, 0]} w={tag * (label.length * size * 0.0105 + size * 0.03)} h={tag * size * 0.03} fg="#ffffff" bg={selected ? '#1b63eb' : '#1f2937'} />
         </Billboard>
       )}
     </group>
@@ -190,6 +198,51 @@ function PartBody({ p, selected }: { p: InsidePart; selected: boolean }) {
   );
 }
 
+/**
+ * The box every part can reach, together and fully pulled apart (labels included), so the camera never has
+ * to move when the learner drags the spread slider. Pure; unit-tested.
+ */
+export function insideBounds(device: InsideDevice): { min: V3; max: V3 } {
+  const d = device.size;
+  const min: V3 = [Infinity, Infinity, Infinity];
+  const max: V3 = [-Infinity, -Infinity, -Infinity];
+  for (const p of device.parts) {
+    const s = p.shape;
+    const half: V3 = s.kind === 'box' ? [s.size[0] / 2, s.size[1] / 2, s.size[2] / 2] : s.axis === 'x' ? [s.h / 2, s.r, s.r] : s.axis === 'z' ? [s.r, s.r, s.h / 2] : [s.r, s.h / 2, s.r];
+    const l = Math.hypot(...p.dir) || 1;
+    for (const k of [0, 1]) {
+      const c = p.pos.map((v, i) => v + (p.dir[i] / l) * d * reachOf(device) * k);
+      // Room above for the name tag, which is about as wide as the name.
+      const tagW = (shortName(p.name).length * d * 0.0105 + d * 0.03) * 0.7; // half the widest (phone) tag
+      // Tags turn to face the camera, so they can stick out in depth as well as sideways.
+      const lo: V3 = [c[0] - Math.max(half[0], tagW), c[1] - half[1], c[2] - Math.max(half[2], tagW)];
+      const hi: V3 = [c[0] + Math.max(half[0], tagW), c[1] + half[1] + d * 0.075, c[2] + Math.max(half[2], tagW)];
+      for (let i = 0; i < 3; i++) { min[i] = Math.min(min[i], lo[i]); max[i] = Math.max(max[i], hi[i]); }
+    }
+  }
+  return { min, max };
+}
+
+/** Frames the whole device (exploded included) for this canvas shape, from the default viewing direction. */
+function FitInside({ device }: { device: InsideDevice }) {
+  const camera = useThree((s) => s.camera);
+  const controls = useThree((s) => s.controls) as OrbitControlsImpl | null;
+  const size = useThree((s) => s.size);
+  const invalidate = useThree((s) => s.invalidate);
+  const aspect = size.width / Math.max(1, size.height);
+  useEffect(() => {
+    if (!controls) return;
+    const d = device.size;
+    const b = insideBounds(device);
+    const v = fitViewInsets(b.min, b.max, [d * 0.75, d * 0.5, d * 1.45], [0, 0, 0], 38, aspect);
+    camera.position.set(...v.pos);
+    controls.target.set(...v.target);
+    controls.update();
+    invalidate();
+  }, [camera, controls, aspect, device, invalidate]);
+  return null;
+}
+
 function Inside3D({ device, spread, selected, onPick }: { device: InsideDevice; spread: number; selected: string | null; onPick: (id: string | null) => void }) {
   const quality = usePrefs((s) => s.quality);
   const [drawn, setDrawn] = useState(false);
@@ -210,8 +263,9 @@ function Inside3D({ device, spread, selected, onPick }: { device: InsideDevice; 
       >
         {(q, look) => <>
           <StudioLights look={look} q={q} keyPos={[d * 2, d * 3, d * 3]} shadowBox={{ left: -d, right: d, top: d, bottom: -d }} mapSize={512} fog={[d * 6, d * 14]} />
-          {device.parts.map((p) => <Part key={p.id} p={p} spread={spread} size={d} selected={selected === p.id} onPick={onPick} reduce={reduce} />)}
-          <OrbitControls makeDefault enableDamping dampingFactor={0.12} minDistance={d * 0.5} maxDistance={d * 4} />
+          {device.parts.map((p) => <Part key={p.id} p={p} spread={spread} size={d} reach={reachOf(device)} selected={selected === p.id} onPick={onPick} reduce={reduce} />)}
+          <OrbitControls makeDefault enableDamping dampingFactor={0.12} minDistance={d * 0.5} maxDistance={d * 5} />
+          <FitInside device={device} />
         </>}
       </Stage>
     </div>

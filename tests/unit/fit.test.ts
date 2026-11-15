@@ -79,3 +79,27 @@ describe('motor panel overview', () => {
     });
   }
 });
+
+describe('exploded views', () => {
+  it('frame every part, together and pulled apart, on a phone and a desktop', async () => {
+    const { insideBounds, reachOf } = await import('../../src/three/Inside3D');
+    const { INSIDE } = await import('../../src/content/inside');
+    const { fitViewInsets } = await import('../../src/three/fit');
+    for (const dev of INSIDE) {
+      const b = insideBounds(dev);
+      for (const aspect of [0.8, 2.4]) {
+        const d = dev.size;
+        const v = fitViewInsets(b.min, b.max, [d * 0.75, d * 0.5, d * 1.45], [0, 0, 0], 38, aspect);
+        const dist = Math.hypot(v.pos[0] - v.target[0], v.pos[1] - v.target[1], v.pos[2] - v.target[2]);
+        expect(dist, dev.id).toBeLessThanOrEqual(d * 5); // inside the zoom-out limit
+        for (const p of dev.parts) {
+          const l = Math.hypot(...p.dir) || 1;
+          const out = p.pos.map((x, i) => x + (p.dir[i] / l) * d * reachOf(dev)) as V3;
+          const [x, y] = ndc(out, v.pos, v.target, 38, aspect);
+          expect(Math.abs(x), `${dev.id} ${p.id}`).toBeLessThanOrEqual(1);
+          expect(Math.abs(y), `${dev.id} ${p.id}`).toBeLessThanOrEqual(1);
+        }
+      }
+    }
+  });
+});

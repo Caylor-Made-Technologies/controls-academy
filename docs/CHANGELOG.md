@@ -27,9 +27,10 @@
 - Search tells you when nothing matches and offers words that work; an empty ladder shows a blank rung and how to start.
 - The three-wire lesson figure is redrawn with proper pushbutton, contact, coil, overload and pilot-light symbols and boxed wire numbers.
 - Rungs wider than the screen fade at the right edge until you scroll to the end.
+- What's inside: every exploded view fits your screen with all parts and names in view; names are larger on a phone and no longer overlap. The VFD's rectifier and inverter look like power modules, and its control board has a keypad.
 ### Changed
 - Safety notes are safety yellow (faults stay red).
-- Main bundle 115 → 76 KB gzipped; fonts 86 → 52 KB; logo image 99 → 7 KB.
+- Main bundle 115 → 78 KB gzipped; fonts 86 → 52 KB; logo image 99 → 7 KB.
 - The saved theme applies before first paint (no dark flash for light-theme users).
 - The hardware viewer draws only when something changes (it used to redraw about 10 times a second forever).
 - 3D overlay buttons no longer blur the scene behind them.
