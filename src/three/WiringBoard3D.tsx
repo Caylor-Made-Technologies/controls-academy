@@ -11,12 +11,82 @@ import { usePrefs } from '../state/prefs';
 import { Box, Label } from './kit';
 import { StudioLights } from './Lights';
 import { Stage } from './Stage';
+import { surface } from './materials';
 import { Poster } from './poster/Poster';
 import { FRAME } from './poster/frames';
 import { POSTERS } from './poster/wiring.gen';
 
 const TW = 0.11; // terminal spacing
 const DEV_GAP = 0.06;
+
+const LED = (color: string, x: number, y: number, on = true) => (
+  <mesh key={`${x}${y}`} position={[x, y, 0.034]}><boxGeometry args={[0.012, 0.008, 0.004]} /><meshStandardMaterial color={color} emissive={color} emissiveIntensity={on ? 1.6 : 0.1} toneMapped={false} /></mesh>
+);
+const cap = (color: string, x: number, y: number, r = 0.022) => (
+  <group position={[x, y, 0.031]}>
+    <mesh rotation={[Math.PI / 2, 0, 0]} material={surface('machinedSteel')}><cylinderGeometry args={[r * 1.25, r * 1.25, 0.006, 20]} /></mesh>
+    <mesh position={[0, 0, 0.006]} rotation={[Math.PI / 2, 0, 0]} material={surface('plasticGloss', color)}><cylinderGeometry args={[r, r, 0.012, 20]} /></mesh>
+  </group>
+);
+
+/**
+ * What makes each device recognizable without reading its label: a pushbutton has a colored cap, a contactor
+ * has its molded body and arc-chute slots, an overload has its current dial and reset button, and so on.
+ * Drawn in the free strip under the terminals; never on a terminal.
+ */
+function DeviceFace({ id, x, y, w }: { id: string; x: number; y: number; w: number }) {
+  switch (id) {
+    case 'START': return cap('#16a34a', x, y);
+    case 'STOP': return cap('#dc2626', x, y);
+    case 'M': return (
+      <group>
+        <Box size={[w * 0.6, 0.05, 0.014]} pos={[x, y, 0.036]} color="#4b5563" s="plasticMatte" />
+        {[-2, -1, 0, 1, 2].map((i) => <Box key={i} size={[0.006, 0.034, 0.004]} pos={[x + i * w * 0.08, y, 0.044]} color="#1f242b" s="plasticMatte" round={0} />)}
+      </group>
+    );
+    case 'OL': return (
+      <group>
+        <mesh position={[x - 0.03, y, 0.034]} rotation={[Math.PI / 2, 0, 0]} material={surface('plasticGloss', '#2563eb')}><cylinderGeometry args={[0.016, 0.016, 0.01, 18]} /></mesh>
+        <mesh position={[x - 0.03, y, 0.04]} material={surface('plasticMatte', '#e5e7eb')}><boxGeometry args={[0.003, 0.022, 0.002]} /></mesh>
+        <mesh position={[x + 0.03, y, 0.034]} rotation={[Math.PI / 2, 0, 0]} material={surface('plasticGloss', '#9ca3af')}><cylinderGeometry args={[0.011, 0.011, 0.012, 16]} /></mesh>
+      </group>
+    );
+    case 'X': return (
+      <group>
+        <Box size={[0.07, 0.034, 0.014]} pos={[x, y, 0.036]} color="#1f2937" s="plasticMatte" />
+        <mesh position={[x, y, 0.046]} rotation={[0, 0, Math.PI / 2]} material={surface('glass', '#e2e8f0', 0.6)}><cylinderGeometry args={[0.008, 0.008, 0.05, 12]} /></mesh>
+      </group>
+    );
+    case 'PSU': return (
+      <group>
+        {[-2, -1, 0, 1, 2].map((i) => <Box key={i} size={[0.004, 0.03, 0.002]} pos={[x + i * 0.014, y, 0.032]} color="#1f242b" s="plasticMatte" round={0} />)}
+        {LED('#22c55e', x + 0.06, y)}
+      </group>
+    );
+    case 'SEN': return (
+      <group>
+        <mesh position={[x - 0.01, y, 0.042]} rotation={[0, 0, Math.PI / 2]} material={surface('brushedSteel')}><cylinderGeometry args={[0.012, 0.012, 0.09, 16]} /></mesh>
+        <mesh position={[x + 0.04, y, 0.042]} rotation={[0, 0, Math.PI / 2]} material={surface('plasticGloss', '#1f2937')}><cylinderGeometry args={[0.012, 0.012, 0.012, 16]} /></mesh>
+        {LED('#f59e0b', x - 0.052, y + 0.016)}
+      </group>
+    );
+    case 'IN': case 'AI': return <group>{[-3, -2, -1, 0, 1, 2, 3].map((i) => LED(i % 3 === 0 ? '#f59e0b' : '#3a4558', x + i * 0.016, y, i % 3 === 0))}</group>;
+    case 'TX': return (
+      <group>
+        <mesh position={[x, y, 0.038]} rotation={[Math.PI / 2, 0, 0]} material={surface('enamel', '#2563eb')}><cylinderGeometry args={[0.024, 0.024, 0.02, 20]} /></mesh>
+        <mesh position={[x, y, 0.049]} rotation={[Math.PI / 2, 0, 0]} material={surface('glass', '#cbd5e1', 0.5)}><cylinderGeometry args={[0.017, 0.017, 0.003, 20]} /></mesh>
+      </group>
+    );
+    case 'R': return (
+      <group>
+        <mesh position={[x, y, 0.04]} rotation={[0, 0, Math.PI / 2]} material={surface('plasticMatte', '#d6b98a')}><cylinderGeometry args={[0.01, 0.01, 0.05, 14]} /></mesh>
+        {['#dc2626', '#16a34a', '#78350f'].map((c, i) => <mesh key={c} position={[x - 0.012 + i * 0.012, y, 0.04]} rotation={[0, 0, Math.PI / 2]} material={surface('plasticMatte', c)}><cylinderGeometry args={[0.0105, 0.0105, 0.004, 14]} /></mesh>)}
+        {[-1, 1].map((e) => <mesh key={e} position={[x + e * 0.04, y, 0.04]} rotation={[0, 0, Math.PI / 2]} material={surface('tinned')}><cylinderGeometry args={[0.0018, 0.0018, 0.03, 6]} /></mesh>)}
+      </group>
+    );
+    default: return null;
+  }
+}
 
 /** Devices in rows that fit the canvas shape; returns each terminal's position. */
 export function boardLayout(ex: Exercise, aspect: number) {
@@ -70,6 +140,7 @@ function Board({ ex, wires, colors, armed, onTap }: { ex: Exercise; wires: Wire[
         return (
           <group key={d.id}>
             <Box size={[b.w, 0.16, 0.06]} pos={[b.x, b.y, 0]} color="#334155" rough={0.5} />
+            <DeviceFace id={d.id} x={b.x} y={b.y - 0.05} w={b.w} />
             <Label text={d.name} pos={[b.x, b.y - 0.11, 0.002]} w={Math.min(b.w + 0.1, 0.5)} h={0.04} fg="#11161d" bg="#f2f4f7" />
             {d.terminals.map((t) => {
               const p = L.at.get(t.id)!;
