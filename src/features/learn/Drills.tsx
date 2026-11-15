@@ -3,6 +3,7 @@ import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
 import { stableShuffle } from '../../lib/shuffle';
 import { buzz } from '../../lib/sound';
+import { Button } from '../../components/ui';
 
 export { stableShuffle };
 
@@ -28,10 +29,10 @@ export function OrderDrill({ prompt, steps, why }: { prompt: string; steps: stri
       {!finished && (
         <div className="grid gap-2" role="group" aria-label={`Pick step ${done.length + 1} of ${steps.length}`}>
           {shuffled.filter((x) => !done.includes(x.i)).map((x) => (
-            <button key={x.i} type="button" className="btn !justify-start text-left !h-auto py-2.5 !font-medium" onClick={() => tap(x.i)}
+            <Button key={x.i} className="!justify-start text-left !h-auto py-2.5 !font-medium" onClick={() => tap(x.i)}
               style={miss === x.i ? { borderColor: 'var(--alarm)', background: 'var(--alarm-soft)' } : undefined}>
               <Rich text={x.s} />
-            </button>
+            </Button>
           ))}
         </div>
       )}
@@ -40,7 +41,7 @@ export function OrderDrill({ prompt, steps, why }: { prompt: string; steps: stri
           : miss !== null ? <span className="text-warn">Not yet — something has to happen before that. Pick step {done.length + 1}.</span>
           : <span className="text-muted">Tap step {done.length + 1} of {steps.length}.</span>}
       </p>
-      {(finished || done.length > 0) && <button type="button" className="btn btn-sm btn-ghost mt-2" onClick={() => { setDone([]); setMiss(null); }}><Icon name="back" size={14} /> Start over</button>}
+      {(finished || done.length > 0) && <Button variant="ghost" size="sm" className="mt-2" onClick={() => { setDone([]); setMiss(null); }}><Icon name="back" size={14} /> Start over</Button>}
     </div>
   );
 }
@@ -64,11 +65,11 @@ export function SortDrill({ prompt, bins, items }: { prompt: string; bins: strin
               <p className="m-0 mb-2 text-sm font-medium" id={`sort-${it.i}`}><Rich text={it.text} /></p>
               <div className="flex flex-wrap gap-2" role="group" aria-labelledby={`sort-${it.i}`}>
                 {bins.map((b, bi) => (
-                  <button key={bi} type="button" className="btn" aria-pressed={p === bi} disabled={p !== undefined}
+                  <Button key={bi} aria-pressed={p === bi} disabled={p !== undefined}
                     onClick={() => { setPicks({ ...picks, [it.i]: bi }); buzz(bi === it.bin ? 8 : 30); }}
                     style={p === undefined ? undefined : bi === it.bin ? { borderColor: 'var(--live)', background: 'var(--live-soft)' } : bi === p ? { borderColor: 'var(--alarm)', background: 'var(--alarm-soft)' } : { opacity: 0.55 }}>
                     {b}
-                  </button>
+                  </Button>
                 ))}
               </div>
               {p !== undefined && (
@@ -83,7 +84,7 @@ export function SortDrill({ prompt, bins, items }: { prompt: string; bins: strin
       {all && (
         <div className="flex items-center gap-3 mt-3">
           <p className="m-0 text-sm font-semibold" role="status">{right} of {items.length} right.</p>
-          <button type="button" className="btn btn-sm btn-ghost" onClick={() => setPicks({})}><Icon name="back" size={14} /> Try again</button>
+          <Button variant="ghost" size="sm" onClick={() => setPicks({})}><Icon name="back" size={14} /> Try again</Button>
         </div>
       )}
     </div>

@@ -19,6 +19,7 @@ import { addressMap, type Skin } from '../skins';
 import { PARTS, type PartId } from './info';
 import { brushedTexture, floorTexture } from './textures';
 import { Box, Label, Led } from './kit';
+import { Surf } from './materials';
 import { HardwareModel, type HwLive } from './HardwareModel';
 import type { HwModel } from '../content/hardware';
 
@@ -85,27 +86,27 @@ function RackTrim() {
     <group raycast={() => null}>
       <Instances limit={20}>
         <boxGeometry args={[1, 0.002, 0.005]} />
-        <meshStandardMaterial color="#0b0f14" roughness={0.9} />
+        <Surf s="rubber" color="#0b0f14" />
         {RACK.flatMap(([x, w]) => Array.from({ length: 5 }, (_, i) => <Instance key={`${x}v${i}`} position={[x, 0.2055, 0.02 + i * 0.016]} scale={[w * 0.7, 1, 1]} />))}
       </Instances>
       <Instances limit={4} castShadow>
         <boxGeometry args={[1, 0.052, 0.006]} />
-        <meshStandardMaterial color="#3a4456" roughness={0.5} />
+        <Surf s="powderCoat" color="#3a4456" />
         {RACK.map(([x, w]) => <Instance key={x} position={[x, 0.098, 0.103]} scale={[w - 0.008, 1, 1]} />)}
       </Instances>
       <Instances limit={12}>
         <boxGeometry args={[1, 0.0012, 0.0008]} />
-        <meshStandardMaterial color="#4b5568" />
+        <Surf s="plasticMatte" color="#4b5568" />
         {RACK.flatMap(([x, w]) => [0.084, 0.092, 0.1].map((y) => <Instance key={`${x}r${y}`} position={[x, y, 0.1065]} scale={[w - 0.016, 1, 1]} />))}
       </Instances>
       <Instances limit={4}>
         <boxGeometry args={[1, 0.008, 0.0008]} />
-        <meshStandardMaterial color="#e8ecf0" roughness={0.8} />
+        <Surf s="plasticMatte" color="#e8ecf0" />
         {RACK.map(([x, w]) => <Instance key={x} position={[x, 0.114, 0.1065]} scale={[w - 0.014, 1, 1]} />)}
       </Instances>
       <Instances limit={4}>
         <boxGeometry args={[1, 0.07, 0.001]} />
-        <meshStandardMaterial color="#141a24" roughness={0.4} />
+        <Surf s="powderCoat" color="#141a24" />
         {RACK.map(([x, w]) => <Instance key={x} position={[x, 0.144, 0.1015]} scale={[w - 0.012, 1, 1]} />)}
       </Instances>
     </group>
@@ -144,7 +145,7 @@ function Wire({ curve, color, radius = 0.0032 }: { curve: CatmullRomCurve3; colo
   return (
     <mesh castShadow raycast={() => null}>
       <tubeGeometry args={[curve, 48, radius, 8, false]} />
-      <meshStandardMaterial color={color} roughness={0.45} metalness={0.05} />
+      <Surf s="powderCoat" color={color} />
     </mesh>
   );
 }
@@ -239,27 +240,27 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
   return (
     <group>
       {/* floor + wall */}
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.3, -0.75, 0.6]} receiveShadow>
-        <planeGeometry args={[6, 4]} />
+      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0.3, -0.75, 2.6]} receiveShadow>
+        <planeGeometry args={[8, 8]} />
         <meshStandardMaterial map={floor} color={look.floor} roughness={0.92} />
       </mesh>
       <mesh position={[0.3, 0.3, -0.04]} receiveShadow>
         <planeGeometry args={[6, 3]} />
-        <meshStandardMaterial color={look.wall} roughness={1} />
+        <Surf s="rubber" color={look.wall} />
       </mesh>
       {/* working-clearance box painted in front of the panel (example teaching marking) */}
       <group position={[0, -0.7485, 0]} raycast={() => null}>
         {[[0, 0.03, 0.92, 0.03], [0, 0.95, 0.92, 0.03], [-0.445, 0.49, 0.03, 0.95], [0.445, 0.49, 0.03, 0.95]].map(([x, z, w, d], i) => (
-          <mesh key={i} position={[x, 0, z]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[w, d]} /><meshStandardMaterial color="#f5c400" roughness={0.7} /></mesh>
+          <mesh key={i} position={[x, 0, z]} rotation={[-Math.PI / 2, 0, 0]}><planeGeometry args={[w, d]} /><Surf s="plasticMatte" color="#f5c400" /></mesh>
         ))}
         <Label text="KEEP CLEAR — WORKING SPACE" pos={[0, 0.0005, 0.85]} rot={[-Math.PI / 2, 0, 0]} w={0.42} h={0.05} fg="#f5c400" bg="#00000000" />
       </group>
       {/* conduit from the top of the enclosure */}
       <group raycast={() => null}>
-        <mesh position={[0.25, 1.1, 0.12]} castShadow><cylinderGeometry args={[0.018, 0.018, 1.0, 20]} /><meshStandardMaterial color="#9aa3ad" metalness={0.8} roughness={0.35} /></mesh>
-        <mesh position={[0.25, 0.605, 0.12]}><cylinderGeometry args={[0.026, 0.026, 0.03, 20]} /><meshStandardMaterial color="#6b7280" metalness={0.7} roughness={0.35} /></mesh>
-        <mesh position={[-0.2, 1.1, 0.12]} castShadow><cylinderGeometry args={[0.024, 0.024, 1.0, 20]} /><meshStandardMaterial color="#9aa3ad" metalness={0.8} roughness={0.35} /></mesh>
-        <mesh position={[-0.2, 0.605, 0.12]}><cylinderGeometry args={[0.032, 0.032, 0.03, 20]} /><meshStandardMaterial color="#6b7280" metalness={0.7} roughness={0.35} /></mesh>
+        <mesh position={[0.25, 1.1, 0.12]} castShadow><cylinderGeometry args={[0.018, 0.018, 1.0, 20]} /><Surf s="brushedSteel" color="#9aa3ad" /></mesh>
+        <mesh position={[0.25, 0.605, 0.12]}><cylinderGeometry args={[0.026, 0.026, 0.03, 20]} /><Surf s="enamel" color="#6b7280" /></mesh>
+        <mesh position={[-0.2, 1.1, 0.12]} castShadow><cylinderGeometry args={[0.024, 0.024, 1.0, 20]} /><Surf s="brushedSteel" color="#9aa3ad" /></mesh>
+        <mesh position={[-0.2, 0.605, 0.12]}><cylinderGeometry args={[0.032, 0.032, 0.03, 20]} /><Surf s="enamel" color="#6b7280" /></mesh>
       </group>
 
       {/* ---------- enclosure ---------- */}
@@ -293,16 +294,16 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
           </mesh>
           {/* door gasket and hinges */}
           {[[0.45, 0.565, 0.86, 0.012], [0.45, -0.565, 0.86, 0.012], [0.025, 0, 0.012, 1.12], [0.875, 0, 0.012, 1.12]].map(([x, y, w, h], i) => (
-            <mesh key={i} position={[x, y, -0.011]}><boxGeometry args={[w, h, 0.006]} /><meshStandardMaterial color="#111418" roughness={0.95} /></mesh>
+            <mesh key={i} position={[x, y, -0.011]}><boxGeometry args={[w, h, 0.006]} /><Surf s="rubber" color="#111418" /></mesh>
           ))}
           {[-0.42, 0, 0.42].map((y) => (
-            <mesh key={y} position={[0, y, 0]} castShadow><cylinderGeometry args={[0.007, 0.007, 0.06, 16]} /><meshStandardMaterial color="#9aa3ad" metalness={0.85} roughness={0.3} /></mesh>
+            <mesh key={y} position={[0, y, 0]} castShadow><cylinderGeometry args={[0.007, 0.007, 0.06, 16]} /><Surf s="brushedSteel" color="#9aa3ad" /></mesh>
           ))}
           <Label text="DANGER — 480 V" pos={[0.45, 0.4, -0.011]} rot={[0, Math.PI, 0]} w={0.22} h={0.05} fg="#fff" bg="#c62828" />
           <Label text="ARC FLASH LABEL (example)" pos={[0.45, 0.3, -0.011]} rot={[0, Math.PI, 0]} w={0.22} h={0.03} fg="#111" bg="#ffb547" />
           <mesh position={[0.82, 0, -0.02]}>
             <boxGeometry args={[0.03, 0.12, 0.025]} />
-            <meshStandardMaterial color="#2b3240" />
+            <Surf s="plasticMatte" color="#2b3240" />
           </mesh>
         </group>
       </group>
@@ -311,8 +312,8 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
       <Part id="disconnect" onSelect={onSelect} selected={sel('disconnect')} outline={{ size: [0.14, 0.2, 0.16], pos: [-0.3, 0.4, 0.06] }}>
         <Box size={[0.12, 0.17, 0.09]} pos={[-0.3, 0.4, 0.045]} color={C.moduleLight} />
         <group ref={handle} position={[-0.3, 0.4, 0.1]} rotation={[0, 0, Math.PI / 2]}>
-          <mesh castShadow><cylinderGeometry args={[0.03, 0.03, 0.02, 24]} /><meshStandardMaterial color={C.yellow} /></mesh>
-          <mesh position={[0, 0.0, 0.0]} rotation={[0, 0, 0]} castShadow><boxGeometry args={[0.018, 0.08, 0.03]} /><meshStandardMaterial color={C.red} /></mesh>
+          <mesh castShadow><cylinderGeometry args={[0.03, 0.03, 0.02, 24]} /><Surf s="plasticMatte" color={C.yellow} /></mesh>
+          <mesh position={[0, 0.0, 0.0]} rotation={[0, 0, 0]} castShadow><boxGeometry args={[0.018, 0.08, 0.03]} /><Surf s="plasticMatte" color={C.red} /></mesh>
         </group>
         <Label text="MAIN" pos={[-0.3, 0.32, 0.091]} w={0.05} h={0.014} />
       </Part>
@@ -323,7 +324,7 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
             <Box size={[0.024, 0.09, 0.05]} pos={[x, 0.4, 0.025]} color="#4b5563" />
             <mesh position={[x, 0.4, 0.055]} rotation={[0, 0, 0]} castShadow>
               <cylinderGeometry args={[0.008, 0.008, 0.05, 16]} />
-              <meshStandardMaterial color={i === 3 ? '#e5e7eb' : '#d6c7a1'} />
+              <Surf s="plasticMatte" color={i === 3 ? '#e5e7eb' : '#d6c7a1'} />
             </mesh>
             {i === 3 && <Led pos={[x, 0.37, 0.052]} color="#ff6b6b" read={() => !ctrlPower()} halo={0.04} />}
           </group>
@@ -337,7 +338,7 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
         {[0.015, 0.065].map((x) => (
           <mesh key={x} position={[x, 0.41, 0.045]} rotation={[0, 0, Math.PI / 2]} castShadow>
             <cylinderGeometry args={[0.028, 0.028, 0.035, 24]} />
-            <meshStandardMaterial color={C.copper} metalness={0.7} roughness={0.35} />
+            <Surf s="enamel" color={C.copper} />
           </mesh>
         ))}
         <Label text="CPT 480/120" pos={[0.04, 0.345, 0.091]} w={0.08} h={0.014} />
@@ -362,7 +363,7 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
         {!xray && (
           <Instances limit={240} castShadow>
             <boxGeometry args={[0.008, 0.012, 0.058]} />
-            <meshStandardMaterial color={C.ductCover} roughness={0.75} />
+            <Surf s="plasticMatte" color={C.ductCover} />
             {[0.29, 0.0, -0.34].flatMap((y) => Array.from({ length: 38 }, (_, i) => -0.37 + i * 0.02).flatMap((x) => [
               <Instance key={`${y}a${x}`} position={[x, y + 0.026, 0.03]} />,
               <Instance key={`${y}b${x}`} position={[x, y - 0.026, 0.03]} />,
@@ -406,7 +407,7 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
           <Led pos={[-0.09, 0.165, 0.102]} color="#ff6b6b" read={() => Boolean(plc().fault) && Math.floor(performance.now() / 400) % 2 === 0} />
           <Label text="RUN FRC FLT" pos={[-0.105, 0.152, 0.101]} w={0.055} h={0.008} fg="#9aa7b8" bg="#2b3240" />
           <Box size={[0.026, 0.01, 0.004]} pos={[-0.105, 0.13, 0.103]} color="#0b0f14" />
-          <mesh position={[-0.105, 0.13, 0.106]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.0035, 0.0035, 0.004, 12]} /><meshStandardMaterial color="#cbd5e1" metalness={0.9} roughness={0.25} /></mesh>
+          <mesh position={[-0.105, 0.13, 0.106]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.0035, 0.0035, 0.004, 12]} /><Surf s="machinedSteel" color="#cbd5e1" /></mesh>
         </Part>
         <Part id="di-card" onSelect={onSelect} selected={sel('di-card')} outline={{ size: [0.06, 0.15, 0.12], pos: [-0.045, 0.14, 0.05] }}>
           <Box size={[0.048, 0.13, 0.1]} pos={[-0.045, 0.14, 0.05]} color={C.module} />
@@ -434,7 +435,7 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
             <Led pos={[x, 0.145, 0.071]} color="#3ddc97" read={() => i === 0 && Math.floor(performance.now() / 180) % 3 !== 0} size={0.004} halo={0.02} />
           </group>
         ))}
-        <mesh position={[0.225, 0.13, 0.08]} raycast={() => null}><boxGeometry args={[0.01, 0.01, 0.02]} /><meshStandardMaterial color="#1e6fff" /></mesh>
+        <mesh position={[0.225, 0.13, 0.08]} raycast={() => null}><boxGeometry args={[0.01, 0.01, 0.02]} /><Surf s="plasticMatte" color="#1e6fff" /></mesh>
       </Part>
 
       {/* ---------- contactor + overload ---------- */}
@@ -447,7 +448,7 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
           <group ref={(g) => { explodeParts.current[1] = g; }}>
             <mesh position={[-0.2, -0.13, 0.077]} rotation={[Math.PI / 2, 0, 0]} castShadow>
               <cylinderGeometry args={[0.022, 0.022, 0.014, 24]} />
-              <meshStandardMaterial color={C.copper} metalness={0.7} roughness={0.35} />
+              <Surf s="enamel" color={C.copper} />
             </mesh>
             {explode && <Label text="Coil A1-A2" pos={[-0.2, -0.1, 0.09]} w={0.05} h={0.012} />}
           </group>
@@ -455,10 +456,10 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
             <Sparks pos={[-0.2, -0.1, 0.115]} events={arcs} scale={0.22} reduceMotion={reduceMotion} />
             <mesh ref={armature} position={[-0.2, -0.115, 0.1]} castShadow>
               <boxGeometry args={[0.068, 0.04, 0.016]} />
-              <meshStandardMaterial color="#9ca3af" metalness={0.6} roughness={0.35} />
+              <Surf s="enamel" color="#9ca3af" />
             </mesh>
             {[-0.222, -0.2, -0.178].map((x) => (
-              <mesh key={x} position={[x, -0.095, 0.1]} castShadow raycast={() => null}><boxGeometry args={[0.012, 0.006, 0.02]} /><meshStandardMaterial color={C.copper} metalness={0.8} roughness={0.3} /></mesh>
+              <mesh key={x} position={[x, -0.095, 0.1]} castShadow raycast={() => null}><boxGeometry args={[0.012, 0.006, 0.02]} /><Surf s="brushedSteel" color={C.copper} /></mesh>
             ))}
             {explode && <Label text="Armature + contacts" pos={[-0.2, -0.075, 0.12]} w={0.07} h={0.012} />}
           </group>
@@ -469,8 +470,8 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
         </Part>
         <Part id="overload" onSelect={onSelect} selected={sel('overload')} outline={{ size: [0.1, 0.08, 0.12], pos: [-0.2, -0.255, 0.05] }}>
           <Box size={[0.075, 0.06, 0.075]} pos={[-0.2, -0.255, 0.04]} color="#4b5563" />
-          <mesh ref={flag} position={[-0.215, -0.24, 0.082]} castShadow><boxGeometry args={[0.014, 0.01, 0.012]} /><meshStandardMaterial color="#ef4444" /></mesh>
-          <mesh position={[-0.185, -0.24, 0.08]} rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.007, 0.007, 0.012, 16]} /><meshStandardMaterial color="#2563eb" /></mesh>
+          <mesh ref={flag} position={[-0.215, -0.24, 0.082]} castShadow><boxGeometry args={[0.014, 0.01, 0.012]} /><Surf s="plasticMatte" color="#ef4444" /></mesh>
+          <mesh position={[-0.185, -0.24, 0.08]} rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.007, 0.007, 0.012, 16]} /><Surf s="plasticMatte" color="#2563eb" /></mesh>
           <Label text="OL 95-96" pos={[-0.2, -0.272, 0.0785]} w={0.05} h={0.012} />
         </Part>
       </group>
@@ -487,13 +488,13 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
         <Box size={[0.62, 0.03, 0.008]} pos={[0.0, -0.43, 0.0]} color={C.din} metal={0.8} rough={0.3} />
         <Instances limit={18} castShadow receiveShadow>
           <boxGeometry args={[0.028, 0.065, 0.045]} />
-          <meshStandardMaterial color="#9aa3ad" roughness={0.7} />
+          <Surf s="plasticMatte" color="#9aa3ad" />
           {terminals.map((x, i) => <Instance key={i} position={[x, -0.43, 0.024]} color={i < 6 ? '#64748b' : i === 14 ? '#ef4444' : i === 15 ? '#3b82f6' : '#9aa3ad'} />)}
         </Instances>
         <TerminalMarkers xs={terminals} labels={wireNums} />
         <Instances limit={36} castShadow>
           <cylinderGeometry args={[0.0048, 0.0048, 0.004, 14]} />
-          <meshStandardMaterial color="#d6dbe1" metalness={0.9} roughness={0.25} />
+          <Surf s="machinedSteel" color="#d6dbe1" />
           {terminals.flatMap((x, i) => [
             <Instance key={`a${i}`} position={[x, -0.407, 0.0475]} rotation={[Math.PI / 2, 0, 0]} />,
             <Instance key={`b${i}`} position={[x, -0.453, 0.0475]} rotation={[Math.PI / 2, 0, 0]} />,
@@ -528,8 +529,8 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
 
       {/* ---------- operator station on a pedestal ---------- */}
       <Part id="station" onSelect={onSelect} selected={sel('station')} outline={{ size: [0.2, 0.42, 0.12], pos: [0.82, -0.02, 0.12] }}>
-        <mesh position={[0.82, -0.47, 0.08]} castShadow><cylinderGeometry args={[0.018, 0.018, 0.56, 16]} /><meshStandardMaterial color="#4b5563" metalness={0.6} roughness={0.4} /></mesh>
-        <mesh position={[0.82, -0.745, 0.08]} receiveShadow><cylinderGeometry args={[0.09, 0.09, 0.012, 32]} /><meshStandardMaterial color="#374151" /></mesh>
+        <mesh position={[0.82, -0.47, 0.08]} castShadow><cylinderGeometry args={[0.018, 0.018, 0.56, 16]} /><Surf s="enamel" color="#4b5563" /></mesh>
+        <mesh position={[0.82, -0.745, 0.08]} receiveShadow><cylinderGeometry args={[0.09, 0.09, 0.012, 32]} /><Surf s="plasticMatte" color="#374151" /></mesh>
         <Box size={[0.17, 0.4, 0.08]} pos={[0.82, -0.02, 0.08]} color="#d1d5db" metal={0.2} rough={0.5} />
         <Label text="MOTOR 1" pos={[0.82, 0.162, 0.121]} w={0.1} h={0.018} />
         <Label text={`START = ${addressMap(rt.plc.program, skin).get('Start_PB')?.address ?? skin.hw.din}`} pos={[0.82, 0.142, 0.121]} w={0.12} h={0.012} fg="#334155" bg="#e2e8f0" />
@@ -546,12 +547,12 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
       <PushButton3D id="reset" r={btn.reset} pos={[0.79, -0.04, 0.12]} color="#e5e7eb" label="RESET" rt={rt} field="resetPressed" />
       <group onClick={(e) => { e.stopPropagation(); rt.scene.state.estopIn = !rt.scene.state.estopIn; rt.notify(); }}
         onContextMenu={(e) => { e.stopPropagation(); onSelect('estop'); }}>
-        <mesh position={[0.83, -0.12, 0.122]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.042, 0.042, 0.004, 40]} /><meshStandardMaterial color={C.yellow} roughness={0.5} /></mesh>
-        <mesh position={[0.83, -0.12, 0.1245]}><torusGeometry args={[0.022, 0.004, 12, 36]} /><meshStandardMaterial color="#e2e8f0" metalness={0.95} roughness={0.2} /></mesh>
+        <mesh position={[0.83, -0.12, 0.122]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.042, 0.042, 0.004, 40]} /><Surf s="powderCoat" color={C.yellow} /></mesh>
+        <mesh position={[0.83, -0.12, 0.1245]}><torusGeometry args={[0.022, 0.004, 12, 36]} /><Surf s="machinedSteel" color="#e2e8f0" /></mesh>
         <group ref={btn.estop} position={[0.83, -0.12, 0.146]}>
-          <mesh position={[0, 0, -0.01]} rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.012, 0.012, 0.02, 20]} /><meshStandardMaterial color="#7f1d1d" /></mesh>
-          <mesh rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.031, 0.031, 0.008, 40]} /><meshStandardMaterial color="#dc2626" roughness={0.3} /></mesh>
-          <mesh position={[0, 0, 0.004]} scale={[1, 1, 0.42]} castShadow><sphereGeometry args={[0.031, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2]} /><meshStandardMaterial color="#ef4444" roughness={0.22} /></mesh>
+          <mesh position={[0, 0, -0.01]} rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.012, 0.012, 0.02, 20]} /><Surf s="plasticMatte" color="#7f1d1d" /></mesh>
+          <mesh rotation={[Math.PI / 2, 0, 0]} castShadow><cylinderGeometry args={[0.031, 0.031, 0.008, 40]} /><Surf s="plasticGloss" color="#dc2626" /></mesh>
+          <mesh position={[0, 0, 0.004]} scale={[1, 1, 0.42]} castShadow><sphereGeometry args={[0.031, 40, 20, 0, Math.PI * 2, 0, Math.PI / 2]} /><Surf s="plasticGloss" color="#ef4444" /></mesh>
         </group>
         <Label text="E-STOP" pos={[0.83, -0.175, 0.121]} w={0.05} h={0.012} />
       </group>
@@ -562,34 +563,34 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
           {/* frame with cooling fins */}
           <mesh rotation={[0, 0, Math.PI / 2]} castShadow receiveShadow>
             <cylinderGeometry args={[0.088, 0.088, 0.24, 48]} />
-            <meshStandardMaterial color="#2f4a6b" metalness={0.45} roughness={0.45} />
+            <Surf s="enamel" color="#2f4a6b" />
           </mesh>
           <Instances limit={30} castShadow>
             <boxGeometry args={[0.2, 0.016, 0.0035]} />
-            <meshStandardMaterial color="#35557a" metalness={0.45} roughness={0.45} />
+            <Surf s="enamel" color="#35557a" />
             {Array.from({ length: 30 }, (_, i) => (i / 30) * Math.PI * 2)
               .filter((a) => Math.sin(a) > -0.55)
               .map((a) => <Instance key={a} position={[0, Math.sin(a) * 0.094, Math.cos(a) * 0.094]} rotation={[-a, 0, 0]} />)}
           </Instances>
           {/* drive-end bell, fan cover with grille */}
-          <mesh position={[0.128, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.08, 0.088, 0.02, 40]} /><meshStandardMaterial color="#2f4a6b" metalness={0.45} roughness={0.45} /></mesh>
-          <mesh position={[-0.15, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.094, 0.094, 0.065, 40]} /><meshStandardMaterial color="#26394f" metalness={0.5} roughness={0.5} /></mesh>
+          <mesh position={[0.128, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.08, 0.088, 0.02, 40]} /><Surf s="enamel" color="#2f4a6b" /></mesh>
+          <mesh position={[-0.15, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.094, 0.094, 0.065, 40]} /><Surf s="enamel" color="#26394f" /></mesh>
           {[0.03, 0.055, 0.078].map((r) => (
-            <mesh key={r} position={[-0.184, 0, 0]} rotation={[0, Math.PI / 2, 0]}><torusGeometry args={[r, 0.003, 8, 40]} /><meshStandardMaterial color="#111827" metalness={0.6} roughness={0.4} /></mesh>
+            <mesh key={r} position={[-0.184, 0, 0]} rotation={[0, Math.PI / 2, 0]}><torusGeometry args={[r, 0.003, 8, 40]} /><Surf s="enamel" color="#111827" /></mesh>
           ))}
           {/* terminal box + conduit, nameplate */}
           <Box size={[0.07, 0.05, 0.07]} pos={[-0.01, 0.108, 0.0]} color="#35557a" metal={0.45} rough={0.45} />
-          <mesh position={[-0.01, 0.108, 0.036]} raycast={() => null}><cylinderGeometry args={[0.012, 0.012, 0.02, 16]} /><meshStandardMaterial color="#9aa3ad" metalness={0.8} roughness={0.3} /></mesh>
+          <mesh position={[-0.01, 0.108, 0.036]} raycast={() => null}><cylinderGeometry args={[0.012, 0.012, 0.02, 16]} /><Surf s="brushedSteel" color="#9aa3ad" /></mesh>
           <Label text="3Ø  1770 RPM  14 A  (example)" pos={[0.01, 0.0, 0.0985]} w={0.12} h={0.028} fg="#111" bg="#d6dbe1" />
           {/* feet on a base */}
           {[-0.08, 0.08].map((x) => <Box key={x} size={[0.04, 0.03, 0.17]} pos={[x, -0.098, 0]} color="#26394f" />)}
           <Box size={[0.3, 0.012, 0.2]} pos={[0, -0.12, 0]} color="#1f2937" metal={0.5} rough={0.5} />
           {/* shaft, key and coupling (turns with speed; slowed so you can see it) */}
           <group ref={shaft} position={[0.15, 0, 0]}>
-            <mesh rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.014, 0.014, 0.07, 20]} /><meshStandardMaterial color="#cbd5e1" metalness={0.95} roughness={0.15} /></mesh>
-            <mesh position={[0.02, 0.0145, 0]} castShadow><boxGeometry args={[0.03, 0.005, 0.007]} /><meshStandardMaterial color="#94a3b8" metalness={0.9} roughness={0.2} /></mesh>
-            <mesh position={[0.045, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.038, 0.038, 0.024, 8]} /><meshStandardMaterial color="#f59e0b" metalness={0.3} roughness={0.45} /></mesh>
-            <mesh position={[0.045, 0.026, 0]} castShadow><boxGeometry args={[0.026, 0.012, 0.012]} /><meshStandardMaterial color="#111827" /></mesh>
+            <mesh rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.014, 0.014, 0.07, 20]} /><Surf s="machinedSteel" color="#cbd5e1" /></mesh>
+            <mesh position={[0.02, 0.0145, 0]} castShadow><boxGeometry args={[0.03, 0.005, 0.007]} /><Surf s="machinedSteel" color="#94a3b8" /></mesh>
+            <mesh position={[0.045, 0, 0]} rotation={[0, 0, Math.PI / 2]} castShadow><cylinderGeometry args={[0.038, 0.038, 0.024, 8]} /><Surf s="powderCoat" color="#f59e0b" /></mesh>
+            <mesh position={[0.045, 0.026, 0]} castShadow><boxGeometry args={[0.026, 0.012, 0.012]} /><Surf s="plasticMatte" color="#111827" /></mesh>
           </group>
         </group>
       </Part>
@@ -648,16 +649,16 @@ function PushButton3D({ id, r, pos, color, label, rt, field }: { id: string; r: 
       onPointerUp={(e) => { e.stopPropagation(); set(false); }}
       onPointerLeave={() => { if (rt.scene.state[field]) set(false); }}
     >
-      <mesh position={[0, 0, 0.004]}><torusGeometry args={[0.0195, 0.0038, 14, 40]} /><meshStandardMaterial color="#e2e8f0" metalness={0.95} roughness={0.18} /></mesh>
-      <mesh rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.021, 0.021, 0.004, 32]} /><meshStandardMaterial color="#1f2937" metalness={0.3} roughness={0.5} /></mesh>
+      <mesh position={[0, 0, 0.004]}><torusGeometry args={[0.0195, 0.0038, 14, 40]} /><Surf s="machinedSteel" color="#e2e8f0" /></mesh>
+      <mesh rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.021, 0.021, 0.004, 32]} /><Surf s="powderCoat" color="#1f2937" /></mesh>
       <group ref={r as React.Ref<Group>} position={[0, 0, 0.022]}>
         <mesh position={[0, 0, -0.01]} rotation={[Math.PI / 2, 0, 0]} castShadow>
           <cylinderGeometry args={[0.0158, 0.0158, 0.012, 32]} />
-          <meshStandardMaterial color={color} roughness={0.32} />
+          <Surf s="plasticGloss" color={color} />
         </mesh>
         <mesh position={[0, 0, -0.004]} scale={[1, 1, 0.28]} castShadow>
           <sphereGeometry args={[0.0158, 32, 16, 0, Math.PI * 2, 0, Math.PI / 2]} />
-          <meshStandardMaterial color={color} roughness={0.25} />
+          <Surf s="plasticGloss" color={color} />
         </mesh>
       </group>
       <Label text={label} pos={[0, -0.03, 0.002]} w={0.04} h={0.01} />

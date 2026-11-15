@@ -3,6 +3,7 @@ import { GLOSSARY_BY_ID } from '../content/glossary';
 import { href } from '../lib/router';
 import { Icon } from './Icon';
 import { Sheet } from './Sheet';
+import { Button } from './ui/Button';
 
 /** Pull a trailing "// VERIFY ..." marker out of content text. */
 export function splitVerify(text: string): { text: string; verify: string | null } {
@@ -31,9 +32,9 @@ export function Term({ id, children }: { id: string; children?: ReactNode }) {
       <Sheet open={open} onClose={() => setOpen(false)} title={g.term}>
         <p className="mt-0 text-body">{g.def}</p>
         {g.aka && <p className="text-muted text-sm">Also called: {g.aka.join(', ')}</p>}
-        <a className="btn btn-sm mt-2" href={href(`reference/glossary?t=${g.id}`)} onClick={() => setOpen(false)}>
+        <Button size="sm" className="mt-2" href={href(`reference/glossary?t=${g.id}`)} onClick={() => setOpen(false)}>
           Open glossary <Icon name="chevron" size={16} />
-        </a>
+        </Button>
       </Sheet>
     </>
   );

@@ -3,6 +3,7 @@ import { BUSINESS } from '../lib/business';
 import { href } from '../lib/router';
 import { Icon } from './Icon';
 import { ROUTE_HEADS } from '../content/heads';
+import { Button } from './ui/Button';
 
 const BASE = import.meta.env.BASE_URL;
 
@@ -60,7 +61,7 @@ export function RouteHead({ seg, eyebrow, title, bare }: { seg: string; eyebrow?
   const h = ROUTE_HEADS[seg];
   return (
     <>
-      {h.back && <a href={href(h.back[1])} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> {h.back[0]}</a>}
+      {h.back && <Button href={href(h.back[1])} variant="ghost" size="sm" className="-ml-2 mb-2"><Icon name="back" size={16} /> {h.back[0]}</Button>}
       <PageHead eyebrow={eyebrow ?? h.eyebrow} title={title ?? h.title} bare={bare}>{h.body}</PageHead>
     </>
   );

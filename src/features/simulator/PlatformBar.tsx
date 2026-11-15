@@ -5,6 +5,7 @@ import { Sheet } from '../../components/Sheet';
 import type { Program } from '../../engine/types';
 import { SKINS, addressMap, mnemonic, skinsByMaker, type SkinId } from '../../skins';
 import { usePrefs } from '../../state/prefs';
+import { Chip } from '../../components/ui';
 
 /** Short manufacturer name for chips ("Allen-Bradley (Rockwell Automation)" → "Allen-Bradley"). */
 export function makerShort(maker: string): string {
@@ -51,7 +52,7 @@ export function PlatformBar({ program }: { program: Program }) {
             ))}
           </span>
         </span>
-        <span className="chip chip-blue flex-none !min-h-8 self-start"><Icon name="layers" size={14} /><span className="hidden sm:inline">Change</span></span>
+        <Chip tone="blue" icon="layers" className="flex-none !min-h-8 self-start"><span className="hidden sm:inline">Change</span></Chip>
       </button>
 
       <Sheet open={open} onClose={() => setOpen(false)} title="Which PLC are you working on?" wide>

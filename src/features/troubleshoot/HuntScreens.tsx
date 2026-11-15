@@ -15,6 +15,7 @@ import { POSTERS } from '../../three/poster/meter.gen';
 import { usePrefs } from '../../state/prefs';
 import { MODE_LABEL, huntScore, meterResult, type MeterMode, type Penalty } from './scoring';
 import { MeterFace } from '../../components/MeterFace';
+import { Button, Segmented, Chip } from '../../components/ui';
 
 
 function fmtTime(ms: number) {
@@ -54,13 +55,11 @@ export default function HuntScreens({ huntId }: { huntId?: string }) {
           <h2 className="text-lg font-bold m-0">Surprise me</h2>
           <p className="text-sm text-muted m-0">Random fault you haven't solved yet. No hints about which one.</p>
         </div>
-        <button type="button" className="btn btn-primary" onClick={surprise}><Icon name="bolt" size={18} /> Start a hunt</button>
+        <Button variant="primary" onClick={surprise}><Icon name="bolt" size={18} /> Start a hunt</Button>
       </div>
       <div className="flex flex-wrap items-center gap-2 mb-4">
         <span className="text-sm font-semibold text-heading">Difficulty</span>
-        <div className="seg" role="group" aria-label="Difficulty">
-          {([[0, 'All'], [1, 'Easy'], [2, 'Medium'], [3, 'Hard']] as const).map(([v, l]) => <button key={v} type="button" aria-pressed={level === v} onClick={() => setLevel(v)}>{l}</button>)}
-        </div>
+        <Segmented label="Difficulty" value={String(level)} onChange={(v) => setLevel(Number(v) as typeof level)} options={([[0, 'All'], [1, 'Easy'], [2, 'Medium'], [3, 'Hard']] as const).map(([v, l]) => ({ value: String(v), label: l }))} />
       </div>
       <div className="callout callout-tip text-sm mb-4">
         <strong className="text-heading">The method:</strong> talk to the operator → check the obvious → I/O LEDs → find the output in logic and work backward → half-split with your meter → fix, test, document. <a href={href('lesson/troubleshooting-method')}>Lesson</a>
@@ -79,8 +78,8 @@ export default function HuntScreens({ huntId }: { huntId?: string }) {
                   <button key={f.id} type="button" className="card card-link card-pad text-left cursor-pointer" onClick={() => start(f)}>
                     <span className="font-bold text-heading">"{f.complaint}"</span>
                     <span className="flex gap-1.5 mt-2 flex-wrap">
-                      <span className="chip">{'●'.repeat(f.difficulty)}{'○'.repeat(3 - f.difficulty)} difficulty</span>
-                      {h ? <span className="chip chip-live"><Icon name="check" size={13} /> Best {fmtTime(h.bestMs)}{h.safe ? ' · safe' : ''}</span> : <span className="chip">Unsolved</span>}
+                      <Chip>{'●'.repeat(f.difficulty)}{'○'.repeat(3 - f.difficulty)} difficulty</Chip>
+                      {h ? <Chip tone="live"><Icon name="check" size={13} /> Best {fmtTime(h.bestMs)}{h.safe ? ' · safe' : ''}</Chip> : <Chip>Unsolved</Chip>}
                     </span>
                   </button>
                 );
@@ -217,7 +216,7 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
   return (
     <div>
       <div className="flex items-center gap-2 mb-3">
-        <button type="button" className="btn btn-ghost btn-sm -ml-2" onClick={onExit}><Icon name="back" size={16} /> All faults</button>
+        <Button variant="ghost" size="sm" className="-ml-2" onClick={onExit}><Icon name="back" size={16} /> All faults</Button>
         <span role="timer" className="ml-auto chip font-mono tabular-nums text-base !min-h-8.5" aria-label={`Elapsed ${fmtTime(elapsed)}`}><Icon name="slow" size={16} /> {fmtTime(elapsed)}</span>
       </div>
 
@@ -226,7 +225,7 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
         <h1 className="text-xl font-extrabold mt-1">"{fault.complaint}"</h1>
         <p className="text-sm text-muted m-0 mt-1">Operator, {machine.title.toLowerCase()}. Find the cause. Tap a device or I/O point and choose <strong className="text-heading">This is the problem</strong> — or use the buttons below.</p>
         <div className="flex flex-wrap gap-2 mt-3">
-          {(rt?.scene.huntChoices ?? []).map((c) => <button key={c.id} type="button" className="btn btn-sm" onClick={() => pick(c.id)}><Icon name="flag" size={16} /> {c.label}</button>)}
+          {(rt?.scene.huntChoices ?? []).map((c) => <Button key={c.id} size="sm" onClick={() => pick(c.id)}><Icon name="flag" size={16} /> {c.label}</Button>)}
         </div>
       </section>
 
@@ -234,7 +233,7 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
         <div data-enter="drop" className="callout callout-safety mb-3 flex gap-2 items-start" role="alert">
           <Icon name="shield" className="flex-none mt-0.5" />
           <div className="flex-1 text-sm"><strong className="text-heading">Teaching moment. </strong>{moment}</div>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => setMoment(null)}>OK</button>
+          <Button variant="ghost" size="sm" onClick={() => setMoment(null)}>OK</Button>
         </div>
       )}
 
@@ -243,10 +242,10 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
           <p className="eyebrow m-0">Found it</p>
           <h2 className="text-xl font-extrabold mt-1">{fault.title}</h2>
           <div className="flex gap-2 flex-wrap my-2">
-            <span className="chip chip-live">Score {solved.score}</span>
-            <span className="chip">Time {fmtTime(solved.ms)}</span>
+            <Chip tone="live">Score {solved.score}</Chip>
+            <Chip>Time {fmtTime(solved.ms)}</Chip>
             <span className={`chip ${penalties.length ? 'chip-warn' : 'chip-live'}`}>{penalties.length ? `${penalties.length} unsafe / wasted move${penalties.length > 1 ? 's' : ''}` : 'Zero unsafe moves'}</span>
-            {evidence && <span className="chip chip-live">Proved with the meter</span>}
+            {evidence && <Chip tone="live">Proved with the meter</Chip>}
           </div>
           <p className="m-0"><strong className="text-heading">Cause:</strong> <Rich text={fault.cause} /></p>
           <p className="mt-2 mb-0"><strong className="text-heading">How a pro finds it:</strong> <Rich text={fault.howToFind} /></p>
@@ -257,8 +256,8 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
           {penalties.length > 0 && <ul className="text-sm text-muted mt-2 mb-0 pl-5 list-disc">{penalties.map((p, i) => <li key={i}>−{p.pts}: {p.why}</li>)}</ul>}
           <p className="text-sm text-muted mt-2 mb-0">Then: fix, test, document — and remove any forces.</p>
           <div className="flex gap-2 mt-3 flex-wrap">
-            <button type="button" className="btn btn-primary" onClick={onNext}>Next hunt <Icon name="chevron" size={16} /></button>
-            <button type="button" className="btn" onClick={onExit}>All faults</button>
+            <Button variant="primary" onClick={onNext}>Next hunt <Icon name="chevron" size={16} /></Button>
+            <Button onClick={onExit}>All faults</Button>
           </div>
         </section>
       )}
@@ -271,13 +270,11 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
           <div className="w-full sm:w-auto sm:min-w-[16rem]"><MeterFace display={live ?? reading ?? '----'} mode={mode} /></div>
           <p className="sr-only" role="status" aria-live="polite">{reading ? `Meter reads ${reading}` : ''}</p>
           {can3d && (
-            <button type="button" className="btn btn-sm btn-ghost" aria-pressed={probes3d} onClick={() => setProbes3d(!probes3d)}><Icon name="meter" size={16} /> {probes3d ? 'Hide 3D probes' : '3D probes'}</button>
+            <Button variant="ghost" size="sm" aria-pressed={probes3d} onClick={() => setProbes3d(!probes3d)}><Icon name="meter" size={16} /> {probes3d ? 'Hide 3D probes' : '3D probes'}</Button>
           )}
           <div className="w-full">
             <span className="text-sm font-semibold text-heading">Meter mode</span>
-            <div className="seg mt-1 flex-wrap" role="group" aria-label="Meter mode">
-              {(Object.keys(MODE_LABEL) as MeterMode[]).map((m) => <button key={m} type="button" aria-pressed={mode === m} onClick={() => onDial(m)}>{MODE_LABEL[m]}</button>)}
-            </div>
+            <Segmented wrap className="mt-1" label="Meter mode" value={mode} onChange={onDial} options={(Object.keys(MODE_LABEL) as MeterMode[]).map((m) => ({ value: m, label: MODE_LABEL[m] }))} />
           </div>
           <label className="flex-1 min-w-[12rem]">
             <span className="text-sm font-semibold text-heading flex items-center gap-1.5"><Icon name="meter" size={16} /> Test point</span>
@@ -286,7 +283,7 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
               {rt?.scene.meterPoints(rt.io).map((p) => <option key={p.id} value={p.id}>{p.label}</option>)}
             </select>
           </label>
-          <button type="button" className="btn btn-primary" disabled={!meterPoint} onClick={() => measure()}>Measure</button>
+          <Button variant="primary" disabled={!meterPoint} onClick={() => measure()}>Measure</Button>
         </div>
         {can3d && probes3d && rt && (
           <div className="mt-3">

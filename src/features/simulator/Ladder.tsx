@@ -36,7 +36,14 @@ export function Ladder({ program, skin, plc, version, selected, onSelect, onKey,
       {routine.rungs.map((r, i) => (
         <RungView key={r.id} rung={r} index={i} ctx={{ p: program, skin, map, plc, sel: selected, onSelect, rungId: r.id }} pointer={pointerRung === i} compact={compact} />
       ))}
-      {routine.rungs.length === 0 && <p className="muted text-sm font-body p-4">No rungs yet. Add one with the + Rung button.</p>}
+      {routine.rungs.length === 0 && (
+        <div className="ladder-empty" role="listitem">
+          {/* A blank rung between the two power rails: where the first instruction will go. */}
+          <div className="ladder-empty-rung" aria-hidden="true"><span /></div>
+          <p className="m-0 font-body text-sm text-heading font-semibold">No rungs yet</p>
+          <p className="m-0 font-body text-xs text-muted">A rung is one line of logic between the power rails. Tap <strong>+ Rung</strong> to add the first one, then add a contact and a coil.</p>
+        </div>
+      )}
       <div className="flex items-center gap-2 mt-2 pl-8.5">
         <span className="font-body text-2xs text-muted">(End)</span>
       </div>

@@ -7,6 +7,7 @@ import { LESSON_META_BY_ID as LESSON_BY_ID, TRACKS } from '../../content/catalog
 import { href } from '../../lib/router';
 import { usePrefs, type Goal } from '../../state/prefs';
 import { dueReviews, level, streak, trackProgress, useProgress } from '../../state/progress';
+import { Button, Chip } from '../../components/ui';
 
 const GOAL_ORDER: Record<Goal, string[]> = {
   maintenance: ['t0', 't1', 't2', 't3', 't4', 't5', 't7', 't6', 't8', 't9', 't10'],
@@ -61,8 +62,8 @@ export default function LearnPage() {
           <p className="m-0 font-head font-bold text-heading">{lv.name}</p>
           <p className="m-0 text-sm text-muted tabular-nums">{p.xp} XP{lv.next ? ` · ${lv.next - p.xp} to next level` : ''}</p>
           <div className="flex gap-2 mt-1.5 flex-wrap">
-            <span className="chip"><Icon name="flame" size={14} className={st ? 'text-warn' : ''} /> {st} day streak</span>
-            <span className="chip"><Icon name="check" size={14} /> {doneLessons}/{totalLessons} lessons</span>
+            <Chip><Icon name="flame" size={14} className={st ? 'text-warn' : ''} /> {st} day streak</Chip>
+            <Chip icon="check">{doneLessons}/{totalLessons} lessons</Chip>
           </div>
         </div>
       </section>
@@ -106,8 +107,8 @@ export default function LearnPage() {
       <div className="flex flex-wrap items-center justify-between gap-2 mb-3">
         <h2 className="text-xl font-bold m-0">Tracks</h2>
         <span className="flex gap-2">
-          <a href={href('summary')} className="btn btn-sm"><Icon name="book" size={16} /> Summaries</a>
-          <a href={href('skills')} className="btn btn-sm"><Icon name="layers" size={16} /> Skill map</a>
+          <Button href={href('summary')} size="sm"><Icon name="book" size={16} /> Summaries</Button>
+          <Button href={href('skills')} size="sm"><Icon name="layers" size={16} /> Skill map</Button>
         </span>
       </div>
       <ol className="relative list-none p-0 m-0 space-y-3" aria-label="Tracks">
@@ -131,7 +132,7 @@ export default function LearnPage() {
                     <h3 className="text-base font-bold mt-1">{t.title}</h3>
                     <p className="text-sm text-muted m-0">{t.blurb}</p>
                   </div>
-                  {t.lessons.length > 0 && <span className="chip flex-none tabular-nums">{tp.done}/{tp.total}</span>}
+                  {t.lessons.length > 0 && <Chip className="flex-none tabular-nums">{tp.done}/{tp.total}</Chip>}
                 </div>
                 <ul className="list-none p-0 m-0 mt-3 space-y-1.5">
                   {t.lessons.map((id) => {
@@ -157,7 +158,7 @@ export default function LearnPage() {
                     <li key={title} className="flex items-center gap-3 rounded-xl px-3 py-2 text-muted text-sm border border-dashed border-line">
                       <span className="flex-none w-7 h-7 rounded-full border-2 border-dashed border-line" aria-hidden="true" />
                       <span className="flex-1">{title}</span>
-                      <span className="chip !min-h-5.5 !text-2xs">Coming</span>
+                      <Chip className="!min-h-5.5 !text-2xs">Coming</Chip>
                     </li>
                   ))}
                 </ul>

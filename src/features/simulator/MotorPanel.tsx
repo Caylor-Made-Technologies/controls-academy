@@ -4,6 +4,7 @@ import { MOTOR_FLA, MOTOR_RPM, MOTOR_SYNC_RPM, MOTOR_T_RATED, OL_RESET_BELOW, OL
 import { useMemo } from 'react';
 import { buzz, sfx } from '../../lib/sound';
 import type { SimRuntime } from './runtime';
+import { Button, Chip } from '../../components/ui';
 
 /** Momentary button: on while pointer/key is held. */
 export function PushButton({ label, color, pressed, onChange, hint }: { label: string; color: 'green' | 'red' | 'white'; pressed: boolean; onChange: (v: boolean) => void; hint: string }) {
@@ -75,9 +76,9 @@ export function MotorPanel({ rt, onDevice, compact }: { rt: SimRuntime; onDevice
           <h2 className="text-base font-bold">Motor start/stop station</h2>
         </div>
         <div className="flex gap-1.5 flex-wrap justify-end">
-          {s.olTripped && <span className="chip chip-alarm"><Icon name="warn" size={14} /> OL tripped</span>}
-          {s.estopIn && <span className="chip chip-alarm"><Icon name="warn" size={14} /> E-stop in</span>}
-          {rt.plc.hasForces && <span className="chip chip-warn">FORCE</span>}
+          {s.olTripped && <Chip tone="alarm" icon="warn">OL tripped</Chip>}
+          {s.estopIn && <Chip tone="alarm" icon="warn">E-stop in</Chip>}
+          {rt.plc.hasForces && <Chip tone="warn">FORCE</Chip>}
         </div>
       </div>
 
@@ -154,17 +155,17 @@ export function MotorPanel({ rt, onDevice, compact }: { rt: SimRuntime; onDevice
 
       {!compact && (
         <div className="flex flex-wrap gap-2">
-          <button type="button" className="btn btn-sm" aria-pressed={s.jammed} onClick={() => set({ jammed: !s.jammed })}>
+          <Button size="sm" aria-pressed={s.jammed} onClick={() => set({ jammed: !s.jammed })}>
             <Icon name="warn" size={16} /> {s.jammed ? 'Clear the jam' : 'Jam the load'}
-          </button>
+          </Button>
           {(() => {
             const hot = s.olTripped && s.olHeat > OL_RESET_BELOW;
             // Time for the thermal memory to fall to the reset level at zero current.
             const wait = hot ? Math.ceil(OL_TAU_COOL * Math.log(s.olHeat / OL_RESET_BELOW)) : 0;
             return (
-              <button type="button" className="btn btn-sm" disabled={!s.olTripped || hot} onClick={() => { rt.scene.resetOverload?.(); force((x) => x + 1); rt.notify(); }}>
+              <Button size="sm" disabled={!s.olTripped || hot} onClick={() => { rt.scene.resetOverload?.(); force((x) => x + 1); rt.notify(); }}>
                 <Icon name="reset" size={16} /> {hot ? `Cooling — reset in ${wait} s` : 'Reset overload'}
-              </button>
+              </Button>
             );
           })()}
         </div>

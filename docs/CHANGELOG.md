@@ -21,6 +21,12 @@
 - Installed app: long-press the icon for Simulator, Fault Hunt and Reference shortcuts.
 - If a screen can't download (offline) or crashes, a message explains it and offers a way back instead of a blank page.
 - `npm run verify` (the whole gate, one table), `verify:live`, `shots`, `posters`, `lighthouse`.
+- The simulator's machine picker is a row of cards instead of a drop-down; the highlight glides to the machine you pick.
+- Level-ups and badges get a short reward message and a light buzz the moment you earn them.
+- The motor panel's 3D overview frames itself to your screen like the machine scenes.
+- Search tells you when nothing matches and offers words that work; an empty ladder shows a blank rung and how to start.
+- The three-wire lesson figure is redrawn with proper pushbutton, contact, coil, overload and pilot-light symbols and boxed wire numbers.
+- Rungs wider than the screen fade at the right edge until you scroll to the end.
 ### Changed
 - Safety notes are safety yellow (faults stay red).
 - Main bundle 115 → 76 KB gzipped; fonts 86 → 52 KB; logo image 99 → 7 KB.

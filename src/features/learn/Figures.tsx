@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { useReducedMotion } from '../../lib/motion';
 import type { FigureId } from '../../content/types';
 import { twoLoads } from '../../lib/circuits';
+import { Button, Segmented } from '../../components/ui';
 
 const box = 'card card-pad';
 
@@ -51,13 +52,9 @@ function SinkSource() {
   return (
     <div className={box}>
       <div className="flex flex-wrap gap-3 mb-3">
-        <div className="seg" role="group" aria-label="Sensor type">
-          {(['PNP', 'NPN'] as const).map((s) => <button key={s} type="button" aria-pressed={sensor === s} onClick={() => setSensor(s)}>{s} sensor</button>)}
-        </div>
-        <div className="seg" role="group" aria-label="Input card type">
-          {(['sinking', 'sourcing'] as const).map((c) => <button key={c} type="button" aria-pressed={card === c} onClick={() => setCard(c)}>{c} card</button>)}
-        </div>
-        <button type="button" className="btn btn-sm" aria-pressed={target} onClick={() => setTarget(!target)}>{target ? 'Target present' : 'No target'}</button>
+        <Segmented label="Sensor type" value={sensor} onChange={setSensor} options={(['PNP', 'NPN'] as const).map((s) => ({ value: s, label: `${s} sensor` }))} />
+        <Segmented label="Input card type" value={card} onChange={setCard} options={(['sinking', 'sourcing'] as const).map((c) => ({ value: c, label: `${c} card` }))} />
+        <Button size="sm" aria-pressed={target} onClick={() => setTarget(!target)}>{target ? 'Target present' : 'No target'}</Button>
       </div>
       <svg viewBox="0 0 320 170" className="w-full max-w-lg mx-auto block" role="img" aria-label={`${sensor} sensor on a ${card} card: ${works ? (target ? 'current flows, input ON' : 'would work; no target so input OFF') : 'no complete loop, input stays OFF'}`}>
         <text x="10" y="18" fontSize="11" fontWeight="700" fill="var(--alarm)">+24 V</text>
@@ -167,61 +164,106 @@ function Scan() {
   );
 }
 
+/** One NEMA-style symbol between x0 and x1 on a horizontal line at y. Terminals are at x0 and x1. */
+function Sym({ kind, x0, x1, y, on, closed }: { kind: 'no' | 'nc' | 'pb-no' | 'pb-nc'; x0: number; x1: number; y: number; on: boolean; closed: boolean }) {
+  const ink = on ? 'var(--live)' : 'var(--text-body)';
+  const w = 2.5;
+  if (kind === 'no' || kind === 'nc') {
+    return (
+      <g stroke={ink} strokeWidth={w} fill="none">
+        <path d={`M${x0} ${y - 9} V${y + 9} M${x1} ${y - 9} V${y + 9}`} />
+        {kind === 'nc' && <path d={`M${x0 - 3} ${y + 11} L${x1 + 3} ${y - 11}`} />}
+        {closed && <path d={`M${x0} ${y} H${x1}`} strokeWidth={1.5} strokeDasharray="2 2" />}
+      </g>
+    );
+  }
+  // Pushbutton: two terminal circles; NO has its bridge above (pressing closes it), NC has it resting on the terminals.
+  const by = kind === 'pb-no' ? (closed ? y - 4 : y - 10) : (closed ? y - 4 : y - 12);
+  const mid = (x0 + x1) / 2;
+  return (
+    <g stroke={ink} strokeWidth={w} fill="none">
+      <circle cx={x0 + 3} cy={y} r={3} fill="var(--surface)" />
+      <circle cx={x1 - 3} cy={y} r={3} fill="var(--surface)" />
+      <path d={`M${x0 - 1} ${by} H${x1 + 1}`} />
+      <path d={`M${mid} ${by} V${by - 10} M${mid - 6} ${by - 10} H${mid + 6}`} strokeWidth={2} />
+    </g>
+  );
+}
+
+function WireNo({ x, y, n }: { x: number; y: number; n: number }) {
+  return (
+    <g>
+      <rect x={x - 6} y={y - 17} width={12} height={11} rx={3} fill="var(--surface)" stroke="var(--border-strong)" />
+      <text x={x} y={y - 8.5} textAnchor="middle" fontSize="8" fontWeight="700" fill="var(--text-heading)">{n}</text>
+    </g>
+  );
+}
+
 function Hardwired() {
   const [run, setRun] = useState(false);
   const live = 'var(--live)';
   const dead = 'var(--dead)';
+  const c = (on: boolean) => (on ? live : dead);
+  // Rung heights and the two parallel nodes of the start / seal-in branch.
+  const y1 = 62;
+  const y2 = 108;
+  const y3 = 160;
+  const nA = 104;
+  const nB = 184;
   return (
     <div className={box}>
-      <svg viewBox="0 0 340 170" className="w-full max-w-xl mx-auto block" role="img" aria-label="Hardwired 3-wire start/stop: L1, Stop pushbutton normally closed, Start pushbutton normally open with M seal-in contact in parallel, M coil, overload contact, L2. Line 2: M auxiliary contact and run light.">
-        <text x="20" y="14" fontSize="10" fontWeight="800" fill="var(--text-muted)">L1</text>
-        <text x="310" y="14" fontSize="10" fontWeight="800" fill="var(--text-muted)">L2</text>
-        <line x1="26" y1="20" x2="26" y2="160" stroke="var(--text-body)" strokeWidth="3" />
-        <line x1="316" y1="20" x2="316" y2="160" stroke="var(--text-body)" strokeWidth="3" />
-        <text x="6" y="54" fontSize="9" fill="var(--text-muted)">1</text>
-        <text x="6" y="134" fontSize="9" fill="var(--text-muted)">3</text>
-        {/* line 1 */}
-        <path d="M26 50 H52" stroke={live} strokeWidth="2.5" />
-        <path d="M52 44 H74 M52 50 V44 M74 44 V50" stroke={live} strokeWidth="2.5" fill="none" />
-        <text x="63" y="38" textAnchor="middle" fontSize="8" fill="var(--text-muted)">STOP</text>
-        <path d="M74 50 H100" stroke={live} strokeWidth="2.5" />
-        <circle cx="96" cy="58" r="7" fill="var(--surface)" stroke="var(--border-strong)" /><text x="96" y="61" textAnchor="middle" fontSize="7">2</text>
-        <path d="M100 50 H112 M112 50 V58 M134 50 V58 M112 58 H134" stroke={run ? live : dead} strokeWidth="2.5" fill="none" />
-        <path d="M100 50 H112" stroke={live} strokeWidth="2.5" />
-        <text x="123" y="38" textAnchor="middle" fontSize="8" fill="var(--text-muted)">START</text>
-        <path d="M112 44 H134" stroke={run ? live : 'var(--text-body)'} strokeWidth="2.5" />
-        <path d="M134 50 H200" stroke={run ? live : dead} strokeWidth="2.5" />
-        <circle cx="150" cy="58" r="7" fill="var(--surface)" stroke="var(--border-strong)" /><text x="150" y="61" textAnchor="middle" fontSize="7">3</text>
-        {/* seal-in branch */}
-        <path d="M106 50 V90 H114 M136 90 H142 V50" stroke={run ? live : dead} strokeWidth="2.5" fill="none" />
-        <path d="M114 84 V96 M136 84 V96" stroke={run ? live : 'var(--text-body)'} strokeWidth="2.5" />
-        <path d="M114 90 H136" stroke={run ? live : 'transparent'} strokeWidth="2.5" />
-        <text x="125" y="108" textAnchor="middle" fontSize="8" fontWeight="800" fill="var(--text-heading)">M</text>
-        <text x="125" y="118" textAnchor="middle" fontSize="7" fill="var(--text-muted)">seal-in</text>
-        {/* coil */}
-        <circle cx="216" cy="50" r="14" fill={run ? 'var(--live-soft)' : 'none'} stroke={run ? live : 'var(--text-body)'} strokeWidth="2.5" />
-        <text x="216" y="54" textAnchor="middle" fontSize="10" fontWeight="800" fill="var(--text-heading)">M</text>
-        <path d="M230 50 H262" stroke={run ? live : dead} strokeWidth="2.5" />
-        <path d="M262 44 H282 M262 50 V44 M282 44 V50" stroke={run ? live : dead} strokeWidth="2.5" fill="none" />
-        <text x="272" y="38" textAnchor="middle" fontSize="8" fill="var(--text-muted)">OL</text>
-        <path d="M282 50 H316" stroke={run ? live : dead} strokeWidth="2.5" />
-        <text x="216" y="80" textAnchor="middle" fontSize="7" fill="var(--text-muted)">3, 1</text>
-        {/* line 3: run light */}
-        <path d="M26 130 H110" stroke={live} strokeWidth="2.5" />
-        <path d="M110 124 V136 M132 124 V136" stroke={run ? live : 'var(--text-body)'} strokeWidth="2.5" />
-        <path d="M110 130 H132" stroke={run ? live : 'transparent'} strokeWidth="2.5" />
-        <text x="121" y="118" textAnchor="middle" fontSize="8" fontWeight="800" fill="var(--text-heading)">M</text>
-        <path d="M132 130 H200" stroke={run ? live : dead} strokeWidth="2.5" />
-        <circle cx="216" cy="130" r="12" fill={run ? 'var(--lamp-green)' : 'none'} stroke="var(--text-body)" strokeWidth="2.5" style={run ? { filter: 'drop-shadow(0 0 8px var(--lamp-green))' } : undefined} />
-        <text x="216" y="156" textAnchor="middle" fontSize="8" fill="var(--text-muted)">RUN LT</text>
-        <path d="M228 130 H316" stroke={run ? live : dead} strokeWidth="2.5" />
+      <svg viewBox="0 0 360 192" className="w-full max-w-xl mx-auto block" role="img" aria-label={`Hardwired 3-wire start/stop, ${run ? 'running' : 'stopped'}. Line 1: L1, wire 1, Stop pushbutton (normally closed), wire 2, Start pushbutton (normally open) with an M seal-in contact in parallel, wire 3, coil M, wire 4, overload contact OL, L2. Line 3: an M contact and the green run light.`}>
+        <text x="24" y="16" textAnchor="middle" fontSize="10" fontWeight="800" fill="var(--text-muted)">L1</text>
+        <text x="330" y="16" textAnchor="middle" fontSize="10" fontWeight="800" fill="var(--text-muted)">L2</text>
+        <line x1="24" y1="22" x2="24" y2="182" stroke="var(--text-body)" strokeWidth="3" />
+        <line x1="330" y1="22" x2="330" y2="182" stroke="var(--text-body)" strokeWidth="3" />
+        <text x="10" y={y1 + 3} textAnchor="middle" fontSize="9" fontWeight="700" fill="var(--text-muted)">1</text>
+        <text x="10" y={y3 + 3} textAnchor="middle" fontSize="9" fontWeight="700" fill="var(--text-muted)">3</text>
+
+        {/* line 1: L1 → Stop (NC) → Start (NO) → M → OL → L2 */}
+        <path d={`M24 ${y1} H44`} stroke={live} strokeWidth="2.5" />
+        <Sym kind="pb-nc" x0={44} x1={76} y={y1} on closed />
+        <text x="60" y={y1 + 20} textAnchor="middle" fontSize="8" fontWeight="700" fill="var(--text-muted)">STOP</text>
+        <WireNo x={34} y={y1} n={1} />
+        <path d={`M76 ${y1} H124`} stroke={live} strokeWidth="2.5" />
+        <WireNo x={nA} y={y1} n={2} />
+        <Sym kind="pb-no" x0={124} x1={156} y={y1} on={false} closed={false} />
+        <text x="140" y={y1 + 20} textAnchor="middle" fontSize="8" fontWeight="700" fill="var(--text-muted)">START</text>
+        <path d={`M156 ${y1} H222`} stroke={c(run)} strokeWidth="2.5" />
+        <WireNo x={nB} y={y1} n={3} />
+        <circle cx="236" cy={y1} r="14" fill={run ? 'var(--live-soft)' : 'var(--surface)'} stroke={run ? live : 'var(--text-body)'} strokeWidth="2.5" />
+        <text x="236" y={y1 + 4} textAnchor="middle" fontSize="11" fontWeight="800" fill="var(--text-heading)">M</text>
+        <path d={`M250 ${y1} H280`} stroke={c(run)} strokeWidth="2.5" />
+        <WireNo x={265} y={y1} n={4} />
+        <Sym kind="nc" x0={280} x1={292} y={y1} on={run} closed />
+        <text x="286" y={y1 + 24} textAnchor="middle" fontSize="8" fontWeight="700" fill="var(--text-muted)">OL</text>
+        <path d={`M292 ${y1} H330`} stroke={c(run)} strokeWidth="2.5" />
+        <text x="344" y={y1 + 3} textAnchor="middle" fontSize="8" fill="var(--text-muted)">1, 3</text>
+
+        {/* seal-in branch: M contact in parallel with Start, from wire 2 to wire 3 */}
+        <path d={`M${nA} ${y1} V${y2} H134`} stroke={live} strokeWidth="2.5" fill="none" />
+        <Sym kind="no" x0={134} x1={146} y={y2} on={run} closed={run} />
+        <path d={`M146 ${y2} H${nB} V${y1}`} stroke={c(run)} strokeWidth="2.5" fill="none" />
+        <circle cx={nA} cy={y1} r="3.5" fill={live} />
+        <circle cx={nB} cy={y1} r="3.5" fill={c(run)} />
+        <text x="140" y={y2 + 22} textAnchor="middle" fontSize="8" fontWeight="800" fill="var(--text-heading)">M<tspan dx="4" fontWeight="400" fill="var(--text-muted)">seal-in</tspan></text>
+
+        {/* line 3: M contact → green run light */}
+        <path d={`M24 ${y3} H134`} stroke={live} strokeWidth="2.5" />
+        <Sym kind="no" x0={134} x1={146} y={y3} on={run} closed={run} />
+        <text x="140" y={y3 - 14} textAnchor="middle" fontSize="8" fontWeight="800" fill="var(--text-heading)">M</text>
+        <path d={`M146 ${y3} H224`} stroke={c(run)} strokeWidth="2.5" />
+        <circle cx="236" cy={y3} r="12" fill={run ? 'var(--lamp-green)' : 'var(--surface)'} stroke="var(--text-body)" strokeWidth="2.5" style={run ? { filter: 'drop-shadow(0 0 6px var(--lamp-green))' } : undefined} />
+        <text x="236" y={y3 + 3.5} textAnchor="middle" fontSize="9" fontWeight="800" fill={run ? 'var(--black)' : 'var(--text-heading)'}>G</text>
+        <text x="236" y={y3 + 26} textAnchor="middle" fontSize="8" fontWeight="700" fill="var(--text-muted)">RUN</text>
+        <path d={`M248 ${y3} H330`} stroke={c(run)} strokeWidth="2.5" />
       </svg>
       <div className="flex gap-2 flex-wrap mt-2">
-        <button type="button" className="btn btn-sm" onClick={() => setRun(true)}>Press Start</button>
-        <button type="button" className="btn btn-sm" onClick={() => setRun(false)}>Press Stop</button>
-        <span className="text-sm text-muted self-center">{run ? 'M is sealed in through its own contact.' : 'Stopped. Green = energized.'}</span>
+        <Button size="sm" onClick={() => setRun(true)}>Press Start</Button>
+        <Button size="sm" onClick={() => setRun(false)}>Press Stop</Button>
+        <span className="text-sm text-muted self-center" role="status">{run ? 'Start released: M stays on through its own seal-in contact.' : 'Stopped. Green = energized.'}</span>
       </div>
-      <p className="text-xs text-muted mb-0 mt-2">Circles are wire numbers. "3, 1" under coil M is its contact cross-reference: lines where M's contacts appear.</p>
+      <p className="text-xs text-muted mb-0 mt-2">Boxed numbers are wire numbers. "1, 3" beside coil M's line is its contact cross-reference: the lines where M's contacts appear.</p>
     </div>
   );
 }
@@ -245,9 +287,9 @@ function Meter() {
               const picked = picks[i] === s;
               const right = picked && s === j.answer;
               return (
-                <button key={s} type="button" className="btn btn-sm" aria-pressed={picked} onClick={() => setPicks({ ...picks, [i]: s })} style={picked ? { borderColor: right ? 'var(--live)' : 'var(--alarm)', background: right ? 'var(--live-soft)' : 'var(--alarm-soft)' } : undefined}>
+                <Button key={s} size="sm" aria-pressed={picked} onClick={() => setPicks({ ...picks, [i]: s })} style={picked ? { borderColor: right ? 'var(--live)' : 'var(--alarm)', background: right ? 'var(--live-soft)' : 'var(--alarm-soft)' } : undefined}>
                   {s}
-                </button>
+                </Button>
               );
             })}
           </div>
@@ -277,10 +319,8 @@ function SeriesParallel() {
   return (
     <div className={box}>
       <div className="flex flex-wrap gap-2 mb-3">
-        <div className="seg" role="group" aria-label="Wiring">
-          {(['series', 'parallel'] as const).map((m) => <button key={m} type="button" aria-pressed={mode === m} onClick={() => setMode(m)}>{m === 'series' ? 'Series' : 'Parallel'}</button>)}
-        </div>
-        <button type="button" className="btn btn-sm" aria-pressed={open2} onClick={() => setOpen2(!open2)}>{open2 ? 'Put lamp 2 back' : 'Pull lamp 2 out'}</button>
+        <Segmented label="Wiring" value={mode} onChange={setMode} options={[{ value: 'series', label: 'Series' }, { value: 'parallel', label: 'Parallel' }]} />
+        <Button size="sm" aria-pressed={open2} onClick={() => setOpen2(!open2)}>{open2 ? 'Put lamp 2 back' : 'Pull lamp 2 out'}</Button>
       </div>
       <svg viewBox="0 0 300 140" className="w-full max-w-md mx-auto block" role="img"
         aria-label={`${mode} circuit, 120 volts: lamp 1 ${fmt(x.p[0], 0)} watts, lamp 2 ${open2 ? 'removed' : fmt(x.p[1], 0) + ' watts'}, total current ${fmt(x.iTotal)} amps`}>

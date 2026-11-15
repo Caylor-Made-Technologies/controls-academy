@@ -5,12 +5,14 @@ import { Icon, type IconName } from './components/Icon';
 import { SkeletonPage } from './components/Skeleton';
 import { ErrorBoundary } from './components/ErrorBoundary';
 import { Toaster } from './components/ui/Toast';
+import { Moments } from './features/Moments';
 import { href, navigate, useRoute, type RouteSeg } from './lib/router';
 import { sfx } from './lib/sound';
 import { installSpotlight } from './lib/spotlight';
 import { PowerOn } from './components/PowerOn';
 import { applyTheme, usePrefs } from './state/prefs';
 import { useProgress } from './state/progress';
+import { Button } from './components/ui';
 
 const Onboarding = lazy(() => import('./features/onboarding/Onboarding').then((m) => ({ default: m.Onboarding })));
 const CommandPalette = lazy(() => import('./features/CommandPalette').then((m) => ({ default: m.CommandPalette })));
@@ -194,12 +196,12 @@ export default function App() {
               <Wordmark compact />
             </a>
             <div className="ml-auto flex items-center gap-1">
-              <button type="button" className="btn btn-ghost icon-btn" onClick={() => setPaletteOpen(true)} aria-label="Search lessons, glossary and instructions">
+              <Button variant="ghost" className="icon-btn" onClick={() => setPaletteOpen(true)} aria-label="Search lessons, glossary and instructions">
                 <Icon name="search" />
-              </button>
-              <button type="button" className="btn btn-ghost icon-btn" onClick={() => prefs.setPrefs({ theme: darkNow ? 'light' : 'dark' })} aria-label={darkNow ? 'Switch to light mode' : 'Switch to dark mode'}>
+              </Button>
+              <Button variant="ghost" className="icon-btn" onClick={() => prefs.setPrefs({ theme: darkNow ? 'light' : 'dark' })} aria-label={darkNow ? 'Switch to light mode' : 'Switch to dark mode'}>
                 <Icon name={darkNow ? 'sun' : 'moon'} />
-              </button>
+              </Button>
             </div>
           </div>
         </header>
@@ -232,6 +234,7 @@ export default function App() {
 
       {paletteOpen && <Suspense fallback={null}><CommandPalette open={paletteOpen} onClose={() => setPaletteOpen(false)} /></Suspense>}
       <Toaster />
+      <Moments />
       {!prefs.onboarded && <Suspense fallback={null}><Onboarding onDone={(path) => { prefs.setPrefs({ onboarded: true }); if (path) navigate(path); }} /></Suspense>}
     </>
   );

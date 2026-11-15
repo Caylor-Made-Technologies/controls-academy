@@ -4,6 +4,7 @@ import { Icon } from '../../components/Icon';
 import { skinsByMaker, type SkinId } from '../../skins';
 import { usePrefs, type Goal } from '../../state/prefs';
 import { recommendedLesson } from '../learn/LearnPage';
+import { Button } from '../../components/ui';
 
 const GOALS: { id: Goal; title: string; desc: string }[] = [
   { id: 'maintenance', title: 'Maintenance tech', desc: 'Keep machines running. Safety, prints, troubleshooting first.' },
@@ -91,7 +92,7 @@ export function Onboarding({ onDone }: { onDone: (path?: string) => void }) {
           <div className="flex gap-1.5" role="img" aria-label={`Step ${step + 1} of 4`}>
             {[0, 1, 2, 3].map((i) => <span key={i} className="h-1.5 rounded-full transition-all" style={{ width: i === step ? 28 : 10, background: i <= step ? 'var(--blue-glow)' : 'var(--border)' }} />)}
           </div>
-          <button type="button" className="btn btn-ghost btn-sm" onClick={() => finish(false)}>Skip</button>
+          <Button variant="ghost" size="sm" onClick={() => finish(false)}>Skip</Button>
         </div>
         <div className="flex-1">
           <div key={step} data-enter={step === 0 ? undefined : 'slide'}>
@@ -99,11 +100,11 @@ export function Onboarding({ onDone }: { onDone: (path?: string) => void }) {
           </div>
         </div>
         <div className="flex gap-2 mt-6">
-          {step > 0 && <button type="button" className="btn" onClick={() => setStep(step - 1)}><Icon name="back" size={18} /> Back</button>}
+          {step > 0 && <Button onClick={() => setStep(step - 1)}><Icon name="back" size={18} /> Back</Button>}
           {step < 3 ? (
-            <button type="button" className="btn btn-primary flex-1" disabled={step === 1 && !goal} onClick={() => setStep(step + 1)}>{step === 0 ? 'Get started' : 'Next'} <Icon name="chevron" size={18} /></button>
+            <Button variant="primary" className="flex-1" disabled={step === 1 && !goal} onClick={() => setStep(step + 1)}>{step === 0 ? 'Get started' : 'Next'} <Icon name="chevron" size={18} /></Button>
           ) : (
-            <button type="button" className="btn btn-primary flex-1" onClick={() => finish(true)}>Start my first lesson <Icon name="bolt" size={18} /></button>
+            <Button variant="primary" className="flex-1" onClick={() => finish(true)}>Start my first lesson <Icon name="bolt" size={18} /></Button>
           )}
         </div>
       </div>

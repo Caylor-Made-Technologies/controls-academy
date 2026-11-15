@@ -185,7 +185,7 @@ function Sample({ theme }: { theme: 'dark' | 'light' }) {
 export default function StyleguidePage() {
   return (
     <div>
-      <a href={href('about')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> About</a>
+      <Button href={href('about')} variant="ghost" size="sm" className="-ml-2 mb-2"><Icon name="back" size={16} /> About</Button>
       <PageHead eyebrow="Design system" title="Styleguide">Every token and component, in both themes. The rules behind them are in the repo's design-system document.</PageHead>
       <div className="grid gap-4 xl:grid-cols-2 items-start">
         <Sample theme="dark" />

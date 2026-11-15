@@ -17,7 +17,8 @@ import { OrderDrill, SortDrill } from './Drills';
 import { Figure } from './Figures';
 import { QuestionCard } from './Quiz';
 import { createChecker, taskProgram, taskSetup } from './tasks';
-import { Callout, NotFound } from '../../components/ui';
+import { Callout, NotFound, Chip } from '../../components/ui';
+import { Button } from '../../components/ui';
 
 function BlockView({ b }: { b: Block }) {
   const skinId = usePrefs((s) => s.skin);
@@ -179,7 +180,7 @@ export default function LessonPage({ id }: { id: string }) {
 
   return (
     <article>
-      <a href={href('learn')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Learn</a>
+      <Button href={href('learn')} variant="ghost" size="sm" className="-ml-2 mb-2"><Icon name="back" size={16} /> Learn</Button>
       <header style={{ viewTransitionName: vtName('lesson', lesson.id) }} className="card card-pad mb-5 relative overflow-hidden">
         <p className="eyebrow m-0">Track {track.n} · {track.title}</p>
         <span className={`level-pill level-${track.level.toLowerCase()} mt-2`}>{track.level}</span>
@@ -188,9 +189,9 @@ export default function LessonPage({ id }: { id: string }) {
         {lesson.why && <p className="why-line m-0 mt-3"><strong>Why this matters on the job:</strong> <Rich text={lesson.why} /></p>}
         {lesson.prereqs && <Prereqs ids={lesson.prereqs} />}
         <div className="flex gap-2 mt-3 flex-wrap">
-          <span className="chip">{lesson.minutes} min</span>
+          <Chip>{lesson.minutes} min</Chip>
           {lesson.task && <span className={`chip ${taskDone ? 'chip-live' : ''}`}>{taskDone ? <Icon name="check" size={14} /> : <Icon name="sim" size={14} />} Hands-on</span>}
-          {record && <span className="chip chip-live"><Icon name="check" size={14} /> Completed · {record.score}/{record.total}</span>}
+          {record && <Chip tone="live" icon="check">Completed · {record.score}/{record.total}</Chip>}
         </div>
       </header>
 
@@ -222,7 +223,7 @@ export default function LessonPage({ id }: { id: string }) {
           {gained === null ? (
             <>
               <p className="m-0 flex-1 text-sm text-muted">{allAnswered ? `You got ${score} of ${lesson.quiz.length}.` : `Answer all ${lesson.quiz.length} questions to finish.`}</p>
-              <button type="button" className="btn btn-primary" disabled={!allAnswered} onClick={finish}><Icon name="check" size={18} /> Finish lesson</button>
+              <Button variant="primary" disabled={!allAnswered} onClick={finish}><Icon name="check" size={18} /> Finish lesson</Button>
             </>
           ) : (
             <div data-enter="pop" className="flex flex-wrap items-center gap-3 w-full" role="status">
@@ -231,7 +232,7 @@ export default function LessonPage({ id }: { id: string }) {
                 <p className="m-0 font-bold text-heading">Lesson complete{gained ? ` · +${gained} XP` : ''}</p>
                 <p className="m-0 text-sm text-muted">{score === lesson.quiz.length ? 'Perfect score.' : 'Missed questions come back in Review.'}</p>
               </div>
-              {next ? <a className="btn btn-primary" href={href(`lesson/${next.id}`)}>Next: {next.title} <Icon name="chevron" size={16} /></a> : <a className="btn" href={href('learn')}>Back to Learn</a>}
+              {next ? <Button variant="primary" href={href(`lesson/${next.id}`)}>Next: {next.title} <Icon name="chevron" size={16} /></Button> : <Button href={href('learn')}>Back to Learn</Button>}
             </div>
           )}
         </div>

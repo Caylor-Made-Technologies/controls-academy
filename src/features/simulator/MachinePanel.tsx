@@ -3,6 +3,7 @@ import { Icon } from '../../components/Icon';
 import type { PanelControl, PanelIndicator } from '../../plant/types';
 import { IoCards, Lamp, PushButton } from './MotorPanel';
 import type { SimRuntime } from './runtime';
+import { Button, Segmented } from '../../components/ui';
 
 const fmt = (x: number, d = 1) => (Number.isFinite(x) ? x.toFixed(d) : '—');
 
@@ -17,7 +18,7 @@ function Control({ c, rt, set }: { c: PanelControl; rt: SimRuntime; set: (field:
     case 'toggle':
       return (
         <div className="flex flex-col items-center gap-1 min-w-22">
-          <button type="button" className="btn btn-sm" aria-pressed={Boolean(s[c.field])} onClick={() => set(c.field, !s[c.field])} aria-label={`${c.label}: ${s[c.field] ? c.on : c.off}. ${c.hint}`}>{s[c.field] ? c.on : c.off}</button>
+          <Button size="sm" aria-pressed={Boolean(s[c.field])} onClick={() => set(c.field, !s[c.field])} aria-label={`${c.label}: ${s[c.field] ? c.on : c.off}. ${c.hint}`}>{s[c.field] ? c.on : c.off}</Button>
           <span className="text-xs font-bold text-center">{c.label}</span>
         </div>
       );
@@ -25,9 +26,7 @@ function Control({ c, rt, set }: { c: PanelControl; rt: SimRuntime; set: (field:
       return (
         <div className="flex flex-col gap-1">
           <span className="text-xs font-bold">{c.label}</span>
-          <div className="seg" role="group" aria-label={`${c.label}. ${c.hint}`}>
-            {c.options.map((o) => <button key={o.value} type="button" aria-pressed={s[c.field] === o.value} onClick={() => set(c.field, o.value)}>{o.label}</button>)}
-          </div>
+          <Segmented label={`${c.label}. ${c.hint}`} value={String(s[c.field])} onChange={(v) => set(c.field, c.options.find((o) => String(o.value) === v)!.value)} options={c.options.map((o) => ({ value: String(o.value), label: o.label }))} />
         </div>
       );
     case 'slider': {
@@ -135,7 +134,7 @@ export function MachinePanel({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id:
         <div className="flex flex-wrap gap-2 mt-3">
           {ui.actions.map((a) => {
             const why = a.disabled?.(scene.state) ?? null;
-            return <button key={a.id} type="button" className="btn btn-sm" disabled={Boolean(why)} onClick={() => { a.run(scene); rt.notify(); }}><Icon name="reset" size={14} /> {why ?? a.label}</button>;
+            return <Button key={a.id} size="sm" disabled={Boolean(why)} onClick={() => { a.run(scene); rt.notify(); }}><Icon name="reset" size={14} /> {why ?? a.label}</Button>;
           })}
         </div>
       )}

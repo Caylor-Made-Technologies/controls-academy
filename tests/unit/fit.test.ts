@@ -61,3 +61,21 @@ describe('camera fitting with covered edges', () => {
     });
   }
 });
+
+describe('motor panel overview', () => {
+  // Visible window after the tour chips (top) and the tool row (bottom), in NDC.
+  for (const aspect of [0.45, 0.6, 1, 1.6, 2.4]) {
+    it(`frames enclosure, station and motor between the HUD rows at aspect ${aspect}`, async () => {
+      const { panelHome } = await import('../../src/three/info');
+      const v = panelHome(aspect);
+      const dist = Math.hypot(v.pos[0] - v.target[0], v.pos[1] - v.target[1], v.pos[2] - v.target[2]);
+      expect(dist).toBeLessThan(7); // inside the far plane and the fog-free room
+      for (const c of boxCorners([-0.46, -0.75, -0.03], [1.1, 0.62, 0.56])) {
+        const [x, y] = ndc(c, v.pos, v.target, 38, aspect);
+        expect(Math.abs(x)).toBeLessThanOrEqual(0.98);
+        expect(y).toBeLessThanOrEqual(0.8001);
+        expect(y).toBeGreaterThanOrEqual(-0.7601);
+      }
+    });
+  }
+});

@@ -74,7 +74,9 @@ describe('exploded views', () => {
     const kind = (id: string) => partKind(vfd.parts.find((p) => p.id === id)!);
     expect(kind('caps')).toBe('caps');
     expect(kind('heatsink')).toBe('fins');
-    expect(kind('igbt')).toBe('board');
+    expect(kind('igbt')).toBe('module');
+    expect(kind('rectifier')).toBe('module');
+    expect(kind('control')).toBe('keypad');
     expect(kind('housing')).toBe('plain');
     const prox = INSIDE.find((d) => d.id === 'prox')!;
     expect(partKind(prox.parts.find((p) => p.id === 'coil')!)).toBe('coil');

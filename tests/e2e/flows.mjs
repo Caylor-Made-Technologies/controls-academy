@@ -49,7 +49,7 @@ await page.getByRole('combobox').filter({ hasText: '24 VDC supply' }).selectOpti
 await page.getByRole('button', { name: 'Measure' }).click();
 ok((await page.getByText(/Meter reads 24 VDC/).count()) === 1, 'voltage across the open fuse');
 await page.getByRole('button', { name: 'Control power / fuse' }).click();
-ok(await page.getByText('Found it').isVisible(), 'fault hunt solved');
+ok(await page.locator('main#main').getByText('Found it').isVisible(), 'fault hunt solved');
 ok(await page.getByText('Zero unsafe moves').isVisible(), 'safe hunt scored');
 await page.screenshot({ path: 'test-results/flow-hunt-solved.png' });
 

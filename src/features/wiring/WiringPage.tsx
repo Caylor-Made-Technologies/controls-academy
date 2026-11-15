@@ -8,7 +8,8 @@ import { href } from '../../lib/router';
 import { EXERCISES, EXERCISE_BY_ID, WIRE_COLORS, checkWiring, type CheckResult, type Exercise, type Wire } from '../../lib/wiring';
 import { usePrefs } from '../../state/prefs';
 import { hasWebGL, prefer3D } from '../../three/support';
-import { Callout } from '../../components/ui';
+import { Callout, Segmented, Chip } from '../../components/ui';
+import { Button } from '../../components/ui';
 
 const WiringBoard3D = lazy(() => import('../../three/WiringBoard3D'));
 
@@ -44,15 +45,12 @@ function Trainer({ ex }: { ex: Exercise }) {
 
   return (
     <div>
-      <a href={href('wiring')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Wiring trainer</a>
+      <Button href={href('wiring')} variant="ghost" size="sm" className="-ml-2 mb-2"><Icon name="back" size={16} /> Wiring trainer</Button>
       <PageHead eyebrow="Wiring trainer" title={ex.title}>{ex.goal}</PageHead>
       <Callout tone="safety" className="mb-3 text-sm">{ex.safety}</Callout>
 
       {can3d && (
-        <div className="seg mb-2" role="group" aria-label="Board view">
-          <button type="button" aria-pressed={!view3d} onClick={() => setView3d(false)}>Terminals</button>
-          <button type="button" aria-pressed={view3d} onClick={() => setView3d(true)}>3D board</button>
-        </div>
+        <Segmented className="mb-2" label="Board view" value={view3d ? '3d' : '2d'} onChange={(v) => setView3d(v === '3d')} options={[{ value: '2d', label: 'Terminals' }, { value: '3d', label: '3D board' }]} />
       )}
       {can3d && view3d && (
         painted ? (
@@ -74,9 +72,9 @@ function Trainer({ ex }: { ex: Exercise }) {
               {d.terminals.map((t) => {
                 const n = wires.filter(([a, b]) => a === t.id || b === t.id).length;
                 return (
-                  <button key={t.id} type="button" className={`btn btn-sm ${armed === t.id ? 'btn-primary' : ''} !min-h-11`} aria-pressed={armed === t.id} onClick={() => tap(t.id)}>
-                    {t.label}{n > 0 && <span className="chip !text-2xs !min-h-0 !py-0 ml-1"><span aria-hidden="true">{n}</span><span className="sr-only">({n} wire{n > 1 ? 's' : ''})</span></span>}
-                  </button>
+                  <Button key={t.id} size="sm" variant={armed === t.id ? 'primary' : 'default'} className="!min-h-11" aria-pressed={armed === t.id} onClick={() => tap(t.id)}>
+                    {t.label}{n > 0 && <Chip className="!text-2xs !min-h-0 !py-0 ml-1"><span aria-hidden="true">{n}</span><span className="sr-only">({n} wire{n > 1 ? 's' : ''})</span></Chip>}
+                  </Button>
                 );
               })}
             </div>
@@ -92,16 +90,16 @@ function Trainer({ ex }: { ex: Exercise }) {
               <li key={`${a}-${b}`} className="flex items-center gap-2 text-sm">
                 <span className="inline-block w-3 h-3 rounded-full flex-none" style={{ background: colors[i] }} aria-hidden="true" />
                 <span className="flex-1">{label.get(a)} → {label.get(b)}</span>
-                <button type="button" className="btn btn-ghost btn-sm !min-h-11" onClick={() => remove(i)} aria-label={`Remove wire ${label.get(a)} to ${label.get(b)}`}><Icon name="x" size={16} /></button>
+                <Button variant="ghost" size="sm" className="!min-h-11" onClick={() => remove(i)} aria-label={`Remove wire ${label.get(a)} to ${label.get(b)}`}><Icon name="x" size={16} /></Button>
               </li>
             ))}
           </ul>
         )}
         <p className="text-xs text-muted m-0 mt-2">Wire colors here only tell the wires apart; real color codes vary by site, voltage and country.</p>
         <div className="flex flex-wrap gap-2 mt-3">
-          <button type="button" className="btn btn-primary" onClick={check}><Icon name="check" size={16} /> Check wiring</button>
-          <button type="button" className="btn" onClick={() => { setWires([]); setColors([]); setResult(null); setArmed(null); setShown(false); }} disabled={wires.length === 0}>Clear</button>
-          <button type="button" className="btn btn-ghost" onClick={() => { setWires(ex.solution); setColors(ex.solution.map((_, i) => WIRE_COLORS[i % WIRE_COLORS.length])); setNextColor(ex.solution.length); setShown(true); setArmed(null); setResult(checkWiring(ex.id, ex.solution)); }}>Show me one answer</button>
+          <Button variant="primary" onClick={check}><Icon name="check" size={16} /> Check wiring</Button>
+          <Button onClick={() => { setWires([]); setColors([]); setResult(null); setArmed(null); setShown(false); }} disabled={wires.length === 0}>Clear</Button>
+          <Button variant="ghost" onClick={() => { setWires(ex.solution); setColors(ex.solution.map((_, i) => WIRE_COLORS[i % WIRE_COLORS.length])); setNextColor(ex.solution.length); setShown(true); setArmed(null); setResult(checkWiring(ex.id, ex.solution)); }}>Show me one answer</Button>
         </div>
       </section>
 

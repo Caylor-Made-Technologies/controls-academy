@@ -1,16 +1,18 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { RouteHead } from '../../components/Brand';
 import { href } from '../../lib/router';
-import { Icon } from '../../components/Icon';
+import { Icon, type IconName } from '../../components/Icon';
+import { buzz } from '../../lib/sound';
 import { SkeletonPage } from '../../components/Skeleton';
 import type { Program } from '../../engine/types';
-import { MACHINE_INFO, MACHINE_INFO_BY_ID } from '../../plant/catalog';
+import { MACHINE_INFO, MACHINE_INFO_BY_ID, type MachineInfo } from '../../plant/catalog';
 import { SKIN_LIST, addressMap } from '../../skins';
 import { debouncedSaver, load } from '../../state/persist';
 import { usePrefs } from '../../state/prefs';
-import { navigate, queryParam, useQueryParam } from '../../lib/router';
+import { queryParam, useQueryParam } from '../../lib/router';
 import { decodeProgram, encodeProgram, validateProgram } from './edit';
 import { Workbench } from './LazyWorkbench';
+import { Button } from '../../components/ui';
 
 /** Each machine keeps its own saved program. The motor keeps the original key so old saves still load. */
 const storeKey = (m: string) => (m === 'motor' ? 'sim-program' : `sim-program:${m}`);
@@ -86,14 +88,8 @@ function MachineSim({ machine }: { machine: string }) {
   return (
     <div>
       <RouteHead seg="sim" />
-      <a href={href('wiring')} className="btn btn-sm mb-3"><Icon name="branch" size={16} /> Wiring trainer</a>
-      <label className="flex flex-wrap items-center gap-2 mb-3">
-        <span className="font-semibold text-heading text-sm">Machine</span>
-        <select className="input !w-auto max-w-full" value={machine} onChange={(e) => navigate(e.target.value === 'motor' ? 'sim' : `sim?m=${e.target.value}`)} aria-label="Machine">
-          {MACHINE_INFO.map((m) => <option key={m.id} value={m.id}>{m.title}</option>)}
-        </select>
-        <span className="text-xs text-muted">{MACHINE_INFO_BY_ID.get(machine)!.summary}</span>
-      </label>
+      <Button href={href('wiring')} size="sm" className="mb-3"><Icon name="branch" size={16} /> Wiring trainer</Button>
+      <MachinePicker current={machine} />
       {msg && <p className="callout callout-tip text-sm mb-3" role="status">{msg}</p>}
       {!initial ? (
         <SkeletonPage />
@@ -107,10 +103,10 @@ function MachineSim({ machine }: { machine: string }) {
             onProgramChange={(p) => { current.current = p; saveProgram(machine, p); }}
             extraTools={
               <>
-                <button type="button" className="btn btn-sm" onClick={share}><Icon name="share" size={16} /> Share</button>
-                <button type="button" className="btn btn-sm" onClick={exportJson}><Icon name="download" size={16} /> Export</button>
-                <button type="button" className="btn btn-sm" onClick={() => fileRef.current?.click()}><Icon name="upload" size={16} /> Import</button>
-                <button type="button" className="btn btn-sm" onClick={async () => loadProgram((await import('../../plant')).createMachine(machine).program(), 'Restored the original program for this machine.')}><Icon name="reset" size={16} /> Original</button>
+                <Button size="sm" onClick={share}><Icon name="share" size={16} /> Share</Button>
+                <Button size="sm" onClick={exportJson}><Icon name="download" size={16} /> Export</Button>
+                <Button size="sm" onClick={() => fileRef.current?.click()}><Icon name="upload" size={16} /> Import</Button>
+                <Button size="sm" onClick={async () => loadProgram((await import('../../plant')).createMachine(machine).program(), 'Restored the original program for this machine.')}><Icon name="reset" size={16} /> Original</Button>
               </>
             }
           />
@@ -173,5 +169,51 @@ function Dialects({ program }: { program: Program }) {
         </table>
       </div>
     </section>
+  );
+}
+
+const SITE: Record<MachineInfo['site'], { icon: IconName; text: string }> = {
+  general: { icon: 'power', text: 'Any plant' },
+  mill: { icon: 'wrench', text: 'Mill' },
+  water: { icon: 'meter', text: 'Water' },
+  datacenter: { icon: 'bolt', text: 'Data center' },
+};
+
+/**
+ * Machine picker: a row of cards (it was a plain select). The chosen card's highlight glides to the new card
+ * while the workbench below cross-fades (View Transitions; instant with reduced motion).
+ */
+function MachinePicker({ current }: { current: string }) {
+  const info = MACHINE_INFO_BY_ID.get(current)!;
+  const list = useRef<HTMLUListElement>(null);
+  // Keep the chosen card in view on a phone (the row scrolls sideways).
+  useEffect(() => {
+    const el = list.current?.querySelector<HTMLElement>('[aria-current="page"]');
+    const row = list.current;
+    if (el && row) row.scrollLeft = Math.max(0, el.offsetLeft - row.clientWidth / 2 + el.clientWidth / 2);
+  }, [current]);
+  return (
+    <nav aria-label="Machine" className="mb-3">
+      <ul ref={list} className="machine-pick chip-scroll list-none p-0 m-0">
+        {MACHINE_INFO.map((m) => {
+          const on = m.id === current;
+          return (
+            <li key={m.id}>
+              <a
+                className="machine-card"
+                href={href(m.id === 'motor' ? 'sim' : `sim?m=${m.id}`)}
+                aria-current={on ? 'page' : undefined}
+                onClick={() => { if (!on) buzz(8); }}
+              >
+                {on && <span className="machine-card-glow" style={{ viewTransitionName: 'machine-pick' }} aria-hidden="true" />}
+                <span className="machine-card-site"><Icon name={SITE[m.site].icon} size={14} /> {SITE[m.site].text}</span>
+                <span className="machine-card-title">{m.title}</span>
+              </a>
+            </li>
+          );
+        })}
+      </ul>
+      <p className="text-xs text-muted m-0 mt-1.5">{info.summary}</p>
+    </nav>
   );
 }

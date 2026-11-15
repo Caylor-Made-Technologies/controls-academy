@@ -225,7 +225,7 @@ await check('Figures: Ohm\'s law slider, sinking/sourcing, scaling, number bases
   await page.getByText(/output image is copied/).waitFor();
   await go(page, 'lesson/three-wire');
   await page.getByRole('button', { name: 'Press Start' }).click();
-  await page.getByText(/sealed in through its own contact/).waitFor();
+  await page.getByText(/stays on through its own seal-in contact/).waitFor();
   await go(page, 'lesson/meter');
   await page.getByRole('group', { name: /live terminal/ }).getByRole('button', { name: 'V' }).click();
   await page.getByText(/^Right\./).waitFor();
@@ -549,7 +549,7 @@ const HUNTS = [
         expect(/\d/.test(await page.getByText(/^Meter reads /).textContent()), 'meter shows a number');
       }
       await solve(page);
-      await page.getByText('Found it').waitFor();
+      await page.locator('main#main').getByText('Found it').waitFor();
     });
   }
   await check('Fault Hunt: wrong pick costs points with a teaching moment; force costs points', async () => {
@@ -702,7 +702,7 @@ await check('Review: due questions appear, answer, finish', async () => {
   const { ctx, page } = await newPage({ progress: t1done });
   await check('Profile: level, badges, Track 1 certificate saves a PNG', async () => {
     await go(page, 'profile');
-    await page.getByText('Panel Rookie').waitFor();
+    await page.locator('main#main').getByText('Panel Rookie').waitFor();
     const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Save certificate for track 1', exact: true }).click()]);
     expect(dl.suggestedFilename().endsWith('.png'), 'png');
     expect(await page.getByRole('button', { name: 'Save certificate for track 2', exact: true }).isDisabled(), 'track 2 locked');
@@ -739,7 +739,7 @@ await check('Review: due questions appear, answer, finish', async () => {
     await page.getByText('Apprentice').waitFor();
     await page.locator('input[type=file]').setInputFiles(backup);
     await page.getByText('Progress restored.').waitFor();
-    await page.getByText('Panel Rookie').waitFor();
+    await page.locator('main#main').getByText('Panel Rookie').waitFor();
   });
   await check('About: privacy, trademarks, font licenses reachable, sister-app link', async () => {
     await go(page, 'about');
@@ -981,6 +981,61 @@ await check('States: old or mistyped links and empty filters show a designed mes
   await page.getByLabel('Filter glossary').fill('zzzzqqq');
   await page.getByText('No terms match').waitFor();
   await axe(page, 'glossary empty state');
+  await ctx.close();
+});
+
+await check('States: search with no match offers words that work; an empty ladder explains the first step', async () => {
+  const { ctx, page } = await newPage({ w: 390, h: 844 });
+  await go(page, 'learn');
+  await page.getByRole('button', { name: 'Search lessons, glossary and instructions' }).click();
+  await page.getByRole('combobox', { name: 'Search' }).fill('zzqxv');
+  await page.getByText('No matches for').waitFor();
+  expect((await page.locator('#palette-results [role=option]').count()) === 0, 'no options listed');
+  await axe(page, 'search no-match');
+  await page.getByRole('button', { name: 'timer' }).click();
+  await page.locator('#palette-results [role=option]').first().waitFor();
+  expect((await page.getByRole('combobox', { name: 'Search' }).inputValue()) === 'timer', 'suggestion fills the search');
+  await clean(page);
+  const empty = { tags: [], routines: [{ name: 'MainRoutine', rungs: [] }], main: 'MainRoutine' };
+  const code = Buffer.from(JSON.stringify(empty)).toString('base64').replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+  await go(page, `sim?p=${code}`);
+  await page.getByText('No rungs yet').waitFor({ timeout: 15000 });
+  await axe(page, 'empty ladder');
+  await ctx.close();
+});
+
+await check('Motion: with reduced motion, nothing animates (no running CSS animations, transitions or view transitions)', async () => {
+  const { ctx, page } = await newPage({ w: 390, h: 844, motion: 'reduce' });
+  for (const route of ['learn', 'profile', 'sim', 'troubleshoot', 'reference']) {
+    await go(page, route);
+    await page.waitForTimeout(400);
+    const running = await page.evaluate(() => document.getAnimations().filter((a) => a.playState === 'running' && !(a.timeline && a.timeline.constructor.name === 'ScrollTimeline')).map((a) => `${a.animationName ?? a.transitionProperty ?? 'anim'} on ${(a.effect?.target?.className?.baseVal ?? a.effect?.target?.className ?? '').toString().slice(0, 40)}`));
+    expect(running.length === 0, `${route}: running animations ${running.slice(0, 4).join(', ')}`);
+  }
+  // A machine switch with reduced motion is instant: no view transition runs.
+  await go(page, 'sim');
+  await page.evaluate(() => { window.__vt = 0; const o = document.startViewTransition?.bind(document); if (o) document.startViewTransition = (cb) => { window.__vt++; return o(cb); }; });
+  await page.getByRole('link', { name: /Bag conveyor/ }).click();
+  await page.waitForFunction(() => location.hash.includes('m=conveyor'));
+  expect((await page.evaluate(() => window.__vt)) === 0, 'no view transition with reduced motion');
+  await ctx.close();
+});
+
+await check('Simulator: the machine picker is a row of links; the chosen machine is marked and switching loads it', async () => {
+  const { ctx, page } = await newPage({ w: 390, h: 844, motion: 'no-preference' });
+  await go(page, 'sim?m=tank');
+  const nav = page.getByRole('navigation', { name: 'Machine' });
+  expect((await nav.getByRole('link').count()) === 8, 'eight machines');
+  expect((await nav.locator('[aria-current=page]').textContent()).includes('Tank level'), 'tank marked current');
+  const box = await nav.locator('[aria-current=page]').boundingBox();
+  expect(box && box.x >= 0 && box.x + box.width <= 390, 'chosen card scrolled into view');
+  for (const a of await nav.getByRole('link').all()) { const b = await a.boundingBox(); expect(b.height >= 44, 'card is a 44 px target'); }
+  await nav.getByRole('link', { name: /Fan on a VFD/ }).click();
+  await page.waitForFunction(() => location.hash.includes('m=vfd'));
+  await page.waitForTimeout(600);
+  expect((await nav.locator('[aria-current=page]').textContent()).includes('Fan on a VFD'), 'VFD marked current');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= 390), 'no sideways page scroll');
+  await axe(page, 'machine picker');
   await ctx.close();
 });
 

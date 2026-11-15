@@ -162,3 +162,48 @@ a.row:active, button.row:active { transform: scale(0.99); }
 .seg-off { fill: var(--meter-ink); opacity: 0.08; }
 .meter-anno { fill: var(--meter-ink); font-family: var(--font-mono); font-weight: 700; letter-spacing: 0.06em; opacity: 0.85; }
 .meter-unit { fill: var(--meter-ink); font-family: var(--font-mono); font-weight: 700; }
+
+/* ---------- Empty ladder: a blank rung between the rails ---------- */
+.ladder-empty { display: grid; gap: var(--space-1); justify-items: center; text-align: center; padding: var(--space-3) var(--space-4) var(--space-4); }
+.ladder-empty-rung { width: 100%; max-width: var(--size-320); height: var(--space-10); display: flex; align-items: center; border-left: var(--space-1) solid var(--dead); border-right: var(--space-1) solid var(--dead); }
+.ladder-empty-rung span { flex: 1; border-top: 2px dashed var(--border-strong); margin: 0 var(--space-2); }
+
+/* ---------- Machine picker (simulator): a sideways row of cards ---------- */
+.machine-pick { display: flex; gap: var(--space-2); overflow-x: auto; padding-bottom: var(--space-1); scroll-snap-type: x proximity; }
+.machine-card {
+  position: relative; display: flex; flex-direction: column; justify-content: space-between; gap: var(--space-1); width: var(--size-160); min-height: var(--space-16);
+  padding: var(--space-2h) var(--space-3); border-radius: var(--radius-md); border: 1px solid var(--border); background: var(--surface-raised);
+  color: var(--text-body); text-decoration: none; scroll-snap-align: start; isolation: isolate;
+}
+.machine-card:hover { border-color: var(--blue-glow); }
+.machine-card[aria-current='page'] { border-color: var(--blue-glow); color: var(--text-heading); }
+.machine-card-glow { position: absolute; inset: -1px; z-index: -1; border-radius: inherit; background: var(--blue-soft); box-shadow: 0 0 0 1px var(--blue-glow); }
+.machine-card-site { display: inline-flex; align-items: center; gap: var(--space-1); font-size: var(--text-2xs); font-weight: 700; text-transform: uppercase; letter-spacing: 0.06em; color: var(--text-muted); }
+.machine-card-title { font-size: var(--text-sm); font-weight: 700; line-height: 1.25; }
+::view-transition-group(machine-pick) { animation-duration: var(--dur-slow); }
+
+/* ---------- Reward moment (level up, badge): one short pop and a shine, under a second ---------- */
+.toast-reward { border-color: var(--warn); }
+.toast-reward .toast-icon { color: var(--warn); }
+.toast[data-enter='pop'] { animation: toast-pop var(--dur-slow) var(--ease-spring, var(--ease)) both; overflow: hidden; position: relative; }
+.toast[data-enter='pop']::after {
+  content: ''; position: absolute; inset: 0; pointer-events: none;
+  background: linear-gradient(100deg, transparent 30%, var(--warn-soft) 50%, transparent 70%);
+  transform: translateX(-100%); animation: toast-shine var(--dur-move) var(--ease) 0.15s forwards;
+}
+@keyframes toast-pop { from { opacity: 0; transform: translateY(var(--space-3)) scale(0.92); } to { opacity: 1; transform: none; } }
+@keyframes toast-shine { to { transform: translateX(100%); } }
+@media (prefers-reduced-motion: reduce) { .toast[data-enter='pop'], .toast[data-enter='pop']::after { animation: none; } .toast[data-enter='pop']::after { display: none; } }
+
+/* ---------- Scroll cue on rungs that are still wider than the screen ----------
+   The right edge fades while there is more rung to scroll to, and the fade lifts at the end. Driven by the
+   rung's own scroll position; a rung that fits has no scroll timeline, so it is never masked. */
+@property --rung-cue { syntax: '<number>'; inherits: false; initial-value: 0; }
+@keyframes rung-cue { 0%, 92% { --rung-cue: 1; } 100% { --rung-cue: 0; } }
+@supports (animation-timeline: scroll()) {
+  .rung-body {
+    mask-image: linear-gradient(90deg, var(--black) calc(100% - var(--space-8) * var(--rung-cue)), transparent);
+    animation: rung-cue linear both;
+    animation-timeline: scroll(self inline);
+  }
+}

@@ -9,13 +9,14 @@ import { href } from '../../lib/router';
 import { usePrefs } from '../../state/prefs';
 import { hasWebGL, prefer3D } from '../../three/support';
 import { Callout, NotFound } from '../../components/ui';
+import { Button } from '../../components/ui';
 
 const Inside3D = lazy(() => import('../../three/Inside3D'));
 
 export function InsideList() {
   return (
     <div>
-      <a href={href('reference')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Reference</a>
+      <Button href={href('reference')} variant="ghost" size="sm" className="-ml-2 mb-2"><Icon name="back" size={16} /> Reference</Button>
       <PageHead eyebrow="Reference" title="What's inside">Exploded views of devices you'll meet on day one. Pull them apart, tap a part, learn what it does and how it fails.</PageHead>
       <div className="grid gap-2 sm:grid-cols-2">
         {INSIDE.map((d) => (
@@ -42,11 +43,11 @@ export function InsideDetail({ id }: { id: string }) {
   const part = device.parts.find((p) => p.id === sel) ?? null;
   return (
     <div>
-      <a href={href('reference/inside')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> What's inside</a>
+      <Button href={href('reference/inside')} variant="ghost" size="sm" className="-ml-2 mb-2"><Icon name="back" size={16} /> What's inside</Button>
       <PageHead eyebrow="What's inside" title={device.title}>{device.summary}</PageHead>
       <Callout tone="safety" className="mb-3 text-sm">{device.safety}</Callout>
       {can3d && (
-        <button type="button" className="btn btn-sm mb-2" aria-pressed={show3d} onClick={() => setShow3d(!show3d)}><Icon name="layers" size={16} /> {show3d ? 'Hide 3D view' : 'Show 3D view'}</button>
+        <Button size="sm" className="mb-2" aria-pressed={show3d} onClick={() => setShow3d(!show3d)}><Icon name="layers" size={16} /> {show3d ? 'Hide 3D view' : 'Show 3D view'}</Button>
       )}
       {can3d && show3d && (
         <div className="mb-3">
@@ -73,9 +74,9 @@ export function InsideDetail({ id }: { id: string }) {
         <ul className="m-0 p-0 list-none space-y-1">
           {device.parts.map((p) => (
             <li key={p.id}>
-              <button type="button" className={`btn btn-ghost w-full !justify-start text-left !min-h-11 ${sel === p.id ? 'btn-primary' : ''}`} aria-pressed={sel === p.id} onClick={() => setSel(sel === p.id ? null : p.id)}>
+              <Button variant={sel === p.id ? 'primary' : 'ghost'} className="w-full !justify-start text-left !min-h-11" aria-pressed={sel === p.id} onClick={() => setSel(sel === p.id ? null : p.id)}>
                 {p.name}
-              </button>
+              </Button>
             </li>
           ))}
         </ul>

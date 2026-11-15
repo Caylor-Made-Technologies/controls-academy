@@ -12,7 +12,8 @@ import { HARDWARE, categoryOf } from '../../content/hardware';
 import { HardwareCard, HardwareDetail, HardwareLibrary } from './HardwarePages';
 import { HwFront } from '../../components/HwFront';
 import { InsideDetail, InsideList } from './InsidePages';
-import { EmptyState, NotFound } from '../../components/ui';
+import { EmptyState, NotFound, Chip } from '../../components/ui';
+import { Button } from '../../components/ui';
 
 const SECTIONS = [
   { id: 'brands', title: 'Brand field guides', desc: 'Software, hardware, addressing, first-day checklists, tips and gotchas.', icon: 'layers' as const },
@@ -69,7 +70,7 @@ export default function ReferencePage({ section, item }: { section?: string; ite
 }
 
 function Back({ to = 'reference', label = 'Reference' }: { to?: string; label?: string }) {
-  return <a href={href(to)} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> {label}</a>;
+  return <Button href={href(to)} variant="ghost" size="sm" className="-ml-2 mb-2"><Icon name="back" size={16} /> {label}</Button>;
 }
 
 function Brands() {
@@ -111,9 +112,9 @@ function BrandGuide({ id }: { id: string }) {
       <PageHead eyebrow="Brand field guide" title={b.name}>{b.us && <Rich text={b.us} />}</PageHead>
       <div className="flex flex-wrap gap-2 mb-4">
 {models.some((m) => ['plc', 'logic'].includes(categoryOf(m))) && (
-                  <button type="button" className="btn btn-sm" disabled={skin === b.skin} onClick={() => setPrefs({ skin: b.skin, hwModel: '' })}>
+                  <Button size="sm" disabled={skin === b.skin} onClick={() => setPrefs({ skin: b.skin, hwModel: '' })}>
           <Icon name="sim" size={16} /> {skin === b.skin ? `Simulator uses ${SKINS[b.skin].brand}` : `Use ${SKINS[b.skin].brand} skin in the simulator`}
-        </button>
+        </Button>
         )}
       </div>
       <div className="grid gap-3 lg:grid-cols-2">
@@ -130,7 +131,7 @@ function BrandGuide({ id }: { id: string }) {
         <List title="Gotchas" items={b.gotchas} tone="gotcha" />
         <section className="card card-pad">
           <h2 className="text-base font-bold mb-2">Hardware families</h2>
-          <div className="flex flex-wrap gap-1.5">{b.hardware.map((h) => <span key={h} className="chip">{h}</span>)}</div>
+          <div className="flex flex-wrap gap-1.5">{b.hardware.map((h) => <Chip key={h}>{h}</Chip>)}</div>
           <p className="text-sm text-muted mt-3 mb-0"><Rich text={SKINS[b.skin].notes[0]} /></p>
         </section>
         {b.hmi && <List title="HMIs and SCADA you'll see with it" items={b.hmi} />}
@@ -164,14 +165,14 @@ function Instructions() {
       <PageHead eyebrow="Reference" title="Instruction reference">Behavior is the generic Logix/IEC baseline the simulator runs. Names are shown for your skin plus two others.</PageHead>
       <div className="flex gap-1.5 overflow-x-auto pb-2 mb-2" role="group" aria-label="Category">
         {(['all', ...Object.keys(CATS)] as (OpCategory | 'all')[]).map((c) => (
-          <button key={c} type="button" className="chip cursor-pointer !min-h-11 whitespace-nowrap" aria-pressed={cat === c} style={cat === c ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined} onClick={() => setCat(c)}>{c === 'all' ? 'All' : CATS[c]}</button>
+          <Chip key={c} onClick={() => setCat(c)} pressed={cat === c} className="whitespace-nowrap">{c === 'all' ? 'All' : CATS[c]}</Chip>
         ))}
       </div>
       <p className="text-xs text-muted mt-0 mb-3">* = no exact native equivalent on that platform; the closest tool is shown. "—" = not available.</p>
       <div className="grid gap-2 sm:grid-cols-2">
         {list.map((o) => (
           <section key={o.op} id={`op-${o.op}`} className="card card-pad" style={focus === o.op ? { borderColor: 'var(--blue-glow)', boxShadow: 'var(--glow)' } : undefined}>
-            <div className="flex items-baseline justify-between gap-2"><h2 className="text-base font-bold font-mono m-0">{o.op}</h2><span className="chip !min-h-5.5 !text-2xs">{o.role}</span></div>
+            <div className="flex items-baseline justify-between gap-2"><h2 className="text-base font-bold font-mono m-0">{o.op}</h2><Chip className="!min-h-5.5 !text-2xs">{o.role}</Chip></div>
             <p className="m-0 font-semibold text-heading text-sm">{o.title}</p>
             <p className="text-sm text-muted mt-1 mb-2">{o.summary}</p>
             {o.args.length > 0 && <p className="text-xs m-0 mb-2"><span className="text-muted">Operands:</span> <span className="font-mono">{o.args.map((a) => a.name).join(', ')}</span></p>}

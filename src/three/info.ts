@@ -1,3 +1,4 @@
+import { fitViewInsets, type Insets, type V3 } from './fit';
 /** What each 3D component is, what it does, and how to test it. Generic hardware only. */
 export interface PartInfo {
   title: string;
@@ -40,3 +41,23 @@ export const TOURS: { id: string; label: string; part: PartId; pos: [number, num
   { id: 'terminals', label: 'Terminal strip', part: 'terminals', pos: [0.1, -0.3, 0.65], target: [0.08, -0.42, 0.04] },
   { id: 'station', label: 'Operator station', part: 'station', pos: [1.05, 0.0, 1.0], target: [0.82, -0.05, 0.12] },
 ];
+
+
+/**
+ * What the overview must keep in view: enclosure, operator station and motor (not the conduit above the
+ * enclosure, the wall or the painted clearance box). Fixed numbers from the scene layout in PanelScene.
+ */
+const PANEL_MIN: V3 = [-0.46, -0.75, -0.03];
+/** The open door reaches out to here. Wide canvases include it at almost no cost; on a portrait phone it would
+ *  shrink the whole panel by a third, so there it runs off the left edge instead. */
+const DOOR_MIN_X = -1.27;
+const PANEL_MAX: V3 = [1.1, 0.62, 0.56];
+/** The tour chips cover the top of the canvas and the tool row the bottom (fractions of the half-height). */
+const PANEL_INSETS: Insets = { top: 0.2, bottom: 0.24, left: 0.03, right: 0.03 };
+
+/** Overview camera for this canvas shape, seen from the overview tour's direction. */
+export function panelHome(aspect: number, fov = 38): { pos: V3; target: V3 } {
+  const t = TOURS[0];
+  const min: V3 = aspect >= 1 ? [DOOR_MIN_X, PANEL_MIN[1], PANEL_MIN[2]] : PANEL_MIN;
+  return fitViewInsets(min, PANEL_MAX, t.pos, t.target, fov, aspect, PANEL_INSETS);
+}

@@ -9,6 +9,7 @@ import { lessonText } from '../../content/quality';
 import type { Track, TrackId } from '../../content/types';
 import { BUSINESS } from '../../lib/business';
 import { href } from '../../lib/router';
+import { Button } from '../../components/ui';
 
 /** Plain text from inline markup: [[id|label]] → label, **x** → x. */
 export const plain = (t: string) => t.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2').replace(/\[\[([^\]]+)\]\]/g, (_, id) => GLOSSARY_BY_ID.get(id)?.term ?? id).replace(/\*\*/g, '').replace(/\s*\/\/ VERIFY.*$/, '');
@@ -49,7 +50,7 @@ export default function SummaryPage({ track }: { track?: string }) {
   if (!t || !s) {
     return (
       <div>
-        <a href={href('learn')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Learn</a>
+        <Button href={href('learn')} variant="ghost" size="sm" className="-ml-2 mb-2"><Icon name="back" size={16} /> Learn</Button>
         <PageHead eyebrow="Learn" title="Study summaries">One printable page per track: key terms, formulas, safety points and common mistakes.</PageHead>
         <ul className="list-none p-0 m-0 grid gap-2 sm:grid-cols-2">
           {TRACKS.map((x) => <li key={x.id}><a className="card card-link card-pad block" href={href(`summary/${x.id}`)}><span className="eyebrow">Track {x.n}</span><span className="block font-bold text-heading mt-1">{x.title}</span></a></li>)}
@@ -60,9 +61,9 @@ export default function SummaryPage({ track }: { track?: string }) {
   return (
     <article className="summary max-w-[78ch]">
       <div className="no-print flex flex-wrap gap-2 mb-3">
-        <a href={href('summary')} className="btn btn-ghost btn-sm -ml-2"><Icon name="back" size={16} /> All summaries</a>
-        <button type="button" className="btn btn-sm btn-primary" onClick={() => window.print()}><Icon name="download" size={16} /> Print / save as PDF</button>
-        <button type="button" className="btn btn-sm" onClick={() => download(t)}><Icon name="download" size={16} /> Download (.md)</button>
+        <Button href={href('summary')} variant="ghost" size="sm" className="-ml-2"><Icon name="back" size={16} /> All summaries</Button>
+        <Button variant="primary" size="sm" onClick={() => window.print()}><Icon name="download" size={16} /> Print / save as PDF</Button>
+        <Button size="sm" onClick={() => download(t)}><Icon name="download" size={16} /> Download (.md)</Button>
       </div>
       <header className="mb-4">
         <p className="eyebrow m-0">Study summary · Track {t.n} · {t.level}</p>

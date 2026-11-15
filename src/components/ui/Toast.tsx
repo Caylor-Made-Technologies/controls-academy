@@ -1,7 +1,7 @@
 import { useEffect, useSyncExternalStore } from 'react';
 import { Icon } from '../Icon';
 
-export interface ToastItem { id: number; text: string; tone: 'info' | 'live' | 'warn' | 'alarm' }
+export interface ToastItem { id: number; text: string; tone: 'info' | 'live' | 'warn' | 'alarm' | 'reward' }
 
 let items: ToastItem[] = [];
 let nextId = 1;
@@ -21,7 +21,7 @@ export function dismissToast(id: number): void {
   emit();
 }
 
-const ICONS = { info: 'info', live: 'check', warn: 'warn', alarm: 'x' } as const;
+const ICONS = { info: 'info', live: 'check', warn: 'warn', alarm: 'x', reward: 'trophy' } as const;
 
 /** Mounted once in the app shell. A polite live region, so screen readers hear each message. */
 export function Toaster() {
@@ -30,7 +30,7 @@ export function Toaster() {
   return (
     <div className="toaster" role="status" aria-live="polite">
       {list.map((t) => (
-        <div key={t.id} className={`toast toast-${t.tone}`} data-enter="rise">
+        <div key={t.id} className={`toast toast-${t.tone}`} data-enter={t.tone === 'reward' ? 'pop' : 'rise'}>
           <Icon name={ICONS[t.tone]} size={18} className="toast-icon" />
           <span className="toast-text">{t.text}</span>
           <button type="button" className="toast-close" onClick={() => dismissToast(t.id)} aria-label="Dismiss message"><Icon name="x" size={16} /></button>

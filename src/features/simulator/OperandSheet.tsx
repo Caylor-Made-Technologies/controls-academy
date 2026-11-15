@@ -4,6 +4,7 @@ import { OPS, OP_LIST, type ArgKind } from '../../engine/ops';
 import { TagStore, structMembers } from '../../engine/tags';
 import type { DataType, Instr, OpCode, Program, TagDecl } from '../../engine/types';
 import { addressMap, displayRef, mnemonic, type Skin } from '../../skins';
+import { Button, Chip } from '../../components/ui';
 
 const KIND_TYPES: Partial<Record<ArgKind, DataType[]>> = {
   timer: ['TIMER'], counter: ['COUNTER'], struct: ['TIMER', 'COUNTER'], pid: ['PID'], storage: ['BOOL'],
@@ -135,9 +136,9 @@ export function OperandSheet({
               {sugg.length > 0 && (
                 <div className="flex gap-1.5 overflow-x-auto pb-1" role="group" aria-label={`Suggestions for ${a.name}`}>
                   {sugg.slice(0, 24).map((s) => (
-                    <button type="button" key={s} className="chip whitespace-nowrap cursor-pointer !min-h-11" aria-pressed={v === s} onClick={() => { const next = [...fixedArgs]; next[i] = s; setArgs(next); }}>
+                    <Chip key={s} onClick={() => { const next = [...fixedArgs]; next[i] = s; setArgs(next); }} pressed={v === s} className="whitespace-nowrap">
                       {s}
-                    </button>
+                    </Chip>
                   ))}
                 </div>
               )}
@@ -157,15 +158,15 @@ export function OperandSheet({
             {['TIMER', 'COUNTER'].includes(newType) && (
               <label className="block"><span className="text-xs text-muted">{newType === 'TIMER' ? 'Preset (ms)' : 'Preset'}</span><input className="input w-28" inputMode="numeric" value={newPre} onChange={(e) => setNewPre(e.target.value.replace(/[^\d]/g, ''))} /></label>
             )}
-            <button type="button" className="btn" onClick={createTag} disabled={!NAME.test(newName) || store.has(newName)}>Add tag</button>
+            <Button onClick={createTag} disabled={!NAME.test(newName) || store.has(newName)}>Add tag</Button>
           </div>
           {newName && !NAME.test(newName) && <p className="text-xs text-warn mt-2 mb-0">Start with a letter; letters, numbers and _ only.</p>}
           {store.has(newName) && <p className="text-xs text-warn mt-2 mb-0">That tag already exists.</p>}
         </details>
 
         <div className="flex gap-2 justify-end">
-          <button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button>
-          <button type="submit" className="btn btn-primary" disabled={!ok}>Save</button>
+          <Button variant="ghost" onClick={onClose}>Cancel</Button>
+          <Button type="submit" variant="primary" disabled={!ok}>Save</Button>
         </div>
       </form>
     </Sheet>

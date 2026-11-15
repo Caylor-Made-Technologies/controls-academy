@@ -6,6 +6,7 @@ import { href } from '../../lib/router';
 import { dueReviews, useProgress } from '../../state/progress';
 import { QuestionCard } from './Quiz';
 import { EmptyState } from '../../components/ui';
+import { Button } from '../../components/ui';
 
 export default function ReviewPage() {
   const p = useProgress();
@@ -35,9 +36,9 @@ export default function ReviewPage() {
             setAnswered(true);
           }} />
           {i >= first.size && <p className="text-xs text-muted m-0">One more try — missed earlier in this session.</p>}
-          <button type="button" className="btn btn-primary" disabled={!answered} onClick={() => { setI(i + 1); setAnswered(false); }}>
+          <Button variant="primary" disabled={!answered} onClick={() => { setI(i + 1); setAnswered(false); }}>
             {i + 1 < qs.length ? 'Next question' : 'Finish'} <Icon name="chevron" size={16} />
-          </button>
+          </Button>
         </div>
       )}
     </div>

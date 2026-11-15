@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { Icon, type IconName } from '../components/Icon';
 import { Sheet } from '../components/Sheet';
+import { Button, Chip } from '../components/ui';
 import { LESSONS } from '../content';
 import { BRAND_GUIDES } from '../content/brands';
 import { HARDWARE } from '../content/hardware';
 import { GLOSSARY } from '../content/glossary';
 import { OP_LIST } from '../engine/ops';
-import { navigate } from '../lib/router';
+import { href, navigate } from '../lib/router';
 
 interface Item {
   title: string;
@@ -29,6 +30,9 @@ function buildIndex(): Item[] {
     { title: 'Settings & backup', sub: 'Theme, sound, brand, export progress', path: 'profile', icon: 'gear', hay: 'settings profile theme dark light sound export import backup certificate badges' },
   ];
 }
+
+/** Shown when nothing matches: words that always find something, so a beginner can keep going. */
+const SUGGEST = ['timer', 'sinking', 'seal-in', 'Siemens', 'overload'];
 
 function score(item: Item, q: string): number {
   const t = item.title.toLowerCase();
@@ -81,6 +85,7 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
           }}
         />
       </div>
+      {!q.trim() && <p className="text-xs text-muted m-0 mt-3" id="palette-hint">Start with a lesson, or type a term, an instruction (TON, XIC) or a brand.</p>}
       <ul id="palette-results" ref={listRef} role="listbox" className="list-none p-0 m-0 mt-3 space-y-1 max-h-[55dvh] overflow-y-auto">
         {results.map((r, i) => (
           <li key={r.path + r.title} id={`pal-${i}`} role="option" aria-selected={i === active}>
@@ -93,8 +98,17 @@ export function CommandPalette({ open, onClose }: { open: boolean; onClose: () =
             </button>
           </li>
         ))}
-        {results.length === 0 && <li className="text-sm text-muted p-3">No matches. Try "timer", "sinking" or "Siemens".</li>}
       </ul>
+      {results.length === 0 && (
+        <div className="state-box !py-4" role="status">
+          <p className="state-title !text-base m-0">No matches for “{q.trim()}”</p>
+          <p className="state-body text-sm m-0">Check the spelling, or search one word at a time. Try one of these:</p>
+          <div className="flex flex-wrap justify-center gap-1.5 mt-2">
+            {SUGGEST.map((w) => <Chip key={w} icon="search" onClick={() => setQ(w)}>{w}</Chip>)}
+          </div>
+          <div className="state-actions"><Button size="sm" href={href('reference/glossary')} onClick={onClose} iconEnd="chevron">Browse the glossary</Button></div>
+        </div>
+      )}
     </Sheet>
   );
 }

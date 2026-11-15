@@ -26,6 +26,8 @@ for (const shape of SHAPES) {
     await page.goto('about:blank');
     await page.goto(`${BASE}#/${v.route}`);
     await page.waitForSelector('canvas', { timeout: 30000 });
+    // A 3D view below the fold draws nothing until it is on screen (Stage pauses off-screen views).
+    await page.locator('canvas').last().scrollIntoViewIfNeeded();
     await page.waitForFunction(() => { const s = window.__ca3d.stats(); return s.live > 0 && s.stages.every((x) => x.frames > 0); }, null, { timeout: 30000 });
     await page.waitForTimeout(900);
     const dumps = await page.evaluate(() => window.__ca3d.dump());

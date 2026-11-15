@@ -11,14 +11,15 @@ import { SKINS } from '../../skins';
 import { usePrefs } from '../../state/prefs';
 import { prefer3D } from '../../three/support';
 import { useAfterPaint } from '../../lib/afterPaint';
-import { EmptyState, NotFound } from '../../components/ui';
+import { EmptyState, NotFound, Segmented, Chip } from '../../components/ui';
+import { Button } from '../../components/ui';
 
 const Hardware3D = lazy(() => import('../../three/Hardware3D'));
 
 const brandName = (id: string) => BRAND_GUIDES.find((b) => b.id === id)?.name ?? id;
 
 function Back({ to, label }: { to: string; label: string }) {
-  return <a href={href(to)} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> {label}</a>;
+  return <Button href={href(to)} variant="ghost" size="sm" className="-ml-2 mb-2"><Icon name="back" size={16} /> {label}</Button>;
 }
 
 function StatusChip({ m }: { m: HwModel }) {
@@ -73,24 +74,20 @@ export function HardwareLibrary() {
           <Icon name="search" size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted pointer-events-none" />
           <input className="input !pl-9" type="search" value={q} onChange={(e) => setQ(e.target.value)} placeholder="Search: 1756, S7-1200, CLICK, slice I/O…" aria-label="Search hardware" />
         </label>
-        <div className="seg" role="group" aria-label="Filter by status">
-          {(['all', 'current', 'mature', 'legacy'] as const).map((st) => (
-            <button key={st} type="button" aria-pressed={status === st} onClick={() => setStatus(st)}>{st === 'all' ? 'All' : st[0].toUpperCase() + st.slice(1)}</button>
-          ))}
-        </div>
+        <Segmented label="Filter by status" value={status} onChange={setStatus} options={(['all', 'current', 'mature', 'legacy'] as const).map((st) => ({ value: st, label: st === 'all' ? 'All' : st[0].toUpperCase() + st.slice(1) }))} />
       </div>
       <div className="flex gap-1.5 overflow-x-auto pb-2 mb-1 chip-scroll" role="group" aria-label="Filter by type">
         {([['all', 'All types'], ...Object.entries(CATEGORY_TEXT)] as [string, string][]).map(([id, label]) => (
-          <button key={id} type="button" className="chip cursor-pointer !min-h-11 whitespace-nowrap" aria-pressed={cat === id} style={cat === id ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined} onClick={() => setCat(id as 'all' | HwCategory)}>
+          <Chip key={id} onClick={() => setCat(id as 'all' | HwCategory)} pressed={cat === id} className="whitespace-nowrap">
             {label} <span className="text-muted font-semibold ml-0.5">{id === 'all' ? HARDWARE.length : HARDWARE.filter((m) => categoryOf(m) === id).length}</span>
-          </button>
+          </Chip>
         ))}
       </div>
       <div className="flex gap-1.5 overflow-x-auto pb-2 mb-1 chip-scroll" role="group" aria-label="Filter by brand">
         {[{ id: 'all', name: 'All brands' }, ...brands].map((b) => (
-          <button key={b.id} type="button" className="chip cursor-pointer !min-h-11 whitespace-nowrap" aria-pressed={brand === b.id} style={brand === b.id ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined} onClick={() => setBrand(b.id)}>
+          <Chip key={b.id} onClick={() => setBrand(b.id)} pressed={brand === b.id} className="whitespace-nowrap">
             {b.name.split(' (')[0].split(' / ')[0]}
-          </button>
+          </Chip>
         ))}
       </div>
       <p className="text-sm text-muted mb-3" aria-live="polite">{list.length === HARDWARE.length ? `All ${list.length} models` : `${list.length} of ${HARDWARE.length} models`}</p>
@@ -139,7 +136,7 @@ export function HardwareDetail({ id }: { id: string }) {
       <PageHead eyebrow={brandName(m.brand)} title={m.name}>{m.role}.</PageHead>
       <div className="flex flex-wrap gap-2 mb-3 items-center">
         <StatusChip m={m} />
-        <span className="chip !text-2xs">{CATEGORY_TEXT[categoryOf(m)]}</span>
+        <Chip className="!text-2xs">{CATEGORY_TEXT[categoryOf(m)]}</Chip>
         <span className="text-sm text-muted">{STATUS_TEXT[m.status]}</span>
       </div>
 
@@ -150,15 +147,15 @@ export function HardwareDetail({ id }: { id: string }) {
           <div className="p-3" style={{ background: 'var(--stage-2)' }}><HwFront model={m} selected={sel} onSelect={setSel} className="block w-full h-56" /></div>
         )}
         <div className="flex flex-wrap gap-2 items-center px-3 py-2 border-t border-line">
-          <button type="button" className="btn btn-sm btn-ghost" onClick={() => setWant3d(!want3d)} aria-pressed={want3d}>
+          <Button variant="ghost" size="sm" onClick={() => setWant3d(!want3d)} aria-pressed={want3d}>
             <Icon name="layers" size={16} /> {want3d ? 'Show flat front view' : 'Show in 3D'}
-          </button>
+          </Button>
           {isPlc && (
-            <button type="button" className="btn btn-sm" disabled={inSim} onClick={() => setPrefs({ hwModel: m.id, skin: m.skin })}>
+            <Button size="sm" disabled={inSim} onClick={() => setPrefs({ hwModel: m.id, skin: m.skin })}>
               <Icon name="sim" size={16} /> {inSim ? 'Shown in the simulator' : 'Use in the simulator'}
-            </button>
+            </Button>
           )}
-          {inSim && <a className="btn btn-sm btn-ghost" href={href('sim')}>Open simulator <Icon name="chevron" size={16} /></a>}
+          {inSim && <Button variant="ghost" size="sm" href={href('sim')}>Open simulator <Icon name="chevron" size={16} /></Button>}
         </div>
         <p className="text-xs text-muted px-3 pb-2 m-0">Drag to turn, pinch to zoom, tap a module. Simplified generic look-alike: proportions are approximate, no logos. {isPlc ? `Simulator dialect: ${SKINS[m.skin].brand}.` : `Type: ${CATEGORY_TEXT[categoryOf(m)]}.`}</p>
       </section>
@@ -198,9 +195,9 @@ export function HardwareDetail({ id }: { id: string }) {
           <h2 className="text-base font-bold mb-2">Modules in this example</h2>
           <div className="flex flex-wrap gap-1.5 mb-2">
             {m.shape.units.map((u, i) => u.kind !== 'blank' && (
-              <button key={i} type="button" className="chip cursor-pointer !min-h-11" aria-pressed={sel === i} onClick={() => setSel(sel === i ? null : i)} style={sel === i ? { borderColor: 'var(--blue-glow)', color: 'var(--blue-glow)' } : undefined}>
+              <Chip key={i} onClick={() => setSel(sel === i ? null : i)} pressed={sel === i}>
                 {u.label || UNIT_INFO[u.kind].title}
-              </button>
+              </Chip>
             ))}
           </div>
           <dl className="m-0 space-y-1.5">
@@ -213,7 +210,7 @@ export function HardwareDetail({ id }: { id: string }) {
         {prev ? <a className="card card-link card-pad !py-3 text-sm" href={href(`reference/hw/${prev.id}`)}><span className="flex items-center gap-1 text-muted text-xs"><Icon name="left" size={14} /> Previous</span><span className="block font-bold text-heading">{prev.name}</span></a> : <span />}
         {next ? <a className="card card-link card-pad !py-3 text-sm text-right" href={href(`reference/hw/${next.id}`)}><span className="flex items-center justify-end gap-1 text-muted text-xs">Next <Icon name="right" size={14} /></span><span className="block font-bold text-heading">{next.name}</span></a> : <span />}
       </nav>
-      <p className="mt-3"><a className="btn btn-sm btn-ghost" href={href(`reference/brand/${m.brand}`)}>{brandName(m.brand)} field guide <Icon name="chevron" size={16} /></a></p>
+      <p className="mt-3"><Button variant="ghost" size="sm" href={href(`reference/brand/${m.brand}`)}>{brandName(m.brand)} field guide <Icon name="chevron" size={16} /></Button></p>
     </div>
   );
 }

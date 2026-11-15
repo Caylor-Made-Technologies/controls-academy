@@ -22,6 +22,7 @@ import { hasWebGL, prefer3D } from '../../three/support';
 import { useAfterPaint } from '../../lib/afterPaint';
 import { MACHINE_CAPTION, PosterFrame } from '../../three/poster/frames';
 import { POSTERS } from '../../three/poster/sim.gen';
+import { Button, Segmented } from '../../components/ui';
 
 const Panel3D = lazy(() => import('../../three/Panel3D'));
 const Machine3D = lazy(() => import('../../three/Machine3D'));
@@ -167,10 +168,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
     <div className="space-y-3">
       {!hidePanel && can3d && (
         <div className="flex items-center gap-2">
-          <div className="seg" role="group" aria-label="Machine view">
-            <button type="button" aria-pressed={!view3d} onClick={() => setView3d(false)}>2D</button>
-            <button type="button" aria-pressed={view3d} onClick={() => setView3d(true)}>{rt.scene.view3d === 'motor-panel' ? '3D panel' : '3D machine'}</button>
-          </div>
+          <Segmented label="Machine view" value={view3d ? '3d' : '2d'} onChange={(v) => setView3d(v === '3d')} options={[{ value: '2d', label: '2D' }, { value: '3d', label: rt.scene.view3d === 'motor-panel' ? '3D panel' : '3D machine' }]} />
           {view3d && <span className="text-xs text-muted">Live — synced to the logic below.</span>}
         </div>
       )}
@@ -193,27 +191,21 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
           </div>
           {/* Controller bar */}
           <div className="flex flex-wrap items-center gap-2 p-3 border-b border-line bg-raised">
-            <div className="seg" role="group" aria-label="Scan speed">
-              {(['run', 'slow', 'step'] as RunMode[]).map((m) => (
-                <button key={m} type="button" aria-pressed={rt.runMode === m} onClick={() => { rt.setRunMode(m); buzz(5); }}>
-                  {m === 'run' ? 'Run' : m === 'slow' ? 'Slow-mo' : 'Step'}
-                </button>
-              ))}
-            </div>
+            <Segmented label="Scan speed" value={rt.runMode} onChange={(m) => { rt.setRunMode(m); buzz(5); }} options={(['run', 'slow', 'step'] as RunMode[]).map((m) => ({ value: m, label: m === 'run' ? 'Run' : m === 'slow' ? 'Slow-mo' : 'Step' }))} />
             {rt.runMode === 'step' && (
-              <button type="button" className="btn btn-primary btn-sm" onClick={() => { const before = rt.stepScans; rt.step(); if (rt.stepScans > before) useProgress.getState().markStepped(); buzz(5); }} disabled={p.mode !== 'RUN' || Boolean(p.fault)}>
+              <Button variant="primary" size="sm" onClick={() => { const before = rt.stepScans; rt.step(); if (rt.stepScans > before) useProgress.getState().markStepped(); buzz(5); }} disabled={p.mode !== 'RUN' || Boolean(p.fault)}>
                 <Icon name="step" size={16} /> Step
-              </button>
+              </Button>
             )}
-            <button
-              type="button"
-              className={`btn btn-sm ${p.mode === 'RUN' ? '' : 'btn-danger'}`}
+            <Button
+              size="sm"
+              variant={p.mode === 'RUN' ? 'default' : 'danger'}
               onClick={() => { p.setMode(p.mode === 'RUN' ? 'PROG' : 'RUN'); rt.notify(); }}
               aria-label={`Controller mode ${p.mode}. Switch to ${p.mode === 'RUN' ? 'PROG' : 'RUN'}`}
             >
               <span className={`inline-block w-2.5 h-2.5 rounded-full ${p.mode === 'RUN' ? 'bg-live' : 'bg-alarm'}`} />
               {p.mode}
-            </button>
+            </Button>
             <label className="sr-only" htmlFor="skin-select">Brand skin</label>
             <select id="skin-select" className="input !min-h-11 !w-auto !py-0 text-sm max-w-[15rem]" value={skinId} onChange={(e) => setPrefs({ skin: e.target.value as SkinId, hwModel: '' })}>
               {skinsByMaker().map((g) => (
@@ -243,7 +235,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
             <div className="px-3 py-2.5 border-b border-line flex flex-wrap items-center gap-2" style={{ background: 'var(--alarm-soft)' }} role="alert">
               <Icon name="warn" className="text-alarm" />
               <span className="text-sm"><strong className="text-alarm">Major fault — controller stopped.</strong> {p.fault.message}</span>
-              <button type="button" className="btn btn-sm ml-auto" onClick={() => { p.clearFault(); p.setMode('PROG'); rt.notify(); }}>Clear fault</button>
+              <Button size="sm" className="ml-auto" onClick={() => { p.clearFault(); p.setMode('PROG'); rt.notify(); }}>Clear fault</Button>
             </div>
           )}
           {p.minorFaults.length > 0 && !p.fault && (
@@ -257,24 +249,24 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
             <div className="p-2 border-b border-line space-y-2">
               <div className="flex gap-1.5 overflow-x-auto pb-1" role="toolbar" aria-label="Add instruction">
                 {QUICK.map((op) => (
-                  <button key={op} type="button" className="btn btn-sm !px-2.5 font-mono whitespace-nowrap" onClick={() => addOp(op)} title={OPS[op].title} aria-label={`Add ${OPS[op].title}`}>
+                  <Button key={op} size="sm" className="!px-2.5 font-mono whitespace-nowrap" onClick={() => addOp(op)} title={OPS[op].title} aria-label={`Add ${OPS[op].title}`}>
                     {skin.mnemonic[op] && skin.mnemonic[op]!.length <= 7 ? skin.mnemonic[op] : op}
-                  </button>
+                  </Button>
                 ))}
-                <button type="button" className="btn btn-sm whitespace-nowrap" onClick={() => setMoreOpen(true)}>More…</button>
+                <Button size="sm" className="whitespace-nowrap" onClick={() => setMoreOpen(true)}>More…</Button>
               </div>
               <div className="flex gap-1.5 overflow-x-auto pb-1 lg:flex-wrap lg:overflow-visible [&>*]:flex-none" role="toolbar" aria-label="Edit">
-                <button type="button" className="btn btn-sm" onClick={() => { const r = addRung(program, sel?.rungId); apply(r.program); setSel({ rungId: r.rungId }); }}><Icon name="plus" size={16} /> Rung</button>
-                <button type="button" className="btn btn-sm" disabled={!selElem} onClick={() => { const ins = newInstr('XIC'); apply(addParallel(program, sel!, ins)); setSel({ rungId: sel!.rungId, elemId: ins.id }); setEditOpen(true); }} title="Add a parallel branch (OR)"><Icon name="branch" size={16} /> Branch</button>
-                <button type="button" className="btn btn-sm" disabled={!selInstr} onClick={() => setEditOpen(true)}><Icon name="edit" size={16} /> Edit</button>
-                <button type="button" className="btn btn-sm icon-btn !w-9 !h-9" disabled={!sel} onClick={() => apply(move(program, sel!, -1))} aria-label="Move left / up"><Icon name="left" size={16} /></button>
-                <button type="button" className="btn btn-sm icon-btn !w-9 !h-9" disabled={!sel} onClick={() => apply(move(program, sel!, 1))} aria-label="Move right / down"><Icon name="right" size={16} /></button>
-                <button type="button" className="btn btn-sm" disabled={!sel} onClick={() => { apply(remove(program, sel!)); setSel(sel?.elemId ? { rungId: sel.rungId } : null); }}><Icon name="trash" size={16} /> Delete</button>
-                <button type="button" className="btn btn-sm" disabled={!sel} onClick={() => setCommentOpen(true)}>Comment</button>
-                <button type="button" className="btn btn-sm" disabled={!sel} onClick={() => { const r = duplicateRung(program, sel!.rungId); apply(r.program); setSel({ rungId: r.rungId }); }}><Icon name="copy" size={16} /> Dup</button>
-                <button type="button" className="btn btn-sm icon-btn !w-9 !h-9" disabled={!hist.current.canUndo} onClick={undo} aria-label="Undo"><Icon name="undo" size={16} /></button>
-                <button type="button" className="btn btn-sm icon-btn !w-9 !h-9" disabled={!hist.current.canRedo} onClick={redo} aria-label="Redo"><Icon name="redo" size={16} /></button>
-                <button type="button" className="btn btn-sm" onClick={verify}><Icon name="verify" size={16} /> Verify</button>
+                <Button size="sm" onClick={() => { const r = addRung(program, sel?.rungId); apply(r.program); setSel({ rungId: r.rungId }); }}><Icon name="plus" size={16} /> Rung</Button>
+                <Button size="sm" disabled={!selElem} onClick={() => { const ins = newInstr('XIC'); apply(addParallel(program, sel!, ins)); setSel({ rungId: sel!.rungId, elemId: ins.id }); setEditOpen(true); }} title="Add a parallel branch (OR)"><Icon name="branch" size={16} /> Branch</Button>
+                <Button size="sm" disabled={!selInstr} onClick={() => setEditOpen(true)}><Icon name="edit" size={16} /> Edit</Button>
+                <Button size="sm" className="icon-btn !w-9 !h-9" disabled={!sel} onClick={() => apply(move(program, sel!, -1))} aria-label="Move left / up"><Icon name="left" size={16} /></Button>
+                <Button size="sm" className="icon-btn !w-9 !h-9" disabled={!sel} onClick={() => apply(move(program, sel!, 1))} aria-label="Move right / down"><Icon name="right" size={16} /></Button>
+                <Button size="sm" disabled={!sel} onClick={() => { apply(remove(program, sel!)); setSel(sel?.elemId ? { rungId: sel.rungId } : null); }}><Icon name="trash" size={16} /> Delete</Button>
+                <Button size="sm" disabled={!sel} onClick={() => setCommentOpen(true)}>Comment</Button>
+                <Button size="sm" disabled={!sel} onClick={() => { const r = duplicateRung(program, sel!.rungId); apply(r.program); setSel({ rungId: r.rungId }); }}><Icon name="copy" size={16} /> Dup</Button>
+                <Button size="sm" className="icon-btn !w-9 !h-9" disabled={!hist.current.canUndo} onClick={undo} aria-label="Undo"><Icon name="undo" size={16} /></Button>
+                <Button size="sm" className="icon-btn !w-9 !h-9" disabled={!hist.current.canRedo} onClick={redo} aria-label="Redo"><Icon name="redo" size={16} /></Button>
+                <Button size="sm" onClick={verify}><Icon name="verify" size={16} /> Verify</Button>
                 {extraTools}
               </div>
             </div>
@@ -285,7 +277,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
                 <div className="p-3 space-y-1.5">
                   <div className="flex items-center justify-between">
                     <strong className="text-heading text-sm">{issues.length === 0 ? 'Verify: no problems found.' : `Verify: ${issues.filter((i) => i.level === 'error').length} errors, ${issues.filter((i) => i.level === 'warning').length} warnings`}</strong>
-                    <button type="button" className="btn btn-ghost btn-sm" onClick={() => setIssues(null)}>Close</button>
+                    <Button variant="ghost" size="sm" onClick={() => setIssues(null)}>Close</Button>
                   </div>
                   {issues.map((iss, k) => (
                     <button key={k} type="button" className="flex gap-2 items-start text-left text-sm w-full rounded-lg p-1.5 hover:bg-raised cursor-pointer" onClick={() => iss.rungId && setSel({ rungId: iss.rungId })}>
@@ -365,7 +357,7 @@ function CommentSheet({ open, onClose, initial, onSave }: { open: boolean; onClo
     <Sheet open={open} onClose={onClose} title="Rung comment">
       <textarea className="input !min-h-27.5 py-2" value={v} onChange={(e) => setV(e.target.value)} maxLength={300} aria-label="Rung comment" data-autofocus />
       <p className="text-xs text-muted">Good comments say <em>why</em>, not just what. The next tech will thank you.</p>
-      <div className="flex justify-end gap-2"><button type="button" className="btn btn-ghost" onClick={onClose}>Cancel</button><button type="button" className="btn btn-primary" onClick={() => { onSave(v); onClose(); }}>Save</button></div>
+      <div className="flex justify-end gap-2"><Button variant="ghost" onClick={onClose}>Cancel</Button><Button variant="primary" onClick={() => { onSave(v); onClose(); }}>Save</Button></div>
     </Sheet>
   );
 }
@@ -435,23 +427,23 @@ function DeviceSheet({ rt, id, onClose, onUnsafe, onPick, pickLabel }: { rt: Sim
       <p className="mt-0">{d.wiring}</p>
       {kind && <p className="text-sm text-muted">Wired to <strong className="text-heading font-mono">{kind === 'DI' ? 'input' : 'output'} {point}</strong>. Right now: <strong className="text-heading">{(kind === 'DI' ? rt.io.DI[point] : rt.io.DO[point]) ? 'ON' : 'OFF'}</strong>{forced !== undefined && <span className="text-warn"> (forced {forced ? 'ON' : 'OFF'})</span>}.</p>}
       {onPick && (
-        <button type="button" className="btn btn-primary w-full mb-3" onClick={() => { onPick(d.id); onClose(); }}>
+        <Button variant="primary" className="w-full mb-3" onClick={() => { onPick(d.id); onClose(); }}>
           <Icon name="flag" size={18} /> {pickLabel ?? 'This is the problem'}
-        </button>
+        </Button>
       )}
       {table && (
         <div className="callout callout-gotcha space-y-2">
           <p className="m-0 text-sm"><strong className="text-heading">Forces</strong> override this point no matter what the field or logic says. On real equipment, forcing can start machinery. Know what moves and who is near it.</p>
           {confirm === null ? (
             <div className="flex flex-wrap gap-2">
-              <button type="button" className="btn btn-sm" onClick={() => setConfirm(true)}>Force ON</button>
-              <button type="button" className="btn btn-sm" onClick={() => setConfirm(false)}>Force OFF</button>
-              <button type="button" className="btn btn-sm" disabled={forced === undefined} onClick={() => doForce(null)}>Remove force</button>
+              <Button size="sm" onClick={() => setConfirm(true)}>Force ON</Button>
+              <Button size="sm" onClick={() => setConfirm(false)}>Force OFF</Button>
+              <Button size="sm" disabled={forced === undefined} onClick={() => doForce(null)}>Remove force</Button>
             </div>
           ) : (
             <div className="space-y-2">
               <p className="m-0 text-sm text-warn font-semibold">Confirm: is everyone clear and is this authorized? (In the sim, yes. On the job, ask.)</p>
-              <div className="flex gap-2"><button type="button" className="btn btn-sm btn-danger" onClick={() => doForce(confirm)}>Yes, force {confirm ? 'ON' : 'OFF'}</button><button type="button" className="btn btn-sm" onClick={() => setConfirm(null)}>Cancel</button></div>
+              <div className="flex gap-2"><Button variant="danger" size="sm" onClick={() => doForce(confirm)}>Yes, force {confirm ? 'ON' : 'OFF'}</Button><Button size="sm" onClick={() => setConfirm(null)}>Cancel</Button></div>
             </div>
           )}
         </div>

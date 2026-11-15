@@ -9,7 +9,8 @@ import { href } from '../../lib/router';
 import { PRACTICE_RECORD } from '../../lib/practice';
 import { arrangeChoices } from '../../lib/shuffle';
 import { useProgress } from '../../state/progress';
-import { NotFound } from '../../components/ui';
+import { NotFound, Chip } from '../../components/ui';
+import { Button } from '../../components/ui';
 
 
 const pct = (a: number, b: number) => (b ? Math.round((a / b) * 100) : 0);
@@ -29,7 +30,7 @@ function ExamHome() {
               <h2 className="text-lg font-bold mt-1">{e.title}</h2>
               <p className="text-sm text-muted m-0 mt-1">{e.blurb}</p>
               <p className="text-xs text-muted m-0 mt-2">{e.size} questions · drawn from {bankFor(e).length} · optional {Math.round((e.size * e.secsPerQ) / 60)}-minute timer</p>
-              {r && <p className="m-0 mt-2"><span className="chip chip-live">Best {pct(r.best, r.total)} % · last {pct(r.last, r.total)} %</span></p>}
+              {r && <p className="m-0 mt-2"><Chip tone="live">Best {pct(r.best, r.total)} % · last {pct(r.last, r.total)} %</Chip></p>}
               {e.id === 'readiness' && <p className="text-xs m-0 mt-2 text-muted">{PRACTICE_RECORD}</p>}
             </a>
           );
@@ -87,7 +88,7 @@ function Sitting({ exam }: { exam: ExamDef }) {
   if (phase === 'intro') {
     return (
       <div className="max-w-[68ch]">
-        <a href={href('exam')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Exams</a>
+        <Button href={href('exam')} variant="ghost" size="sm" className="-ml-2 mb-2"><Icon name="back" size={16} /> Exams</Button>
         <PageHead eyebrow={exam.id === 'readiness' ? 'Final assessment' : 'Practice exam'} title={exam.title}>{exam.blurb}</PageHead>
         <div className="card card-pad space-y-3">
           <ul className="pl-5 list-disc m-0 space-y-1 text-sm">
@@ -101,7 +102,7 @@ function Sitting({ exam }: { exam: ExamDef }) {
             <span>Timed: {Math.round(limit / 60)} minutes (it finishes itself when time runs out)</span>
           </label>
           <p className="text-xs text-muted m-0">{PRACTICE_RECORD} Training only.</p>
-          <button type="button" className="btn btn-primary" onClick={start}><Icon name="play" size={16} /> Start</button>
+          <Button variant="primary" onClick={start}><Icon name="play" size={16} /> Start</Button>
         </div>
       </div>
     );
@@ -124,21 +125,21 @@ function Sitting({ exam }: { exam: ExamDef }) {
           <p className="font-semibold text-heading mt-0 text-base" id="exam-q"><Rich text={q.q} /></p>
           <div className="grid gap-2" role="radiogroup" aria-labelledby="exam-q">
             {arrangeChoices(q).order.map((k, pos) => (
-              <button key={k} type="button" role="radio" aria-checked={answers[q.id] === k} className="btn !justify-start text-left !h-auto py-2.5 !font-medium"
+              <Button key={k} role="radio" aria-checked={answers[q.id] === k} className="!justify-start text-left !h-auto py-2.5 !font-medium"
                 style={answers[q.id] === k ? { borderColor: 'var(--blue-glow)', background: 'var(--blue-soft)' } : undefined}
                 onClick={() => setAnswers({ ...answers, [q.id]: k })}>
                 <span className="flex-none w-6 h-6 rounded-full border border-line-strong flex items-center justify-center text-xs font-bold" aria-hidden="true">{String.fromCharCode(65 + pos)}</span>
                 <span><Rich text={q.choices[k]} /></span>
-              </button>
+              </Button>
             ))}
           </div>
         </div>
         <div className="flex flex-wrap gap-2 mt-3">
-          <button type="button" className="btn" disabled={i === 0} onClick={() => setI(i - 1)}><Icon name="back" size={16} /> Back</button>
+          <Button disabled={i === 0} onClick={() => setI(i - 1)}><Icon name="back" size={16} /> Back</Button>
           {i + 1 < items.length
-            ? <button type="button" className="btn btn-primary" onClick={() => setI(i + 1)}>Next <Icon name="chevron" size={16} /></button>
-            : <button type="button" className="btn btn-primary" onClick={finish}><Icon name="check" size={16} /> Finish ({answered}/{items.length} answered)</button>}
-          {i + 1 < items.length && answered === items.length && <button type="button" className="btn" onClick={finish}>Finish now</button>}
+            ? <Button variant="primary" onClick={() => setI(i + 1)}>Next <Icon name="chevron" size={16} /></Button>
+            : <Button variant="primary" onClick={finish}><Icon name="check" size={16} /> Finish ({answered}/{items.length} answered)</Button>}
+          {i + 1 < items.length && answered === items.length && <Button onClick={finish}>Finish now</Button>}
         </div>
       </div>
     );
@@ -148,15 +149,15 @@ function Sitting({ exam }: { exam: ExamDef }) {
   const passed = r.right / r.total >= exam.pass;
   return (
     <div className="max-w-[68ch]">
-      <a href={href('exam')} className="btn btn-ghost btn-sm -ml-2 mb-2"><Icon name="back" size={16} /> Exams</a>
+      <Button href={href('exam')} variant="ghost" size="sm" className="-ml-2 mb-2"><Icon name="back" size={16} /> Exams</Button>
       <section className="card card-pad mb-4" aria-labelledby="res-h" role="status">
         <p className="eyebrow m-0">{exam.title}</p>
         <h1 id="res-h" className="text-2xl font-extrabold mt-1">{pct(r.right, r.total)} % · {r.right} of {r.total}</h1>
         <p className="m-0 mt-1">{passed ? 'Solid. Keep the weak topics below fresh with Review.' : `Not yet — ${Math.round(exam.pass * 100)} % is the practice target. Revisit the lessons below and try a new set.`}{gain ? ` +${gain} XP.` : ''}</p>
         <p className="text-sm text-muted m-0 mt-2 flex items-start gap-1.5"><Icon name="shield" size={16} className="flex-none mt-0.5" /> <span>{PRACTICE_RECORD}</span></p>
         <div className="flex flex-wrap gap-2 mt-3">
-          <button type="button" className="btn btn-primary" onClick={() => setPhase('intro')}><Icon name="reset" size={16} /> New set</button>
-          {r.missedIds.length > 0 && <a className="btn" href={href('review')}>Go to Review</a>}
+          <Button variant="primary" onClick={() => setPhase('intro')}><Icon name="reset" size={16} /> New set</Button>
+          {r.missedIds.length > 0 && <Button href={href('review')}>Go to Review</Button>}
         </div>
       </section>
 

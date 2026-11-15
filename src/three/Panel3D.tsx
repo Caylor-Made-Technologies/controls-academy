@@ -19,7 +19,7 @@ import { BRAND_GUIDES } from '../content/brands';
 import { DEFAULT_HW, HARDWARE, categoryOf } from '../content/hardware';
 
 const SIM_HW = HARDWARE.filter((m) => categoryOf(m) === 'plc' || categoryOf(m) === 'logic');
-import { PARTS, TOURS, type PartId } from './info';
+import { PARTS, TOURS, panelHome, type PartId } from './info';
 import { PanelScene } from './PanelScene';
 import { panelSignature } from './signature';
 import { Stage } from './Stage';
@@ -29,6 +29,24 @@ import { POSTERS } from './poster/sim.gen';
 import { StudioLights } from './Lights';
 import { capped, pickTier, probeDevice, type Tier } from './support';
 import { retainTextures } from './textures';
+import { Button } from '../components/ui';
+/** Keeps the overview framed when the canvas changes shape, as long as the learner hasn't moved away from it. */
+function FitOverview({ active, controls }: { active: boolean; controls: React.RefObject<OrbitControlsImpl | null> }) {
+  const camera = useThree((s) => s.camera);
+  const size = useThree((s) => s.size);
+  const invalidate = useThree((s) => s.invalidate);
+  const aspect = size.width / Math.max(1, size.height);
+  useEffect(() => {
+    if (!active) return;
+    const h = panelHome(aspect);
+    camera.position.set(...h.pos);
+    controls.current?.target.set(...h.target);
+    controls.current?.update();
+    invalidate();
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- only a new canvas shape re-frames
+  }, [aspect]);
+  return null;
+}
 
 /**
  * Draw a frame only when something visible changed (B-001). After a change, keep drawing for half a
@@ -81,6 +99,8 @@ function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => 
   const [explode, setExplode] = useState(false);
   const [goal, setGoal] = useState<{ pos: Vector3; target: Vector3 } | null>(null);
   const [tourId, setTourId] = useState<string>('overview');
+  // True once the learner drags the camera: a resize then leaves their view alone.
+  const [free, setFree] = useState(false);
   const controls = useRef<OrbitControlsImpl | null>(null);
   // Live motor readout for the HUD; rounded so steady running doesn't re-render every tick.
   const readout = useSyncExternalStore(rt.subscribe, () => {
@@ -95,10 +115,18 @@ function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => 
 
   const animating = spinning || xray || Boolean(goal) || explode;
 
+  const wrap = useRef<HTMLDivElement>(null);
   const fly = useCallback((id: string) => {
     const t = TOURS.find((x) => x.id === id);
     if (!t) return;
     setTourId(id);
+    setFree(false);
+    if (id === 'overview') {
+      const el = wrap.current;
+      const h = panelHome(el ? el.clientWidth / Math.max(1, el.clientHeight) : 1.5);
+      setGoal({ pos: new Vector3(...h.pos), target: new Vector3(...h.target) });
+      return;
+    }
     setGoal({ pos: new Vector3(...t.pos), target: new Vector3(...t.target) });
     if (id !== 'overview') setSelected(t.part);
   }, []);
@@ -114,10 +142,12 @@ function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => 
   // Opens on the overview, the same angle as the poster still, so the canvas can fade in over it.
   const camera = useMemo(() => ({ position: initial.pos, fov: 38, near: 0.02, far: 20 }), [initial.pos]);
   const [drawn, setDrawn] = useState(false);
+  // A portrait phone has to stand farther back to see the whole panel; leave room to zoom out a little past that.
+  const maxDist = useMemo(() => { const h = panelHome(0.45); return Math.max(3.2, Math.hypot(h.pos[0] - h.target[0], h.pos[1] - h.target[1], h.pos[2] - h.target[2]) * 1.15); }, []);
 
   return (
     <section className="card overflow-hidden relative" aria-label="3D control panel">
-      <div className={FRAME.panel}>
+      <div ref={wrap} className={FRAME.panel}>
         {POSTERS.panel && <Poster spec={POSTERS.panel} fade={drawn} />}
         <Stage
           onFirstFrame={() => setDrawn(true)}
@@ -150,12 +180,13 @@ function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => 
             enableDamping
             dampingFactor={0.12}
             minDistance={0.25}
-            maxDistance={3.2}
+            maxDistance={maxDist}
             maxPolarAngle={Math.PI * 0.62}
             minAzimuthAngle={-1.1}
             maxAzimuthAngle={1.2}
-            onStart={() => setGoal(null)}
+            onStart={() => { setGoal(null); setFree(true); }}
           />
+          <FitOverview active={tourId === 'overview' && !goal && !free} controls={controls} />
           <CameraRig goal={goal} controls={controls} onArrive={() => setGoal(null)} />
           </>}
         </Stage>
@@ -212,7 +243,7 @@ function Panel3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => 
                 <p className="m-0 mt-1 text-sm">{part.safety}</p>
               </div>
             )}
-            {part.lesson && <a className="btn btn-sm" href={href(`lesson/${part.lesson}`)}>Open the lesson <Icon name="chevron" size={16} /></a>}
+            {part.lesson && <Button size="sm" href={href(`lesson/${part.lesson}`)}>Open the lesson <Icon name="chevron" size={16} /></Button>}
           </div>
         )}
       </Sheet>

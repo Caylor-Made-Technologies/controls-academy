@@ -1,6 +1,7 @@
 import { useEffect, useId, useRef, type PointerEvent as ReactPointerEvent, type ReactNode } from 'react';
 import { prefersReducedMotion, usePresence } from '../lib/motion';
 import { Icon } from './Icon';
+import { Button } from './ui/Button';
 
 /** Bottom sheet on phones (drag the handle down to close), centered dialog on larger screens. Esc / backdrop close; focus is trapped. */
 export function Sheet({ open, onClose, title, children, wide = false }: { open: boolean; onClose: () => void; title: string; children: ReactNode; wide?: boolean }) {
@@ -62,9 +63,9 @@ export function Sheet({ open, onClose, title, children, wide = false }: { open: 
         <div className="sheet-grab-zone" onPointerDown={onGrab} onPointerMove={onMove} onPointerUp={onDrop} onPointerCancel={onDrop} aria-hidden="true"><div className="sheet-grab" /></div>
         <div className="flex items-center justify-between gap-3 mb-3">
           <h2 id={id} className="text-lg font-bold">{title}</h2>
-          <button className="btn btn-ghost icon-btn" onClick={onClose} aria-label="Close">
+          <Button variant="ghost" className="icon-btn" onClick={onClose} aria-label="Close">
             <Icon name="x" />
-          </button>
+          </Button>
         </div>
         {children}
       </div>

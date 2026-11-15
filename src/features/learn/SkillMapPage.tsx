@@ -5,6 +5,7 @@ import { LESSONS, TRACKS } from '../../content';
 import { buildGraph, skillState, type SkillState } from '../../content/graph';
 import { href } from '../../lib/router';
 import { useProgress } from '../../state/progress';
+import { Button, Segmented } from '../../components/ui';
 
 const COL_W = 168;
 const NODE_W = 140;
@@ -101,14 +102,11 @@ export default function SkillMapPage() {
       <RouteHead seg="skills" />
 
       <div className="flex flex-wrap items-center gap-2 mb-3">
-        <div className="seg" role="group" aria-label="View">
-          <button type="button" aria-pressed={view === 'map'} onClick={() => setV('map')}>Map</button>
-          <button type="button" aria-pressed={view === 'list'} onClick={() => setV('list')}>List</button>
-        </div>
+        <Segmented label="View" value={view} onChange={setV} options={[{ value: 'map', label: 'Map' }, { value: 'list', label: 'List' }]} />
         {view === 'map' && (
           <div className="flex gap-1" role="group" aria-label="Zoom">
-            <button type="button" className="btn icon-btn" aria-label="Zoom out" onClick={() => setZoom((z) => clampZoom(z - 0.15))}><span aria-hidden="true" className="text-xl font-bold leading-none">−</span></button>
-            <button type="button" className="btn icon-btn" aria-label="Zoom in" onClick={() => setZoom((z) => clampZoom(z + 0.15))}><Icon name="plus" size={18} /></button>
+            <Button className="icon-btn" aria-label="Zoom out" onClick={() => setZoom((z) => clampZoom(z - 0.15))}><span aria-hidden="true" className="text-xl font-bold leading-none">−</span></Button>
+            <Button className="icon-btn" aria-label="Zoom in" onClick={() => setZoom((z) => clampZoom(z + 0.15))}><Icon name="plus" size={18} /></Button>
           </div>
         )}
         <p className="m-0 text-sm text-muted ml-auto" aria-live="polite">{counts.mastered} mastered · {counts.done} done · {counts.unlocked} ready · {counts.locked} locked</p>

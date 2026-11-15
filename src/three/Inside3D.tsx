@@ -12,7 +12,7 @@ import { Label } from './kit';
 import { StudioLights } from './Lights';
 import { Stage } from './Stage';
 import { Box, ScrewHead } from './kit';
-import { surface, surfaceFor } from './materials';
+import { lowDetail, surface, surfaceFor } from './materials';
 import { Poster } from './poster/Poster';
 import { FRAME } from './poster/frames';
 import { POSTERS } from './poster/inside.gen';
@@ -53,7 +53,7 @@ export function shortName(name: string): string {
   return base.length > 26 ? `${base.slice(0, 25).trimEnd()}…` : base;
 }
 
-type Kind = 'caps' | 'fins' | 'terminals' | 'coil' | 'leds' | 'board' | 'strips' | 'plain';
+type Kind = 'caps' | 'fins' | 'terminals' | 'coil' | 'leds' | 'board' | 'module' | 'keypad' | 'strips' | 'plain';
 /** What a part should look like, from what it is. Generic shapes become recognizable hardware. */
 export function partKind(p: InsidePart): Kind {
   const k = `${p.id} ${p.name}`.toLowerCase();
@@ -63,6 +63,8 @@ export function partKind(p: InsidePart): Kind {
   if (/\bcoil\b/.test(k)) return 'coil';
   if (/\bleds?\b/.test(k)) return 'leds';
   if (/bimetal|heater/.test(k)) return 'strips';
+  if (/igbt|rectifier|diode/.test(k)) return 'module';
+  if (/keypad/.test(k)) return 'keypad';
   if (/terminal|\brtb\b|backplane|contacts/.test(k)) return 'terminals';
   if (/board|circuit|rectifier|igbt|inverter|opto|oscillator|logic|output stage/.test(k)) return 'board';
   return 'plain';
@@ -136,6 +138,38 @@ function PartBody({ p, selected }: { p: InsidePart; selected: boolean }) {
     );
   }
   const front = d / 2;
+  if (kind === 'module') {
+    // A power semiconductor module: grey plastic case on a copper base plate, three screw terminals with
+    // copper tabs on top, and small gate pins along one edge.
+    return (
+      <group>
+        <Box size={[w, h * 0.16, d * 1.08]} pos={[0, -h * 0.42, 0]} color={selected ? SELECT : '#b87a4b'} s="copper" />
+        <Box size={[w * 0.96, h * 0.7, d]} pos={[0, 0.02 * h, 0]} color={selected ? SELECT : '#5b6470'} s="plasticMatte" />
+        {[-1, 0, 1].map((i) => (
+          <group key={i} position={[i * w * 0.3, h * 0.37, 0]}>
+            <mesh material={surface('copper')}><boxGeometry args={[w * 0.18, h * 0.06, d * 0.5]} /></mesh>
+            <ScrewHead pos={[0, h * 0.035, 0]} r={Math.min(w * 0.05, d * 0.18)} rot={[-Math.PI / 2, 0, 0]} />
+          </group>
+        ))}
+        {!lowDetail() && [0, 1, 2, 3].map((i) => (
+          <mesh key={i} position={[(i / 3 - 0.5) * w * 0.5, h * 0.4, -d * 0.38]} material={surface('tinned')}><cylinderGeometry args={[w * 0.01, w * 0.01, h * 0.12, 6]} /></mesh>
+        ))}
+      </group>
+    );
+  }
+  if (kind === 'keypad') {
+    // Control board with the keypad on its face: a small LCD, arrow keys, and green run / red stop keys.
+    return (
+      <group>
+        <Box size={s.size} pos={[0, 0, 0]} color={selected ? SELECT : '#1e5a3c'} s="plasticMatte" />
+        <Box size={[w * 0.56, h * 0.62, 0.003]} pos={[-w * 0.16, 0, front + 0.0015]} color="#1f242b" s="plasticGloss" />
+        <mesh position={[-w * 0.16, h * 0.12, front + 0.0034]}><boxGeometry args={[w * 0.44, h * 0.26, 0.001]} /><meshStandardMaterial color="#0f2a1d" emissive="#3ddc97" emissiveIntensity={0.35} toneMapped={false} /></mesh>
+        {[[-0.32, -0.17, '#9aa3ad'], [-0.16, -0.17, '#9aa3ad'], [0, -0.17, '#9aa3ad'], [0.24, 0.12, '#22c55e'], [0.24, -0.15, '#ef4444']].map(([x, y, c], i) => (
+          <mesh key={i} position={[(x as number) * w, (y as number) * h, front + 0.004]} rotation={[Math.PI / 2, 0, 0]} material={surface('plasticGloss', c as string)}><cylinderGeometry args={[w * 0.045, w * 0.045, 0.004, 16]} /></mesh>
+        ))}
+      </group>
+    );
+  }
   const screws = Math.max(3, Math.min(8, Math.round(w / 0.012)));
   return (
     <group>
