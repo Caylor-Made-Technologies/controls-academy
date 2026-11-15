@@ -13,6 +13,7 @@
 - What's inside: parts are drawn as what they are (capacitor cans, heatsink fins, coil windings, bimetal strips, terminal screws, circuit boards) and each carries its name once the device is pulled apart.
 - Tapping a hardware card grows it into its 3D viewer; Profile numbers count up.
 - Conveyor scene: head and tail pulleys, idler rollers, side rails, framed legs and a gearbox. Data center scene: server-rack fronts with status lights, a pad-mount transformer with fins and bushings, a generator on a skid with louvers.
+- Pump station scene: clearer water so both pumps show, ribbed pumps with power cables, a concrete rim, an access ladder and a staff gauge. Mixer scene: the feed screws sit on a frame with hoppers, gearmotors and drop spouts, and the vessel hangs on its load cells. 3D meter: red and black jacks, and the black lead parked on a labelled common post.
 - Old or mistyped links (lesson, exam, hardware model, device, brand guide) and empty filters show a designed message with a way back.
 - Installed app: long-press the icon for Simulator, Fault Hunt and Reference shortcuts.
 - If a screen can't download (offline) or crashes, a message explains it and offers a way back instead of a blank page.
