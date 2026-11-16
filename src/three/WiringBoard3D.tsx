@@ -145,7 +145,7 @@ function Board({ ex, wires, colors, armed, onTap }: { ex: Exercise; wires: Wire[
           <group key={d.id}>
             <Box size={[b.w, 0.16, 0.06]} pos={[b.x, b.y, 0]} color="#334155" rough={0.5} />
             <DeviceFace id={d.id} x={b.x} y={b.y - 0.05} w={b.w} />
-            <Label text={d.name} pos={[b.x, b.y - 0.11, 0.002]} w={Math.min(b.w + 0.1, 0.5)} h={0.04} fg="#11161d" bg="#f2f4f7" />
+            <Label text={d.name} pos={[b.x, b.y - 0.11, 0.002]} w={Math.min(b.w + 0.03, 0.5)} h={0.04} fg="#11161d" bg="#f2f4f7" />
             {d.terminals.map((t) => {
               const p = L.at.get(t.id)!;
               const on = armed === t.id;

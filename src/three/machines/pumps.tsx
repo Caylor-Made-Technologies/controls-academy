@@ -20,7 +20,7 @@ function Water({ level }: { level: () => number }) {
     <mesh ref={m}>
       <boxGeometry args={[W * 0.98, WELL_DEPTH, W * 0.98]} />
       {/* See-through enough that the pumps and floats stay visible under the surface. */}
-      <meshStandardMaterial color="#3d7f74" roughness={0.15} transparent opacity={0.42} depthWrite={false} />
+      <meshStandardMaterial color="#5fa89c" roughness={0.15} transparent opacity={0.3} depthWrite={false} />
     </mesh>
   );
 }
@@ -45,8 +45,8 @@ function Pump({ x, rps }: { x: number; rps: () => number }) {
   return (
     <group position={[x, 0, 0]}>
       {/* motor housing with cooling ribs, cable cap and lifting bail, on a volute with a suction strainer */}
-      <mesh position={[0, 0.38, 0]} material={surface('enamel', '#1d4ed8')}><cylinderGeometry args={[0.16, 0.17, 0.5, 24]} /></mesh>
-      {fine && [0.24, 0.36, 0.48].map((y) => <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]} material={surface('enamel', '#1a44c2')}><torusGeometry args={[0.168, 0.012, 6, 24]} /></mesh>)}
+      <mesh position={[0, 0.38, 0]} material={surface('enamel', '#3b82f6')}><cylinderGeometry args={[0.16, 0.17, 0.5, 24]} /></mesh>
+      {fine && [0.24, 0.36, 0.48].map((y) => <mesh key={y} position={[0, y, 0]} rotation={[Math.PI / 2, 0, 0]} material={surface('enamel', '#2f74e6')}><torusGeometry args={[0.168, 0.012, 6, 24]} /></mesh>)}
       <mesh position={[0, 0.66, 0]} material={surface('castIron')}><cylinderGeometry args={[0.1, 0.16, 0.07, 24]} /></mesh>
       {fine && <mesh position={[0, 0.74, 0]} rotation={[0, Math.PI / 2, 0]} material={surface('galvanized')}><torusGeometry args={[0.06, 0.01, 6, 16, Math.PI]} /></mesh>}
       <mesh position={[0, 0.09, 0]} material={surface('castIron', '#3a4350')}><cylinderGeometry args={[0.25, 0.22, 0.16, 24]} /></mesh>
@@ -88,9 +88,9 @@ function Scene(p: MachineSceneProps) {
     <group>
       {/* concrete well, front wall cut away so you can see inside */}
       <group>
-        <Box size={[W + 0.2, WELL_DEPTH, 0.1]} pos={[0, WELL_DEPTH / 2, -W / 2 - 0.05]} color="#9ca3af" rough={0.95} />
-        <Box size={[0.1, WELL_DEPTH, W]} pos={[-W / 2 - 0.05, WELL_DEPTH / 2, 0]} color="#9ca3af" rough={0.95} />
-        <Box size={[0.1, WELL_DEPTH, W]} pos={[W / 2 + 0.05, WELL_DEPTH / 2, 0]} color="#9ca3af" rough={0.95} />
+        <Box size={[W + 0.2, WELL_DEPTH, 0.1]} pos={[0, WELL_DEPTH / 2, -W / 2 - 0.05]} color="#6b7280" rough={0.95} />
+        <Box size={[0.1, WELL_DEPTH, W]} pos={[-W / 2 - 0.05, WELL_DEPTH / 2, 0]} color="#6b7280" rough={0.95} />
+        <Box size={[0.1, WELL_DEPTH, W]} pos={[W / 2 + 0.05, WELL_DEPTH / 2, 0]} color="#6b7280" rough={0.95} />
         <mesh position={[0, WELL_DEPTH / 2, W / 2 + 0.05]}>
           <planeGeometry args={[W + 0.2, WELL_DEPTH]} />
           <meshStandardMaterial color="#cbd5e1" transparent opacity={0.12} side={DoubleSide} depthWrite={false} />
@@ -107,7 +107,15 @@ function Scene(p: MachineSceneProps) {
       <Water level={level} />
       {/* access hatch frame and confined-space sign */}
       <mesh position={[0, WELL_DEPTH + 0.01, 0]} rotation={[-Math.PI / 2, 0, 0]}><ringGeometry args={[0.55, 0.62, 4, 1, Math.PI / 4]} /><meshStandardMaterial color="#facc15" side={DoubleSide} /></mesh>
-      <Label text="DANGER — PERMIT-REQUIRED CONFINED SPACE · H2S" pos={[W / 2 + 0.11, 1.9, 0.2]} rot={[0, Math.PI / 2, 0]} w={0.9} h={0.09} fg="#fff" bg="#b91c1c" />
+      {/* Confined-space sign on a post at the well's front corner, facing you (it was edge-on on the side wall). */}
+      <Pipe from={[-W / 2 - 0.3, 0, W / 2 + 0.3]} to={[-W / 2 - 0.3, 1.5, W / 2 + 0.3]} r={0.025} color="#9aa3ad" />
+      <Label text="DANGER · CONFINED SPACE" pos={[-W / 2 - 0.3, 1.6, W / 2 + 0.33]} w={1.15} h={0.2} fg="#fff" bg="#b91c1c" />
+      <Label text="PERMIT REQUIRED · H2S" pos={[-W / 2 - 0.3, 1.39, W / 2 + 0.33]} w={1.15} h={0.17} fg="#111" bg="#f5c400" />
+      {/* Name tags you can read without tapping: what each pump and float is. */}
+      <Label text="PUMP 1" pos={[-0.45, WELL_DEPTH + 0.72, 0]} w={0.72} h={0.22} fg="#fff" bg="#1a2230" />
+      <Label text="PUMP 2" pos={[0.45, WELL_DEPTH + 0.72, 0]} w={0.72} h={0.22} fg="#fff" bg="#1a2230" />
+      <Label text="HIGH FLOAT (backup)" pos={[-0.45, FLOAT_AT + 0.3, 0.62]} w={1.1} h={0.18} fg="#fff" bg="#7f1d1d" />
+      <Label text="LOW CUTOUT FLOAT" pos={[0.45, LOW_CUTOUT + 0.45, 0.62]} w={1.0} h={0.18} fg="#111" bg="#f59e0b" />
       <Pick id="p1" label="Pump 1" size={[0.5, 0.8, 0.5]} pos={[-0.45, 0.4, 0]} selected={sel('p1')} onPick={p.onPick}>
         <Pump x={-0.45} rps={() => s().p1.rpm / 60} />
       </Pick>

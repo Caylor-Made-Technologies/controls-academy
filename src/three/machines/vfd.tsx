@@ -55,7 +55,13 @@ function Scene(p: MachineSceneProps) {
         <Lamp pos={[-0.95, 0.8, 0.048]} color="#3ddc97" on={() => s().stoClosed} r={0.01} />
       </Pick>
       {/* motor cable in conduit */}
-      <Pipe from={[-1.05, 0.12, 0]} to={[0.2, 0.12, 0]} r={0.02} color="#6b7280" />
+      {/* runs along the floor, with a riser into the drive's side and one into the motor base */}
+      <Pipe from={[-1.05, 0.03, 0]} to={[0.23, 0.03, -0.12]} r={0.02} color="#6b7280" />
+      <Pipe from={[-1.07, 0.03, 0]} to={[-1.07, 0.2, 0]} r={0.02} color="#6b7280" />
+      <Pipe from={[0.23, 0.03, -0.12]} to={[0.23, 0.15, -0.12]} r={0.02} color="#6b7280" />
+      {/* Motor and fan on their own skid, turned about 30° toward you so the fan shows its face (square to the
+          drive it was a thin edge from the front). */}
+      <group position={[0.45, 0, 0]} rotation={[0, -0.5, 0]}><group position={[-0.45, 0, 0]}>
       {/* motor on a base, coupled to the fan shaft (both at 0.45 m) */}
       <Box size={[0.5, 0.3, 0.36]} pos={[0.45, 0.15, 0]} color="#4b5563" metal={0.4} rough={0.6} />
       <Pick id="motor" label="Fan motor" size={[0.7, 0.4, 0.4]} pos={[0.5, 0.45, 0]} selected={sel('motor')} onPick={p.onPick}>
@@ -71,11 +77,12 @@ function Scene(p: MachineSceneProps) {
         </mesh>
         <Box size={[0.12, 0.09, 0.5]} pos={[0, -0.405, 0]} color="#4b5563" metal={0.4} rough={0.6} />
       </group>
-      <CoastWarning show={() => !s().stoClosed && s().rpm > 1} />
       {/* guard (STO interlocked) */}
       <group position={[1.08, 0.45, 0]}>
         <GuardScreen closed={() => s().stoClosed} />
       </group>
+      </group></group>
+      <CoastWarning show={() => !s().stoClosed && s().rpm > 1} />
       {/* operator station */}
       <group position={[-0.35, 0, 0.75]}>
         <mesh position={[0, 0.45, 0]} castShadow><cylinderGeometry args={[0.025, 0.025, 0.9, 12]} /><meshStandardMaterial color="#4b5563" metalness={0.6} roughness={0.4} /></mesh>
