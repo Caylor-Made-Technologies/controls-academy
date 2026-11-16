@@ -150,5 +150,6 @@ export const vfdScene: MachineSceneDef = {
   moving: (rt) => { const s = rt.scene.state as VfdState; return s.rpm > 1 || s.hz > 0.05; },
   signature: (rt) => { const s = rt.scene.state as VfdState; return `${s.brakeResistor}|${s.stoClosed}|${s.fault}|${Math.round(s.speedPot)}`; },
   readout: (rt) => { const s = rt.scene.state as VfdState; return `${s.hz.toFixed(1)} Hz · ${Math.round(s.rpm / 10) * 10} rpm · ${s.amps.toFixed(1)} A`; },
+  views: [{ label: 'Drive', ids: ['drive'] }, { label: 'Fan', ids: ['motor'] }, { label: 'Controls', ids: ['start', 'stop', 'reset', 'pot', 'sto'] }],
   describe: 'a fan driven by a variable frequency drive, with the drive keypad showing live frequency, current and DC bus voltage, a Safe Torque Off relay and E-stop, the fan guard (a warning shows while the fan coasts down with the guard open) and an operator station.',
 };

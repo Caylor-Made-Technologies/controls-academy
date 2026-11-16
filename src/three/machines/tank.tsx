@@ -72,5 +72,6 @@ export const tankScene: MachineSceneDef = {
     const s = rt.scene.state as TankState;
     return `Level ${s.level.toFixed(2)} m · valve ${Math.round(s.valve)} % · ${(rt.io.AI[0] ?? 0).toFixed(1)} mA`;
   },
+  views: [{ label: 'Fill valve', ids: ['fv'] }, { label: 'Level', ids: ['lt', 'lshh', 'lsl'] }, { label: 'Pump', ids: ['pump'] }],
   describe: 'a 4 m water tank with a see-through shell showing the live level, the FV-101 fill valve (its yellow stem marker shows position), the LT-101 level transmitter, high-high and low float switches, and the transfer pump.',
 };

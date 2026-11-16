@@ -6,10 +6,11 @@
 import { OrbitControls, PerformanceMonitor } from '@react-three/drei';
 import { useFrame, useThree } from '@react-three/fiber';
 import { memo, useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import { Box3, Vector3, type Group, type Mesh } from 'three';
+import { Box3, Vector3, type Group, type Mesh, type Object3D } from 'three';
 import { fitViewInsets, type Insets, type V3 as FitV3 } from './fit';
 
-const MACHINE_INSETS: Insets = { top: 0.06, bottom: 0.26, left: 0.04, right: 0.04 };
+/** The named-view row covers the top of the canvas and the tool row the bottom (fractions of the half-height). */
+const MACHINE_INSETS: Insets = { top: 0.2, bottom: 0.26, left: 0.04, right: 0.04 };
 import type { OrbitControls as OrbitControlsImpl } from 'three-stdlib';
 import { Icon } from '../components/Icon';
 import type { SimRuntime } from '../features/simulator/runtime';
@@ -119,11 +120,29 @@ function Glide({ goal, controls, onArrive }: { goal: { pos: Vector3; target: Vec
   return null;
 }
 
+/**
+ * World-space box around the named devices, from the invisible markers each Pick leaves in the scene. Null
+ * when none is found (a device hidden in this state).
+ */
+export function spotBounds(root: Object3D, ids: string[]): { min: FitV3; max: FitV3 } | null {
+  const box = new Box3();
+  const v = new Vector3();
+  root.updateWorldMatrix(true, true);
+  root.traverse((o) => {
+    if (!o.name.startsWith('pick:') || !ids.includes(o.name.slice(5))) return;
+    const size = o.userData.pickSize as [number, number, number] | undefined;
+    o.getWorldPosition(v);
+    const h = size ? new Vector3(size[0] / 2, size[1] / 2, size[2] / 2) : new Vector3(0.1, 0.1, 0.1);
+    box.expandByPoint(v.clone().sub(h)).expandByPoint(v.clone().add(h));
+  });
+  return box.isEmpty() ? null : { min: box.min.toArray() as FitV3, max: box.max.toArray() as FitV3 };
+}
+
 /** Ground patch that receives the baked contact shadows (meters), from the scene radius. Stable per radius. */
 const sizes = new Map<number, [number, number]>();
 const SHADOW_SIZE = (r: number): [number, number] => { if (!sizes.has(r)) sizes.set(r, [r * 3.2, r * 3.2]); return sizes.get(r)!; };
 
-type ViewId = 'overview' | 'front' | 'side' | 'above';
+type ViewId = 'overview' | 'front' | 'side' | 'above' | `spot:${string}`;
 const VIEWS: { id: ViewId; label: string }[] = [{ id: 'overview', label: 'Reset view' }, { id: 'front', label: 'Front' }, { id: 'side', label: 'Side' }, { id: 'above', label: 'Above' }];
 
 function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) => void }) {
@@ -174,6 +193,23 @@ function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) =
     if (reduce && controls.current) { controls.current.object.position.copy(pos); controls.current.target.copy(target); controls.current.update(); } else setGoal({ pos, target });
   };
 
+  // Named views: frame a group of devices (a few times their size, so you see what they sit on).
+  const goSpot = (label: string, ids: string[]) => {
+    const g = sceneGroup.current;
+    const b = g ? spotBounds(g, ids) : null;
+    const el = wrap.current;
+    if (!b || !el) return;
+    const pad = Math.max(0.35, def.radius * 0.12);
+    const min: FitV3 = [b.min[0] - pad, b.min[1] - pad * 0.5, b.min[2] - pad];
+    const max: FitV3 = [b.max[0] + pad, b.max[1] + pad * 0.5, b.max[2] + pad];
+    const v = fitViewInsets(min, max, def.camera.pos, def.camera.target, 40, el.clientWidth / Math.max(1, el.clientHeight), MACHINE_INSETS);
+    const pos = new Vector3(...v.pos);
+    const target = new Vector3(...v.target);
+    setView(`spot:${label}`);
+    setSelected(ids[0]);
+    if (reduce && controls.current) { controls.current.object.position.copy(pos); controls.current.target.copy(target); controls.current.update(); } else setGoal({ pos, target });
+  };
+
   return (
     <section className="card overflow-hidden relative" aria-label="3D machine view">
       <div ref={wrap} className={FRAME.machine}>
@@ -213,6 +249,15 @@ function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) =
             <Glide goal={goal} controls={controls} onArrive={() => setGoal(null)} />
           </>}
         </Stage>
+        {def.views && (
+          <div className="absolute top-2 left-2 right-2 flex gap-1.5 overflow-x-auto hud-row" role="toolbar" aria-label="Look at">
+            {def.views.map((v) => (
+              <button key={v.label} type="button" className="hud-chip whitespace-nowrap" aria-pressed={view === `spot:${v.label}`} onClick={() => goSpot(v.label, v.ids)} aria-label={`Look at: ${v.label}`}>
+                <Icon name="search" size={14} /> {v.label}
+              </button>
+            ))}
+          </div>
+        )}
         <div className="absolute bottom-2 left-2 right-2 flex gap-1.5 items-end overflow-x-auto hud-row" role="toolbar" aria-label="3D tools">
           {VIEWS.map((v) => (
             <button key={v.id} type="button" className="hud-chip" aria-pressed={view === v.id} onClick={() => goTo(v.id)} aria-label={v.id === 'overview' ? 'Reset view' : `${v.label} view`}>

@@ -23,6 +23,8 @@ export interface MachineSceneDef {
   signature?: (rt: SimRuntime) => string;
   /** One-line live readout for the HUD. */
   readout: (rt: SimRuntime) => string;
+  /** Named camera views: each frames the devices listed (Pick ids), seen from the home direction. */
+  views?: { label: string; ids: string[] }[];
   /** Plain description for screen readers. */
   describe: string;
 }

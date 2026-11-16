@@ -54,6 +54,8 @@ export function Pick({ id, label, size, pos = [0, 0, 0], selected, onPick, child
       onPointerCancel={() => setHover(false)}
     >
       {children}
+      {/* Invisible marker so the host can find this device for a named camera view. Draws nothing. */}
+      <group name={`pick:${id}`} position={pos} userData={{ pickSize: size }} />
       {(selected || hover) && (
         <>
           <mesh position={pos} raycast={() => null}>

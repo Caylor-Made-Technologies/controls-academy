@@ -131,5 +131,6 @@ export const datacenterScene: MachineSceneDef = {
     const src = s.ats === 'N' ? 'utility' : s.ats === 'E' ? 'generator' : 'transferring';
     return `${src} · air ${s.temp.toFixed(1)} °C (actual) · valve ${Math.round(s.valve)} %`;
   },
+  views: [{ label: 'Generator', ids: ['gen', 'genstart', 'util'] }, { label: 'ATS', ids: ['atsn', 'atse', 'faillt'] }, { label: 'CRAH', ids: ['air', 'hitemp', 'valve', 'sat'] }],
   describe: 'a utility transformer and a standby generator feeding an automatic transfer switch (its pointer shows Normal, Emergency or moving), which feeds a CRAH cooling unit with a chilled-water valve that fails open, beside a row of server racks.',
 };

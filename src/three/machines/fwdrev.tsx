@@ -115,5 +115,6 @@ export const fwdrevScene: MachineSceneDef = {
     const rpm = s.motor.rpm;
     return `${Math.abs(rpm) < 1 ? 'Stopped' : rpm > 0 ? 'Forward' : 'Reverse'} · motor ${Math.round(Math.abs(rpm) / 10) * 10} rpm · ${s.motor.amps.toFixed(1)} A`;
   },
+  views: [{ label: 'Motor', ids: ['motor'] }, { label: 'Zero-speed', ids: ['zss'] }, { label: 'Starters', ids: ['fcoil', 'rcoil', 'ol'] }],
   describe: 'a covered screw conveyor in a U-trough, driven by a motor and a 20:1 gearbox through forward and reverse contactors (shown with the starter door open), with a zero-speed switch on the tail shaft.',
 };

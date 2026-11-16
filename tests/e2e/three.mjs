@@ -111,6 +111,16 @@ for (const id of MACHINES) {
   await p.waitForSelector('section[aria-label="3D machine view"] canvas', { timeout: 30000 });
   const ro = await p.locator('section[aria-label="3D machine view"] [role="status"]').first().textContent();
   ok(Boolean(ro && ro.length > 5), `3D ${id}: renders with live readout "${ro}"`);
+  // Named views: each one moves the camera somewhere new and marks itself chosen.
+  const spots = p.getByRole('toolbar', { name: 'Look at' }).getByRole('button');
+  const n = await spots.count();
+  ok(n >= 2, `3D ${id}: ${n} named views`);
+  const cam = () => p.evaluate(() => window.__ca3d.dump().at(-1).pos.map((x) => Math.round(x * 100)).join(','));
+  await p.waitForTimeout(800);
+  const before = await cam();
+  await spots.first().click();
+  await p.waitForTimeout(1800);
+  ok((await spots.first().getAttribute('aria-pressed')) === 'true' && (await cam()) !== before, `3D ${id}: "${await spots.first().textContent()}" view moves the camera`);
 }
 const vMachine = await p.evaluate(async () => (await window.axe.run(document, { runOnly: ['wcag2a', 'wcag2aa', 'wcag21aa'] })).violations.map((x) => x.id)).catch(async () => {
   await p.addScriptTag({ content: axeSrc });

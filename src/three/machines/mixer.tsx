@@ -166,5 +166,6 @@ export const mixerScene: MachineSceneDef = {
     const s = rt.scene.state as MixerState;
     return `${Math.round(s.weight)} lb (actual) · gate ${Math.round(s.gate * 100)} % · ${s.batches} batches`;
   },
+  views: [{ label: 'Feed screws', ids: ['screwa', 'screwb'] }, { label: 'Gate', ids: ['gate', 'gatecl', 'gateop'] }, { label: 'Dust collector', ids: ['dcrun', 'dc'] }],
   describe: 'a flour weigh-mixer: two feed screws fill the vessel on load cells (the flour level is the true weight), the agitator mixes in it, and a slide gate with open and closed limit switches discharges onto a conveyor. The batch panel shows what the PLC reads and the step number; the dust collector fan and its airflow switch are on the right.',
 };

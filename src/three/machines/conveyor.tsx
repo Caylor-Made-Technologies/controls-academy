@@ -149,5 +149,6 @@ export const conveyorScene: MachineSceneDef = {
     const s = rt.scene.state as ConveyorState;
     return `${((BELT_SPEED * Math.max(0, s.motor.rpm)) / MOTOR_RPM).toFixed(2)} m/s · ${s.bags.length} on belt · ${s.delivered} delivered`;
   },
+  views: [{ label: 'Photo-eyes', ids: ['pe1', 'pe2'] }, { label: 'Motor', ids: ['motor'] }, { label: 'Panel', ids: ['coil', 'ol', 'jamlt', 'runlt', 'fulllt'] }],
   describe: 'a 6 m bag conveyor with an entry and an exit photo-eye (beam and eye LED show what each sensor sees), a head-end motor, the starter panel with its door shown open, and a stack light.',
 };

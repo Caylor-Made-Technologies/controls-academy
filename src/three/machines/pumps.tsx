@@ -174,5 +174,6 @@ export const pumpsScene: MachineSceneDef = {
     const run = [s.p1.rpm > 100 ? 'P1' : '', s.p2.rpm > 100 ? 'P2' : ''].filter(Boolean).join('+') || 'none';
     return `Level ${s.level.toFixed(2)} m · running ${run} · starts ${s.starts[0]}/${s.starts[1]}`;
   },
+  views: [{ label: 'Pumps', ids: ['p1', 'p2'] }, { label: 'Floats', ids: ['hh', 'low', 'lt'] }, { label: 'Panel', ids: ['hialm', 'faillt', 'reset', 'p1ol', 'p2ol'] }],
   describe: 'a 5 m wet well (a permit-required confined space) with the front wall cut away: live water level, two submersible pumps whose discharge sight-flow wheels turn while pumping, the backup high float and low cutout float riding the water, the level transmitter, and the station panel with running lights from the starter aux contacts and overload trip flags.',
 };
