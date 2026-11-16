@@ -26,7 +26,8 @@ export interface ProbePoint { id: string; label: string }
 const DX = 0.5;
 const DY = 0.17;
 const MODES: MeterMode[] = ['OHM', 'VDC', 'VAC', 'mA', 'A'];
-const MODE_ANGLE: Record<MeterMode, number> = { OHM: 0.9, VDC: 0.45, VAC: 0, mA: -0.45, A: -0.9 };
+// Spaced so neighboring labels on the dial don't touch.
+const MODE_ANGLE: Record<MeterMode, number> = { OHM: 1.2, VDC: 0.6, VAC: 0, mA: -0.6, A: -1.2 };
 const MODE_TEXT: Record<MeterMode, string> = { OHM: 'Ω', VDC: 'V⎓', VAC: 'V~', mA: 'mA', A: 'A' };
 
 /** Terminals in a grid (2 columns on a portrait phone, 3 otherwise), the meter centered underneath. */
@@ -36,7 +37,8 @@ export function benchLayout(n: number, aspect: number) {
   const spots = Array.from({ length: n }, (_, i) => new Vector3(((i % cols) - (cols - 1) / 2) * DX, -Math.floor(i / cols) * DY, 0));
   const termBottom = -(rows - 1) * DY - 0.09;
   const meterAt = new Vector3(0.08, termBottom - 0.26, 0.02);
-  const home = new Vector3(-0.32, termBottom - 0.2, 0.06);
+  // The red probe rests on its own post left of the meter (the black lead's COM post is on the right).
+  const home = new Vector3(meterAt.x - 0.34, meterAt.y + 0.03, 0.06);
   return { cols, spots, width: cols * DX + 0.06, top: 0.1, bottom: meterAt.y - 0.25, termBottom, meterAt, home };
 }
 
@@ -145,7 +147,6 @@ function Bench({ points, mode, at, reading, onMode, onLand, onLift }: BenchProps
             );
           })}
         </group>
-        <Label text="black lead: COM / 0 V (volts)" pos={[0, -0.1, 0.027]} w={0.185} h={0.022} fg="#e5e7eb" bg="#111827" />
         {/* input jacks: red for volts/ohms, black for common */}
         <mesh position={[-0.114, -0.1, 0.028]} rotation={[Math.PI / 2, 0, 0]} material={surface('plasticGloss', '#dc2626')}><cylinderGeometry args={[0.01, 0.01, 0.008, 14]} /></mesh>
         <mesh position={[0.114, -0.1, 0.028]} rotation={[Math.PI / 2, 0, 0]} material={surface('plasticGloss', '#0f1318')}><cylinderGeometry args={[0.01, 0.01, 0.008, 14]} /></mesh>
@@ -157,6 +158,11 @@ function Bench({ points, mode, at, reading, onMode, onLand, onLift }: BenchProps
         <mesh position={[com.x, com.y, 0.055]} rotation={[Math.PI / 2, 0, 0]} material={surface('rubber', '#14181d')}><cylinderGeometry args={[0.013, 0.008, 0.075, 12]} /></mesh>
         <Label text="COM / 0 V" pos={[com.x, com.y + 0.052, 0.002]} w={0.17} h={0.03} fg="#e5e7eb" bg="#111827" />
         <QuadraticBezierLine start={[L.meterAt.x + 0.154, L.meterAt.y - 0.135, 0.045]} end={[com.x, com.y, 0.09]} mid={[com.x - 0.02, com.y - 0.16, 0.12]} color="#4b5563" lineWidth={4} />
+      </group>
+      {/* Where the red probe rests until you drag it onto a test point. */}
+      <group>
+        <Box size={[0.08, 0.055, 0.04]} pos={[L.home.x, L.home.y, -0.005]} color="#1f2937" s="plasticMatte" />
+        <Label text="Drag to a point" pos={[L.home.x, L.home.y + 0.052, 0.002]} w={0.17} h={0.03} fg="#e5e7eb" bg="#111827" />
       </group>
       <Probe spots={L.spots} ids={ids} home={L.home} onLand={onLand} onLift={onLift} at={at} meterJack={jack} />
     </group>

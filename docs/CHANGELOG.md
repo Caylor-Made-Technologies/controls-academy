@@ -27,6 +27,8 @@
 - Search tells you when nothing matches and offers words that work; an empty ladder shows a blank rung and how to start.
 - The three-wire lesson figure is redrawn with proper pushbutton, contact, coil, overload and pilot-light symbols and boxed wire numbers.
 - Rungs wider than the screen fade at the right edge until you scroll to the end.
+- On a phone, long machines (the conveyors) turn a little toward you so they fill more of the screen.
+- Hardware viewer: drives and other plate-mounted units sit on a narrow dark back panel instead of a big grey card; "Spread modules" only shows for models made of several modules.
 - Every machine scene has a "Look at" row (for example Pumps, Floats, Panel on the lift station) that glides the camera to those devices.
 - What's inside: every exploded view fits your screen with all parts and names in view; names are larger on a phone and no longer overlap. The VFD's rectifier and inverter look like power modules, and its control board has a keypad.
 ### Changed

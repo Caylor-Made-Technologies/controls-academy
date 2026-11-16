@@ -43,7 +43,8 @@ function Part({ p, spread, size, reach, selected, onPick, reduce }: { p: InsideP
   const top = p.shape.kind === 'box' ? p.shape.size[1] / 2 : p.shape.axis === 'y' || !p.shape.axis ? p.shape.h / 2 : p.shape.r;
   return (
     <group ref={g} position={home} onClick={click}>
-      <PartBody p={p} selected={selected} />
+      {/* A see-through cover fades as the device comes apart, so it doesn't grey out the parts behind it. */}
+      <PartBody p={p.opacity === undefined ? p : { ...p, opacity: Math.round(p.opacity * (1 - 0.6 * Math.min(1, spread)) * 20) / 20 }} selected={selected} />
       {/* Every part carries its name once the device is pulled apart; the selected one is highlighted. */}
       {/* A see-through enclosure is obvious and its label would sit on top of what is inside it. */}
       {(selected || (spread > 0.3 && p.opacity === undefined)) && (
@@ -215,8 +216,8 @@ export function insideBounds(device: InsideDevice): { min: V3; max: V3 } {
       // Room above for the name tag, which is about as wide as the name.
       const tagW = (shortName(p.name).length * d * 0.0105 + d * 0.03) * 0.7; // half the widest (phone) tag
       // Tags turn to face the camera, so they can stick out in depth as well as sideways.
-      const lo: V3 = [c[0] - Math.max(half[0], tagW), c[1] - half[1], c[2] - Math.max(half[2], tagW)];
-      const hi: V3 = [c[0] + Math.max(half[0], tagW), c[1] + half[1] + d * 0.075, c[2] + Math.max(half[2], tagW)];
+      const lo: V3 = [c[0] - Math.max(half[0], tagW), c[1] - half[1], c[2] - Math.max(half[2], tagW * 0.5)];
+      const hi: V3 = [c[0] + Math.max(half[0], tagW), c[1] + half[1] + d * 0.075, c[2] + Math.max(half[2], tagW * 0.5)];
       for (let i = 0; i < 3; i++) { min[i] = Math.min(min[i], lo[i]); max[i] = Math.max(max[i], hi[i]); }
     }
   }

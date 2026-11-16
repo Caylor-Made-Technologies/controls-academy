@@ -103,3 +103,22 @@ describe('exploded views', () => {
     }
   });
 });
+
+describe('portrait machine views', () => {
+  it('turn toward a long machine on a phone when that brings it much closer, never on a wide canvas', async () => {
+    const { portraitView } = await import('../../src/three/Machine3D');
+    const long = { min: [-3, 0, -0.4] as V3, max: [3, 1, 0.4] as V3 };
+    const ref: V3 = [0.5, 2, 6];
+    const d = (v: { pos: V3; target: V3 }) => Math.hypot(v.pos[0] - v.target[0], v.pos[1] - v.target[1], v.pos[2] - v.target[2]);
+    const wide = portraitView(long, ref, [0, 0.5, 0], 40, 1.8);
+    const phone = portraitView(long, ref, [0, 0.5, 0], 40, 0.6);
+    const { fitViewInsets } = await import('../../src/three/fit');
+    expect(d(phone)).toBeLessThan(d(fitViewInsets(long.min, long.max, ref, [0, 0.5, 0], 40, 0.6, { top: 0.2, bottom: 0.26, left: 0.04, right: 0.04 })));
+    for (const c of boxCorners(long.min, long.max)) {
+      const [x, y] = ndc(c, phone.pos, phone.target, 40, 0.6);
+      expect(Math.abs(x)).toBeLessThanOrEqual(1);
+      expect(Math.abs(y)).toBeLessThanOrEqual(1);
+    }
+    expect(wide.pos[0]).toBeCloseTo(fitViewInsets(long.min, long.max, ref, [0, 0.5, 0], 40, 1.8, { top: 0.2, bottom: 0.26, left: 0.04, right: 0.04 }).pos[0], 6);
+  });
+});

@@ -26,7 +26,9 @@ for (const [route, name] of VIEWS) {
   await p.waitForFunction(() => { const s = window.__ca3d.stats(); return s.live > 0 && s.stages.every((x) => x.frames > 0); }, null, { timeout: 30000 });
   await p.waitForTimeout(2500);
   const el = name === 'meter' ? p.locator('section[aria-label="Multimeter"] .panel3d-bg') : p.locator('.panel3d-bg').first();
-  await el.scrollIntoViewIfNeeded();
+  // Center the view on screen, so the fixed tab bar doesn't cover its bottom tool row in the capture.
+  await el.evaluate((e) => e.scrollIntoView({ block: 'center' }));
+  await p.waitForTimeout(400);
   await el.screenshot({ path: `${dir}/${name}.png` });
 }
 await b.close();

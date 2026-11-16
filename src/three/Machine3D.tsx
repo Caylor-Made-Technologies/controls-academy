@@ -83,11 +83,36 @@ function MeasureScene({ group, onBounds }: { group: React.RefObject<Group | null
   return null;
 }
 
+/**
+ * On a portrait canvas a long machine is limited by its width and sits small with empty sky above. Try the
+ * scene's chosen direction and a few turned toward the machine's long side (up to about 35°), and keep the
+ * one that lets the camera come closest. Landscape keeps the chosen direction. Pure; unit-tested.
+ */
+export function portraitView(bounds: { min: FitV3; max: FitV3 }, refPos: FitV3, refTarget: FitV3, fov: number, aspect: number): { pos: FitV3; target: FitV3 } {
+  const at = (yaw: number) => {
+    const dx = refPos[0] - refTarget[0];
+    const dz = refPos[2] - refTarget[2];
+    const c = Math.cos(yaw);
+    const sn = Math.sin(yaw);
+    const pos: FitV3 = [refTarget[0] + dx * c + dz * sn, refPos[1], refTarget[2] - dx * sn + dz * c];
+    return fitViewInsets(bounds.min, bounds.max, pos, refTarget, fov, aspect, MACHINE_INSETS);
+  };
+  const dist = (v: { pos: FitV3; target: FitV3 }) => Math.hypot(v.pos[0] - v.target[0], v.pos[1] - v.target[1], v.pos[2] - v.target[2]);
+  let best = at(0);
+  if (aspect >= 1) return best;
+  for (const yaw of [-0.6, -0.4, -0.2, 0.2, 0.4, 0.6]) {
+    const v = at(yaw);
+    // Only switch for a clear gain (8 %): small gains aren't worth leaving the chosen angle.
+    if (dist(v) < dist(best) * 0.92) best = v;
+  }
+  return best;
+}
+
 /** Home camera for this canvas shape: the whole machine in view, seen from the scene's chosen direction. */
 export function homeView(def: { camera: { pos: FitV3; target: FitV3 } }, bounds: Bounds, aspect: number, fov = 40): { pos: Vector3; target: Vector3 } {
   if (!bounds) return { pos: framed(def.camera.pos, def.camera.target, aspect), target: new Vector3(...def.camera.target) };
   // The tool row (Reset / Front / Side / Above and the readout) covers the bottom of the canvas.
-  const v = fitViewInsets(bounds.min, bounds.max, def.camera.pos, def.camera.target, fov, aspect, MACHINE_INSETS);
+  const v = portraitView(bounds, def.camera.pos, def.camera.target, fov, aspect);
   return { pos: new Vector3(...v.pos), target: new Vector3(...v.target) };
 }
 

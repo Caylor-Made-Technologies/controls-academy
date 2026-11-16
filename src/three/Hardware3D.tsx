@@ -135,7 +135,8 @@ export default function Hardware3D({ model, selected, onSelect }: { model: HwMod
         ))}
       </div>
       <div className="absolute bottom-2 left-2 right-2 flex gap-1.5 flex-wrap items-end">
-        <button type="button" className="hud-chip" aria-pressed={spread} onClick={() => setSpread(!spread)}><Icon name="layers" size={14} /> Spread modules</button>
+        {/* Only a model made of several modules can be spread apart. */}
+        {model.shape.units.length > 1 && <button type="button" className="hud-chip" aria-pressed={spread} onClick={() => setSpread(!spread)}><Icon name="layers" size={14} /> Spread modules</button>}
         <button type="button" className="hud-chip" onClick={() => { setSpread(false); onSelect(null); pick('angle'); }}><Icon name="reset" size={14} /> Reset</button>
       </div>
     </div>

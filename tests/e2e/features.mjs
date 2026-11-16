@@ -813,7 +813,7 @@ await check('3D: every machine has a live 3D view; Fault Hunt probes drag onto t
     await page.mouse.up(); await page.waitForTimeout(700);
   };
   const meter = () => page.locator('section[aria-label="Multimeter"] [role=status]').first().textContent();
-  await drag(58 / 309, 313 / 503, 85 / 309, 133 / 503); // probe → 24 VDC supply terminal
+  await drag(78 / 309, 318 / 503, 85 / 309, 133 / 503); // probe (resting on its post) → 24 VDC supply terminal
   expect((await meter()).includes('24'), `probe on the supply reads 24 V (got ${await meter()})`);
   await drag(85 / 309, 133 / 503, 222 / 309, 133 / 503); // → AI0 loop current, still in volts mode
   expect((await page.locator('[role=alert]').textContent()).includes('4–20 mA loop current'), 'wrong meter mode on a loop point is caught and explained');
