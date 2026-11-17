@@ -34,7 +34,7 @@ const ioPoints = (u: HwModel['shape']['units'][number]) => {
 
 export function HardwareCard({ m }: { m: HwModel }) {
   return (
-    <a href={href(`reference/hw/${m.id}`)} className="card card-link card-pad flex flex-col gap-2 hw-card">
+    <a href={href(`reference/hw/${m.id}`)} className="card card-link card-pad flex flex-col gap-2 hw-card no-chev">
       <span className="block rounded-lg overflow-hidden hw-thumb" style={{ viewTransitionName: vtName('hw', m.id) }}>
         <HwFront model={m} className="block w-full h-24 hw-thumb-svg" title={`${m.name} front view`} />
       </span>
@@ -207,8 +207,8 @@ export function HardwareDetail({ id }: { id: string }) {
         </section>
       </div>
       <nav className="mt-4 grid grid-cols-2 gap-2" aria-label="More models">
-        {prev ? <a className="card card-link card-pad !py-3 text-sm" href={href(`reference/hw/${prev.id}`)}><span className="flex items-center gap-1 text-muted text-xs"><Icon name="left" size={14} /> Previous</span><span className="block font-bold text-heading">{prev.name}</span></a> : <span />}
-        {next ? <a className="card card-link card-pad !py-3 text-sm text-right" href={href(`reference/hw/${next.id}`)}><span className="flex items-center justify-end gap-1 text-muted text-xs">Next <Icon name="right" size={14} /></span><span className="block font-bold text-heading">{next.name}</span></a> : <span />}
+        {prev ? <a className="card card-link card-pad !py-3 text-sm no-chev" href={href(`reference/hw/${prev.id}`)}><span className="flex items-center gap-1 text-muted text-xs"><Icon name="left" size={14} /> Previous</span><span className="block font-bold text-heading">{prev.name}</span></a> : <span />}
+        {next ? <a className="card card-link card-pad !py-3 text-sm text-right no-chev" href={href(`reference/hw/${next.id}`)}><span className="flex items-center justify-end gap-1 text-muted text-xs">Next <Icon name="right" size={14} /></span><span className="block font-bold text-heading">{next.name}</span></a> : <span />}
       </nav>
       <p className="mt-3"><Button variant="ghost" size="sm" href={href(`reference/brand/${m.brand}`)}>{brandName(m.brand)} field guide <Icon name="chevron" size={16} /></Button></p>
     </div>

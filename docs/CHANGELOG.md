@@ -30,6 +30,10 @@
 - On a phone, long machines (the conveyors) turn a little toward you so they fill more of the screen.
 - Hardware viewer: drives and other plate-mounted units sit on a narrow dark back panel instead of a big grey card; "Spread modules" only shows for models made of several modules.
 - Lift station: easier to read — darker walls, clearer water, labelled pumps and floats, and the confined-space sign faces you. VFD fan: the motor and fan skid turns toward you so the fan shows its face.
+- Wiring trainer: a live wiring diagram draws every wire you place, terminal to terminal, in its color.
+- Cards that open another screen all show a chevron; certificate names no longer get cut off; the exam's Timed option is a bigger, clearer row.
+- Home-screen shortcuts (long-press the app icon) have their own icons.
+- On a phone, wide 3D scenes, the motor panel and exploded views use a shorter 3D window so the equipment fills it.
 - Every machine scene has a "Look at" row (for example Pumps, Floats, Panel on the lift station) that glides the camera to those devices.
 - What's inside: every exploded view fits your screen with all parts and names in view; names are larger on a phone and no longer overlap. The VFD's rectifier and inverter look like power modules, and its control board has a keypad.
 ### Changed

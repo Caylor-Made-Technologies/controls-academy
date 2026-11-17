@@ -820,6 +820,20 @@ await check('3D: every machine has a live 3D view; Fault Hunt probes drag onto t
   await ctx.close();
 });
 
+await check('Wiring trainer: the live diagram draws one line per wire, in its color', async () => {
+  const { ctx, page } = await newPage({ prefs: { onboarded: true, quality: '2d' }, w: 375, h: 812 });
+  await go(page, 'wiring/three-wire');
+  const d = page.getByRole('img', { name: /^Wiring diagram/ });
+  expect((await d.getAttribute('aria-label')).includes('no wires yet'), 'empty at first');
+  await page.getByRole('button', { name: 'Show me one answer' }).click();
+  await page.waitForTimeout(300);
+  const n = await page.locator('section[aria-label="Wires"] li').count();
+  expect(n > 3 && (await page.locator('svg.wiring-diagram path').count()) === n, `one drawn line per wire (${n})`);
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= 375), 'no sideways scroll');
+  await axe(page, 'wiring diagram');
+  await ctx.close();
+});
+
 await check('Wiring trainer: wire a 3-wire start/stop with the terminal buttons; a missing seal-in is explained; the right answer passes', async () => {
   const { ctx, page } = await newPage({ prefs: { onboarded: true, quality: '2d' }, w: 375, h: 812 });
   await go(page, 'wiring');

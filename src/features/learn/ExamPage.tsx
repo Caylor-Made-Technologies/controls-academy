@@ -97,9 +97,9 @@ function Sitting({ exam }: { exam: ExamDef }) {
             <li>Missed questions are added to your Review.</li>
             {exam.id === 'readiness' && <li>Topics where your lesson checks weren't perfect get a few extra questions.</li>}
           </ul>
-          <label className="flex items-center gap-3 min-h-11 cursor-pointer">
-            <input type="checkbox" className="w-5 h-5 accent-[var(--blue)]" checked={timed} onChange={(e) => setTimed(e.target.checked)} />
-            <span>Timed: {Math.round(limit / 60)} minutes (it finishes itself when time runs out)</span>
+          <label className="toggle-row">
+            <input type="checkbox" className="toggle-box" checked={timed} onChange={(e) => setTimed(e.target.checked)} />
+            <span className="text-sm"><strong className="text-heading">Timed: {Math.round(limit / 60)} minutes</strong><br /><span className="text-muted">It finishes by itself when time runs out.</span></span>
           </label>
           <p className="text-xs text-muted m-0">{PRACTICE_RECORD} Training only.</p>
           <Button variant="primary" onClick={start}><Icon name="play" size={16} /> Start</Button>

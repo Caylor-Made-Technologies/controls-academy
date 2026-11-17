@@ -20,5 +20,14 @@ await render(svg, 192, 'icon-192.png');
 await render(svg, 180, 'apple-touch-icon.png');
 await render(svg, 32, 'favicon-32.png');
 await render(maskable, 512, 'icon-maskable-512.png');
+// Home-screen shortcut icons (long-press the app icon): the same tile and glow, with each section's own symbol
+// taken from the app's icon set (src/components/Icon.tsx), so they match the tab bar.
+const iconSrc = readFileSync(new URL('../src/components/Icon.tsx', import.meta.url), 'utf8');
+const glyph = (name) => iconSrc.match(new RegExp(`\\n  ${name}: '([^']+)'`))[1];
+const tile = svg.slice(0, svg.indexOf('<circle cx="256" cy="256" r="196" fill="url(#glow)"/>') + '<circle cx="256" cy="256" r="196" fill="url(#glow)"/>'.length);
+for (const [name, file] of [['sim', 'shortcut-sim.png'], ['wrench', 'shortcut-hunt.png'], ['book', 'shortcut-reference.png']]) {
+  const s = `${tile}<g transform="translate(96 96) scale(13.333)" fill="none" stroke="url(#live)" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="${glyph(name)}" vector-effect="none"/></g></svg>`;
+  await render(s, 96, file);
+}
 await browser.close();
 console.log('icons written');

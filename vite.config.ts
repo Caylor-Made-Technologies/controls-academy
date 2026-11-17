@@ -34,9 +34,9 @@ export default defineConfig({
         lang: 'en',
         // Long-press the installed icon to jump straight to a section.
         shortcuts: [
-          { name: 'Simulator', short_name: 'Simulator', url: base + '#/sim', icons: [{ src: 'icon-192.png', sizes: '192x192', type: 'image/png' }] },
-          { name: 'Fault Hunt', short_name: 'Fault Hunt', url: base + '#/troubleshoot', icons: [{ src: 'icon-192.png', sizes: '192x192', type: 'image/png' }] },
-          { name: 'Reference', short_name: 'Reference', url: base + '#/reference', icons: [{ src: 'icon-192.png', sizes: '192x192', type: 'image/png' }] },
+          { name: 'Simulator', short_name: 'Simulator', url: base + '#/sim', icons: [{ src: 'shortcut-sim.png', sizes: '96x96', type: 'image/png' }] },
+          { name: 'Fault Hunt', short_name: 'Fault Hunt', url: base + '#/troubleshoot', icons: [{ src: 'shortcut-hunt.png', sizes: '96x96', type: 'image/png' }] },
+          { name: 'Reference', short_name: 'Reference', url: base + '#/reference', icons: [{ src: 'shortcut-reference.png', sizes: '96x96', type: 'image/png' }] },
         ],
         icons: [
           { src: 'icon-192.png', sizes: '192x192', type: 'image/png' },

@@ -10,6 +10,7 @@ import { usePrefs } from '../../state/prefs';
 import { hasWebGL, prefer3D } from '../../three/support';
 import { Callout, Segmented, Chip } from '../../components/ui';
 import { Button } from '../../components/ui';
+import { WiringDiagram } from './WiringDiagram';
 
 const WiringBoard3D = lazy(() => import('../../three/WiringBoard3D'));
 
@@ -84,6 +85,7 @@ function Trainer({ ex }: { ex: Exercise }) {
 
       <section className="card card-pad mb-3" aria-label="Wires">
         <h2 className="text-base font-bold m-0">Wires ({wires.length})</h2>
+        <WiringDiagram devices={ex.devices} wires={wires} colors={colors} armed={armed} />
         {wires.length === 0 ? <p className="text-sm text-muted m-0 mt-1">None yet.</p> : (
           <ul className="m-0 mt-2 p-0 list-none space-y-1">
             {wires.map(([a, b], i) => (

@@ -207,3 +207,27 @@ a.row:active, button.row:active { transform: scale(0.99); }
     animation-timeline: scroll(self inline);
   }
 }
+
+/* ---------- Wiring trainer: live connection diagram ---------- */
+.wiring-diagram { display: block; width: 100%; height: auto; margin-top: var(--space-2); }
+.wd-block { fill: var(--surface-sunk); stroke: var(--border); }
+.wd-name { fill: var(--text-heading); font-family: var(--font-body); font-weight: 700; }
+.wd-term { fill: var(--text-muted); font-family: var(--font-mono); }
+.wd-stub { stroke: var(--border-strong); stroke-width: 2; }
+.wd-dot { fill: var(--surface-raised); stroke: var(--text-body); stroke-width: 1.5; }
+.wd-armed { fill: var(--blue-glow); stroke: var(--blue-glow); }
+
+/* ---------- Navigational cards: a chevron says "this opens another screen" ----------
+   Added once here for every card link that doesn't draw its own (thumbnail tiles and prev/next opt out). */
+.card-link:not(.no-chev):not(:has(svg path[d="M9 6l6 6-6 6"])) { padding-right: var(--space-10); }
+.card-link:not(.no-chev):not(:has(svg path[d="M9 6l6 6-6 6"]))::before {
+  content: ''; position: absolute; right: var(--space-3h); top: 50%; width: var(--space-5); height: var(--space-5); transform: translateY(-50%);
+  background: var(--text-muted); pointer-events: none;
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l6 6-6 6' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath d='M9 6l6 6-6 6' fill='none' stroke='black' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+}
+
+/* ---------- Option row with a checkbox: the whole row is the 44 px target ---------- */
+.toggle-row { display: flex; align-items: center; gap: var(--space-3); min-height: var(--tap); padding: var(--space-2) var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-sunk); cursor: pointer; }
+.toggle-row:has(.toggle-box:checked) { border-color: var(--blue-glow); background: var(--blue-soft); }
+.toggle-box { flex: none; width: var(--space-6); height: var(--space-6); accent-color: var(--blue-glow); margin: 0; }
