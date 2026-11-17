@@ -59,7 +59,10 @@ export function StudioLights({ look, q, keyPos, shadowBox, mapSize = 1024, fog }
         shadow-radius={4}
       />
       <directionalLight position={[-keyPos[0] * 1.4, keyPos[1] * 0.6, -keyPos[2] * 0.25]} intensity={look.rim[1]} color={look.rim[0]} />
-      <directionalLight position={[keyPos[0], -keyPos[1] * 0.3, keyPos[2] * 0.75]} intensity={look.fill[1]} color={look.fill[0]} />
+      {/* Fill from the front-left at a natural height (it used to come from below, which flattened shapes). */}
+      <directionalLight position={[-keyPos[0], keyPos[1] * 0.45, keyPos[2]]} intensity={look.fill[1]} color={look.fill[0]} />
+      {/* Kicker from high behind: a bright edge on tops and back corners, so parts separate from the background. */}
+      <directionalLight position={[keyPos[0] * 0.5, keyPos[1] * 1.4, -keyPos[2] * 1.2]} intensity={look.key[1] * 0.4} color={look.key[0]} />
       {/* Low tier: no reflection map; a little more ambient and sky light stands in for it. */}
       {q.envRes > 0 && <RoomReflections intensity={look.envIntensity} />}
     </>

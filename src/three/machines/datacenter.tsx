@@ -33,6 +33,8 @@ function Scene(p: MachineSceneProps) {
   return (
     <group>
       {/* utility transformer (pad-mount) */}
+      {/* Utility transformer sits right of the generator, so the camera sees it (it was hidden behind). */}
+      <group position={[0.7, 0, -0.1]}>
       <Pick id="util" label="Utility sensing" size={[0.9, 0.9, 0.8]} pos={[-2.6, 0.45, -0.3]} selected={sel('util')} onPick={p.onPick}>
         <Box size={[0.8, 0.8, 0.7]} pos={[-2.6, 0.4, -0.3]} color="#3f6b4f" s="enamel" />
         {/* pad-mount transformer: concrete pad, cooling fins down both sides, three bushings on top */}
@@ -46,6 +48,7 @@ function Scene(p: MachineSceneProps) {
         <Label text="UTILITY" pos={[-2.6, 0.65, 0.052]} w={0.3} h={0.07} fg="#fff" bg="#1f2937" />
         <Lamp pos={[-2.6, 0.5, 0.06]} color="#3ddc97" on={() => s().utility} r={0.03} />
       </Pick>
+      </group>
       {/* generator */}
       <Pick id="gen" label="Generator" size={[1.4, 0.9, 0.8]} pos={[-2.4, 0.45, 1.2]} selected={sel('gen')} onPick={p.onPick}>
         <Box size={[1.3, 0.8, 0.7]} pos={[-2.4, 0.44, 1.2]} color="#d4a017" s="enamel" />
@@ -84,7 +87,7 @@ function Scene(p: MachineSceneProps) {
       {/* Power runs in conduit along the floor, rising into each cabinet (they used to hang in mid-air). */}
       {([
         // utility transformer → ATS normal side
-        [[-2.17, 0.45, -0.3], [-2.17, 0.03, -0.3], [-1.36, 0.03, -0.3], [-1.36, 0.03, -0.1], [-1.36, 0.3, -0.1]],
+        [[-1.47, 0.45, -0.4], [-1.47, 0.03, -0.4], [-1.36, 0.03, -0.4], [-1.36, 0.03, -0.1], [-1.36, 0.3, -0.1]],
         // generator → ATS emergency side
         [[-2.1, 0.4, 0.83], [-2.1, 0.03, 0.83], [-1.36, 0.03, 0.83], [-1.36, 0.03, 0.1], [-1.36, 0.3, 0.1]],
         // ATS load side → CRAH

@@ -71,7 +71,9 @@ function Scene(p: MachineSceneProps) {
       )}
       {/* weigh-mixer: the vessel sits on load cells; the agitator mixes in it; the gate at its outlet discharges */}
       <Pick id="wt" label="Weigh-mixer on load cells" size={[1.05, VH + 0.2, 1.05]} pos={[0, VY + VH / 2, 0]} selected={sel('wt')} onPick={p.onPick}>
-        <mesh position={[0, VY + VH / 2, 0]}><cylinderGeometry args={[0.47, 0.47, VH, 40, 1, true]} /><meshStandardMaterial color="#e2e8f0" metalness={0.75} roughness={0.25} transparent opacity={0.35} side={2} depthWrite={false} /></mesh>
+        {/* Cut-away vessel: stainless back half, clear front half, so the agitator shows against the back wall. */}
+        <mesh position={[0, VY + VH / 2, 0]}><cylinderGeometry args={[0.47, 0.47, VH, 40, 1, true, Math.PI / 2, Math.PI]} /><meshStandardMaterial color="#b8c1cc" metalness={0.6} roughness={0.35} side={2} /></mesh>
+        <mesh position={[0, VY + VH / 2, 0]}><cylinderGeometry args={[0.47, 0.47, VH, 40, 1, true, -Math.PI / 2, Math.PI]} /><meshStandardMaterial color="#e2e8f0" metalness={0.2} roughness={0.1} transparent opacity={0.16} side={2} depthWrite={false} /></mesh>
         <mesh position={[0, VY - 0.08, 0]}><coneGeometry args={[0.47, 0.16, 40, 1, true]} /><meshStandardMaterial color="#e2e8f0" metalness={0.75} roughness={0.25} side={2} /></mesh>
         <Fill weight={() => s().weight} />
         {/* support ring and lugs: the vessel hangs on the four load cells through these */}
@@ -89,7 +91,7 @@ function Scene(p: MachineSceneProps) {
       <Pick id="mixer" label="Mixer (agitator)" size={[0.9, VH, 0.9]} pos={[0, VY + VH / 2, 0]} selected={sel('mixer')} onPick={p.onPick}>
         <group position={[0, VY + VH / 2, 0]}>
           <Spinner rps={() => s().mixerSpin * 6} axis="y">
-            {[-0.2, 0.15].map((y, i) => <mesh key={y} position={[0, y, 0]} rotation={[0, i * Math.PI / 2, 0]}><boxGeometry args={[0.8, 0.05, 0.06]} /><meshStandardMaterial color="#94a3b8" metalness={0.8} roughness={0.3} /></mesh>)}
+            {[-0.2, 0.15].map((y, i) => <mesh key={y} position={[0, y, 0]} rotation={[0, i * Math.PI / 2, 0]}><boxGeometry args={[0.8, 0.05, 0.06]} /><meshStandardMaterial color="#475569" metalness={0.8} roughness={0.3} /></mesh>)}
             <mesh><cylinderGeometry args={[0.03, 0.03, VH + 0.2, 12]} /><meshStandardMaterial color="#64748b" metalness={0.8} /></mesh>
           </Spinner>
         </group>
@@ -99,6 +101,9 @@ function Scene(p: MachineSceneProps) {
       {/* interlocked cover */}
       <mesh position={[0, VY + VH, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[0.47, 40]} /><meshStandardMaterial color="#cbd5e1" transparent opacity={0.3} depthWrite={false} /></mesh>
       <Label text="INTERLOCKED · LOCK OUT TO OPEN" pos={[0, VY + VH + 0.03, 0.5]} w={0.8} h={0.06} fg="#111" bg="#f5c400" />
+      {/* readable tags for the parts a beginner looks for */}
+      <Label text="DISCHARGE GATE" pos={[0.1, VY - 0.36, 0.42]} w={0.5} h={0.08} fg="#fff" bg="#1a2230" />
+      <Label text="LOAD CELL" pos={[0.52, VY + 0.13, 0.6]} w={0.3} h={0.07} fg="#fff" bg="#1e40af" />
       {/* discharge gate (slides open) with its limit switches */}
       <Pick id="gate" label="Discharge gate" size={[0.5, 0.15, 0.4]} pos={[0.1, VY - 0.2, 0]} selected={sel('gate')} onPick={p.onPick}>
         <Gate open={() => s().gate} />

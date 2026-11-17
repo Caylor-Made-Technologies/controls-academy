@@ -28,7 +28,7 @@ export const LOOKS: Record<'dark' | 'light', Look> = {
   dark: {
     // Ambient, sky and fill lifted (review 6: dark parts sank into the dark background); key and rim unchanged.
     theme: 'dark', bg: '#0d131b', fog: [3.2, 6.5], exposure: 1.0, ambient: 0.13,
-    hemi: ['#cfe3ff', '#1a1f28', 0.32], key: ['#fff6ea', 1.55], rim: ['#3d8bff', 1.1], fill: ['#ffd9a8', 0.35],
+    hemi: ['#cfe3ff', '#1a1f28', 0.32], key: ['#fff6ea', 1.8], rim: ['#3d8bff', 1.1], fill: ['#ffd9a8', 0.45],
     envIntensity: 0.32, wall: '#1b222c', floor: '#5f6876', ao: 0.6,
   },
   light: {

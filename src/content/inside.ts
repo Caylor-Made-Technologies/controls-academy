@@ -90,7 +90,7 @@ export const INSIDE: InsideDevice[] = [
     summary: 'Turns fixed 60 Hz power into variable frequency and voltage, so a standard induction motor runs at the speed you ask for. AC in → DC bus → switched back to AC out.',
     safety: 'The DC bus capacitors stay charged after power is removed. Wait the time on the drive\'s label, then measure the bus with a properly rated meter (live-dead-live) before touching anything inside.',
     size: 0.5,
-    reach: 0.34,
+    reach: 0.42,
     parts: [
       { id: 'input', name: 'Input terminals L1, L2, L3', what: 'Three-phase line power comes in here, through the disconnect and the fuses or breaker the manufacturer specifies.', pos: [-0.07, -0.11, 0.05], dir: [-0.5, -1, 0.4], shape: { kind: 'box', size: [0.06, 0.02, 0.02] }, color: '#d1d5db', metal: 0.9 },
       { id: 'rectifier', name: 'Rectifier (diodes)', what: 'Turns incoming AC into DC. This is the first stage of power conversion.', pos: [-0.06, -0.05, 0.0], dir: [-1, -0.3, 0.5], shape: { kind: 'box', size: [0.05, 0.03, 0.02] }, color: '#1f2937' },

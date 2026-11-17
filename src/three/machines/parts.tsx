@@ -173,16 +173,24 @@ export function Tank({ pos, r, h, level, liquid = PAINT.water, shell = '#cfd6de'
         <cylinderGeometry args={[r * 0.97, r * 0.97, h, 40]} />
         <meshStandardMaterial color={liquid} roughness={0.15} metalness={0.1} transparent opacity={0.85} />
       </mesh>
-      <mesh position={[0, h / 2, 0]} material={surface('glass', shell, 0.26)}>
-        <cylinderGeometry args={[r, r, h, 40, 1, true]} />
+      {/* Cut-away: the back half is the painted steel shell (the water reads against it), the front half a clear
+          window so you can watch the level. */}
+      <mesh position={[0, h / 2, 0]}>
+        <cylinderGeometry args={[r, r, h, 40, 1, true, Math.PI / 2, Math.PI]} />
+        <meshStandardMaterial color="#8f99a5" metalness={0.35} roughness={0.55} side={DoubleSide} />
       </mesh>
+      <mesh position={[0, h / 2, 0]} material={surface('glass', shell, 0.16)}>
+        <cylinderGeometry args={[r, r, h, 40, 1, true, -Math.PI / 2, Math.PI]} />
+      </mesh>
+      {/* the cut edges of the shell */}
+      {[-1, 1].map((e) => <Box key={e} size={[0.03, h, 0.03]} pos={[e * r, h / 2, 0]} color="#7b8591" s="galvanized" round={0} />)}
       {/* rolled steel rims top and bottom, and a base ring */}
       <mesh position={[0, h + 0.012, 0]} material={surface('brushedSteel')}><cylinderGeometry args={[r * 1.03, r * 1.03, 0.03, 40]} /></mesh>
       {!lowDetail() && <mesh position={[0, h, 0]} rotation={[Math.PI / 2, 0, 0]} material={surface('brushedSteel')}><torusGeometry args={[r * 1.01, 0.012, 8, 48]} /></mesh>}
       <mesh position={[0, 0.015, 0]} material={surface('castIron')}><cylinderGeometry args={[r * 1.05, r * 1.08, 0.03, 40]} /></mesh>
       {/* level marks every quarter */}
       {[0.25, 0.5, 0.75].map((f) => (
-        <mesh key={f} position={[0, f * h, 0]} rotation={[Math.PI / 2, 0, 0]}><torusGeometry args={[r * 1.005, 0.004, 6, 48]} /><meshBasicMaterial color="#94a3b8" /></mesh>
+        <Box key={f} size={[r * 0.5, 0.025, 0.01]} pos={[0, f * h, -r * 0.97]} color="#f5c400" s="enamel" round={0} />
       ))}
     </group>
   );
