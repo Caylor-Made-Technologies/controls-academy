@@ -14,7 +14,7 @@ describe('brands side by side', () => {
   it('every uncertain detail is listed in docs/VERIFY.md', () => {
     const doc = readFileSync('docs/VERIFY.md', 'utf8');
     const n = PLATFORMS.flatMap((p) => Object.values(p.cells)).filter((c) => c.includes('// VERIFY')).length;
-    const listed = doc.split('## Brands side by side')[1]?.split('\n').filter((l) => l.startsWith('- ')).length ?? 0;
+    const listed = doc.split('## Brands side by side')[1]?.split('\n## ')[0].split('\n').filter((l) => l.startsWith('- ')).length ?? 0;
     expect(listed).toBe(n);
   });
   it('a 5-second timer is stated consistently with the engine units', () => {

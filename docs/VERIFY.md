@@ -140,3 +140,15 @@ All in `src/content/hardware.ts` and `src/content/brands.ts`. The 3D shapes are 
 - Omron · backups: details vary by model and version
 - Omron · firmware: details vary by model and version
 - Omron · gotchas: details vary by model and version
+
+## Troubleshooting flowcharts (`src/content/flowcharts.ts`)
+- Analog reads wrong · end-open: fault limits (NAMUR NE43) per transmitter and card
+- Motor trips · what-tripped: breaker type and setting
+- Motor trips · setting: setting rule per overload maker and NEC 430.32
+- Output on, device off · term: per card
+- Communication lost · safe: comm-loss action per device
+- Communication lost · scope: per network
+- VFD faults · safe: auto-restart setting
+- VFD faults · read: details vary
+- VFD faults · end-oc: details vary by model
+- VFD faults · end-ot: details vary by model

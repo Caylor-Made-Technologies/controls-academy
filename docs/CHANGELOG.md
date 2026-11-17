@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Phase 5: Reference (in progress, will ship as 0.10.0)
+### Added
+- Brands side by side: compare up to three PLC platforms on addressing, timers, counters, going online, forcing, upload/download, backups, firmware and gotchas.
+- Troubleshooting flowcharts: motor won't start, motor trips, input not seen, output on but device off, analog reads wrong, communication lost, VFD faults. Each step says what to check and when to lock out first.
+### Fixed
+- The 3D memory-leak check waits for the scene to settle before taking its baseline (it could fail on a busy machine).
+
 ## 0.9.0 — 2026-11-17 — Phase 4: premium UI, 3D and motion
 ### Added
 - The page heading now appears with the HTML, before any app code has loaded (first paint about 1 s sooner on a slow phone).

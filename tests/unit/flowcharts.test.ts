@@ -33,3 +33,10 @@ describe('troubleshooting flowcharts', () => {
     });
   }
 });
+
+describe('flowchart text', () => {
+  it('a "check your manual" marker is always last in its text (the app shows everything after it as the note)', () => {
+    const texts = FLOWCHARTS.flatMap((f) => f.steps.flatMap((s) => [s.ask, s.how, s.safety, s.end?.found, s.end?.fix].filter(Boolean) as string[]));
+    for (const t of texts) if (t.includes('// VERIFY')) expect(t.split('// VERIFY')[1], t.slice(0, 60)).not.toMatch(/\. [A-Z]/);
+  });
+});

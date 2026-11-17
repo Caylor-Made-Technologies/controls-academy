@@ -78,7 +78,13 @@ for (let i = 0; i < 20; i++) {
   await p.getByRole('button', { name: '3D panel' }).click();
   await p.waitForSelector('section[aria-label="3D control panel"] canvas');
   await p.waitForFunction(() => window.__ca3d.stats().live === 1);
-  if (i === 2) { await p.waitForTimeout(1500); fresh = (await stats()).stages[0]; } // steady state
+  if (i === 2) {
+    // Steady state: wait until the scene stops adding geometry (a busy machine can still be building it after a
+    // fixed pause, which made the baseline too low and the leak check flaky).
+    let prev = -1;
+    for (let k = 0; k < 20; k++) { await p.waitForTimeout(500); const g = (await stats()).stages[0].geometries; if (g === prev) break; prev = g; }
+    fresh = (await stats()).stages[0];
+  }
 }
 await p.waitForTimeout(1500); // R3F releases the old contexts shortly after unmount
 const last = await stats();
