@@ -111,11 +111,11 @@ function Scene(p: MachineSceneProps) {
       <Pipe from={[-W / 2 - 0.3, 0, W / 2 + 0.3]} to={[-W / 2 - 0.3, 1.5, W / 2 + 0.3]} r={0.025} color="#9aa3ad" />
       <Label text="DANGER · CONFINED SPACE" pos={[-W / 2 - 0.3, 1.6, W / 2 + 0.33]} w={1.15} h={0.2} fg="#fff" bg="#b91c1c" />
       <Label text="PERMIT REQUIRED · H2S" pos={[-W / 2 - 0.3, 1.39, W / 2 + 0.33]} w={1.15} h={0.17} fg="#111" bg="#f5c400" />
-      {/* Name tags you can read without tapping: what each pump and float is. */}
-      <Label text="PUMP 1" pos={[-0.45, WELL_DEPTH + 0.72, 0]} w={0.72} h={0.22} fg="#fff" bg="#1a2230" />
-      <Label text="PUMP 2" pos={[0.45, WELL_DEPTH + 0.72, 0]} w={0.72} h={0.22} fg="#fff" bg="#1a2230" />
-      <Label text="HIGH FLOAT (backup)" pos={[-0.45, FLOAT_AT + 0.3, 0.62]} w={1.1} h={0.18} fg="#fff" bg="#7f1d1d" />
-      <Label text="LOW CUTOUT FLOAT" pos={[0.45, LOW_CUTOUT + 0.45, 0.62]} w={1.0} h={0.18} fg="#111" bg="#f59e0b" />
+      {/* Name tags you can read without tapping, each beside what it names. */}
+      <Label text="PUMP 1" pos={[-0.45, 0.42, 0.2]} w={0.46} h={0.15} fg="#fff" bg="#1a2230" />
+      <Label text="PUMP 2" pos={[0.45, 0.42, 0.2]} w={0.46} h={0.15} fg="#fff" bg="#1a2230" />
+      <Label text="HIGH FLOAT (backup)" pos={[-0.5, FLOAT_AT + 0.2, 0.62]} w={0.86} h={0.16} fg="#fff" bg="#7f1d1d" />
+      <Label text="LOW CUTOUT FLOAT" pos={[0.6, LOW_CUTOUT + 0.75, 0.62]} w={0.8} h={0.15} fg="#111" bg="#f59e0b" />
       <Pick id="p1" label="Pump 1" size={[0.5, 0.8, 0.5]} pos={[-0.45, 0.4, 0]} selected={sel('p1')} onPick={p.onPick}>
         <Pump x={-0.45} rps={() => s().p1.rpm / 60} />
       </Pick>
@@ -165,7 +165,7 @@ function Scene(p: MachineSceneProps) {
 }
 
 function StarterNote() {
-  return <Label text="DOOR SHOWN OPEN · 480 V INSIDE · NFPA 70E / LOCK OUT" pos={[0, 1.45, 0.15]} w={0.78} h={0.06} fg="#111" bg="#f5c400" />;
+  return <Label text="480 V INSIDE · LOCK OUT" pos={[0, 1.45, 0.15]} w={0.78} h={0.06} fg="#111" bg="#f5c400" />;
 }
 
 export const pumpsScene: MachineSceneDef = {

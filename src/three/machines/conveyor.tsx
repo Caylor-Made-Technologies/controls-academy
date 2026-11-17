@@ -99,11 +99,12 @@ function Scene(p: MachineSceneProps) {
         <Box size={[0.03, 0.9, 0.03]} pos={[0, 0.45, 0]} color="#4b5563" metal={0.6} rough={0.4} />
         <Box size={[0.1, 0.1, 0.05]} pos={[0, 0.95, 0]} color="#facc15" rough={0.5} />
         <mesh position={[0, 0.95, 0.04]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.035, 0.03, 0.03, 24]} /><meshStandardMaterial color="#dc2626" roughness={0.35} /></mesh>
-        <Label text="E-STOP — not modeled here; real conveyors have E-stops / pull-cords" pos={[0, 1.07, 0]} w={0.7} h={0.05} fg="#111" bg="#f5c400" />
+        <Label text="E-STOP / PULL-CORD: not shown" pos={[0, 1.07, 0]} w={0.7} h={0.05} fg="#111" bg="#f5c400" />
       </group>
       {/* pallet at discharge */}
       {/* a wooden pallet: three runners and spaced deck boards, so it reads as a pallet and not a mat */}
-      <group position={[X0 + BELT_M + 0.7, 0, 0]}>
+      {/* beside the discharge on the far side, so it doesn't fill the foreground (review 6) */}
+      <group position={[X0 + BELT_M + 0.35, 0, -1.0]}>
         {[-0.42, 0, 0.42].map((z) => <Box key={z} size={[1.0, 0.09, 0.1]} pos={[0, 0.045, z]} color="#8a5a1c" s="plasticMatte" />)}
         {[-0.42, -0.21, 0, 0.21, 0.42].map((x) => <Box key={x} size={[0.14, 0.022, 1.0]} pos={[x, 0.101, 0]} color="#b07a2e" s="plasticMatte" />)}
       </group>
@@ -150,5 +151,5 @@ export const conveyorScene: MachineSceneDef = {
     return `${((BELT_SPEED * Math.max(0, s.motor.rpm)) / MOTOR_RPM).toFixed(2)} m/s · ${s.bags.length} on belt · ${s.delivered} delivered`;
   },
   views: [{ label: 'Photo-eyes', ids: ['pe1', 'pe2'] }, { label: 'Motor', ids: ['motor'] }, { label: 'Panel', ids: ['coil', 'ol', 'jamlt', 'runlt', 'fulllt'] }],
-  describe: 'a 6 m bag conveyor with an entry and an exit photo-eye (beam and eye LED show what each sensor sees), a head-end motor, the starter panel with its door shown open, and a stack light.',
+  describe: 'a 6 m bag conveyor with an entry and an exit photo-eye (beam and eye LED show what each sensor sees), a head-end motor, the starter panel with its door shown open, and a stack light. Real conveyors also have E-stops or pull-cords on a separate hardwired safety circuit; they are not shown here.',
 };

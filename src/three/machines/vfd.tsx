@@ -44,7 +44,7 @@ function Scene(p: MachineSceneProps) {
           ))}
           <Lamp pos={[0.2, 0.86, 0.16]} color="#3ddc97" on={() => s().running} r={0.012} />
           <Lamp pos={[0.2, 0.82, 0.16]} color="#ffb547" on={() => Boolean(s().fault)} r={0.012} />
-          <Label text="DC BUS: WAIT, THEN TEST BEFORE TOUCH" pos={[0, 0.45, 0.153]} w={0.4} h={0.04} fg="#111" bg="#f5c400" />
+          <Label text="DC BUS: WAIT, THEN TEST" pos={[0, 0.45, 0.153]} w={0.4} h={0.04} fg="#111" bg="#f5c400" />
           {/* braking resistor on top when fitted */}
         </Cabinet>
       </Pick>

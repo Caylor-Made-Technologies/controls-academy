@@ -81,9 +81,17 @@ function Scene(p: MachineSceneProps) {
         </Pick>
       </Cabinet>
       {/* feeders */}
-      <Pipe from={[-2.2, 0.85, -0.3]} to={[-1.3, 1.4, 0]} r={0.03} color="#1f2937" />
-      <Pipe from={[-1.75, 0.85, 1.2]} to={[-1.3, 1.2, 0]} r={0.03} color="#1f2937" />
-      <Pipe from={[-0.5, 1.3, 0]} to={[0.6, 1.3, 0]} r={0.03} color="#1f2937" />
+      {/* Power runs in conduit along the floor, rising into each cabinet (they used to hang in mid-air). */}
+      {([
+        // utility transformer → ATS normal side
+        [[-2.17, 0.45, -0.3], [-2.17, 0.03, -0.3], [-1.36, 0.03, -0.3], [-1.36, 0.03, -0.1], [-1.36, 0.3, -0.1]],
+        // generator → ATS emergency side
+        [[-2.1, 0.4, 0.83], [-2.1, 0.03, 0.83], [-1.36, 0.03, 0.83], [-1.36, 0.03, 0.1], [-1.36, 0.3, 0.1]],
+        // ATS load side → CRAH
+        [[-0.46, 0.3, 0], [-0.46, 0.03, 0], [0.62, 0.03, 0], [0.62, 0.3, 0]],
+      ] as [number, number, number][][]).flatMap((run, r) => run.slice(1).map((to, i) => (
+        <Pipe key={`${r}-${i}`} from={run[i]} to={to} r={0.03} color="#1f2937" />
+      )))}
       {/* CRAH unit */}
       <Cabinet pos={[1.1, 0, 0]} size={[0.9, 1.9, 0.6]} label="CRAH-1">
         <group position={[0, 1.45, 0.31]} rotation={[0, Math.PI / 2, 0]}><FanWheel rps={() => s().fanSpin * 18} r={0.3} /></group>

@@ -135,11 +135,7 @@ export function HardwareModel({ shape, live, selected, onSelect, fit, maxScale =
   return (
     <group scale={scale} position={[-(width / 2) * scale, 0, 0]}>
       {/* mounting: DIN rail or chassis */}
-      {shape.mount === 'plate' && (
-        // Back-panel strip behind a plate-mounted unit: a narrow, dark galvanized margin so it reads as the
-        // panel it hangs on, not a blank card behind it.
-        <Box size={[width + 0.04, height + 0.04, 0.002]} pos={[width / 2, 0, -0.002]} color="#4a525c" s="galvanized" round={0} />
-      )}
+      {/* Plate-mounted units (drives) are shown on their own: a back-plate fragment read as a glitch in review. */}
       {shape.mount === 'panel' && (
         <Box size={[width + 0.07, height + 0.07, 0.002]} pos={[width / 2, 0, depth - 0.007]} color="#b9c0c7" metal={0.2} rough={0.55} round={0} />
       )}

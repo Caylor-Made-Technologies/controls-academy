@@ -98,7 +98,7 @@ function Scene(p: MachineSceneProps) {
       </Pick>
       {/* interlocked cover */}
       <mesh position={[0, VY + VH, 0]} rotation={[-Math.PI / 2, 0, 0]}><circleGeometry args={[0.47, 40]} /><meshStandardMaterial color="#cbd5e1" transparent opacity={0.3} depthWrite={false} /></mesh>
-      <Label text="COVER INTERLOCKED — LOCK OUT BEFORE OPENING" pos={[0, VY + VH + 0.03, 0.5]} w={0.8} h={0.06} fg="#111" bg="#f5c400" />
+      <Label text="INTERLOCKED · LOCK OUT TO OPEN" pos={[0, VY + VH + 0.03, 0.5]} w={0.8} h={0.06} fg="#111" bg="#f5c400" />
       {/* discharge gate (slides open) with its limit switches */}
       <Pick id="gate" label="Discharge gate" size={[0.5, 0.15, 0.4]} pos={[0.1, VY - 0.2, 0]} selected={sel('gate')} onPick={p.onPick}>
         <Gate open={() => s().gate} />
@@ -147,7 +147,7 @@ function Scene(p: MachineSceneProps) {
         {/* E-stop drawn for realism; it's a separate hardwired circuit not modeled here */}
         <Box size={[0.1, 0.1, 0.03]} pos={[0, 0.6, 0.135]} color="#facc15" rough={0.5} />
         <mesh position={[0, 0.6, 0.16]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.035, 0.03, 0.03, 24]} /><meshStandardMaterial color="#dc2626" roughness={0.35} /></mesh>
-        <Label text="E-STOP: SEPARATE HARDWIRED CIRCUIT (not modeled)" pos={[0, 0.48, 0.127]} w={0.62} h={0.05} fg="#111" bg="#f5c400" />
+        <Label text="E-STOP: HARDWIRED (not shown)" pos={[0, 0.48, 0.127]} w={0.62} h={0.05} fg="#111" bg="#f5c400" />
       </Cabinet>
     </group>
   );
@@ -167,5 +167,5 @@ export const mixerScene: MachineSceneDef = {
     return `${Math.round(s.weight)} lb (actual) · gate ${Math.round(s.gate * 100)} % · ${s.batches} batches`;
   },
   views: [{ label: 'Feed screws', ids: ['screwa', 'screwb'] }, { label: 'Gate', ids: ['gate', 'gatecl', 'gateop'] }, { label: 'Dust collector', ids: ['dcrun', 'dc'] }],
-  describe: 'a flour weigh-mixer: two feed screws fill the vessel on load cells (the flour level is the true weight), the agitator mixes in it, and a slide gate with open and closed limit switches discharges onto a conveyor. The batch panel shows what the PLC reads and the step number; the dust collector fan and its airflow switch are on the right.',
+  describe: 'a flour weigh-mixer: two feed screws fill the vessel on load cells (the flour level is the true weight), the agitator mixes in it, and a slide gate with open and closed limit switches discharges onto a conveyor. The batch panel shows what the PLC reads and the step number; the dust collector fan and its airflow switch are on the right. The E-stop is a separate hardwired safety circuit and is not shown.',
 };

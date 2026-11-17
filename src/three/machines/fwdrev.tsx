@@ -39,7 +39,7 @@ function Scene(p: MachineSceneProps) {
           <planeGeometry args={[2.4, 0.42]} />
           <meshStandardMaterial color="#cbd5e1" metalness={0.5} roughness={0.4} transparent opacity={0.3} side={DoubleSide} depthWrite={false} />
         </mesh>
-        <Label text="COVER ON — LOCK OUT BEFORE OPENING" pos={[0.4, 0.205, 0.1]} rot={[-Math.PI / 2, 0, 0]} w={0.7} h={0.07} fg="#111" bg="#f5c400" />
+        <Label text="LOCK OUT BEFORE OPENING" pos={[0.4, 0.205, 0.1]} rot={[-Math.PI / 2, 0, 0]} w={0.7} h={0.07} fg="#111" bg="#f5c400" />
         {[-1, 1].map((x) => <Box key={x} size={[0.06, 0.55, 0.06]} pos={[x, -0.3, 0]} color="#4b5563" metal={0.5} rough={0.5} />)}
       </group>
       {/* motor + gearbox at the drive end */}
@@ -100,7 +100,7 @@ function ChokeFill({ on }: { on: () => boolean }) {
 
 /** Shown on starter panels drawn with the door open so you can see inside. */
 export function StarterDoorNote({ y }: { y: number }) {
-  return <Label text="DOOR SHOWN OPEN · 480 V INSIDE · NFPA 70E / LOCK OUT" pos={[0, y, 0.13]} w={0.78} h={0.06} fg="#111" bg="#f5c400" />;
+  return <Label text="480 V INSIDE · LOCK OUT" pos={[0, y, 0.13]} w={0.78} h={0.06} fg="#111" bg="#f5c400" />;
 }
 
 export const fwdrevScene: MachineSceneDef = {
