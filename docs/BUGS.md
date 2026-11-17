@@ -12,6 +12,7 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 | B-004 | High | Phase 0 | Fixed in 0.5.1 |
 | B-003 | High | Phase 0 | Fixed in 0.5.1 |
 | B-002 | Low | Phase 0 (Lighthouse) | Fixed in 0.5.1 |
+| B-012 | Low | v0.9.0 gate (verify:live) | Fixed at the gate |
 | B-011 | Low | Phase 4 verify (3D suite) | Fixed 4.3 |
 | B-010 | Medium | Phase 3 gate (Lighthouse live) | Fixed 4.1 (local 1.6 s; confirm on live at the gate) |
 | B-009 | Low | Phase 3 review | Fixed 3.6 |
@@ -65,6 +66,11 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 - **Expected:** *Protection devices* (next in Track 1). **Actual:** *Reading ladder prints* (Track 2); *Protection devices* is skipped. 9 of 49 "Next" links pointed to the wrong lesson.
 - **Cause:** `LESSONS` kept source-file order; tracks have their own order.
 - **Fix:** `LESSONS` sorted by `COURSE_ORDER` (track by track). **Test:** `tests/unit/quality.test.ts` → "course order".
+
+## B-012 — Light theme could flash dark on first load
+- **Steps:** save the light theme, reload the live site on a normal connection (verify:live "Static shell" check).
+- **Cause:** the saved theme was applied by the route script that sits after the static header in `<body>`; over a real network the header could paint in the dark theme first. Locally the page arrives at once, so only the live run showed it.
+- **Fix:** a tiny theme script in `<head>` (its own CSP hash) runs before anything in `<body>`. Test: the served HTML must apply the theme before `<body>`.
 
 ## B-002 — Intro app mark is blurry on phones
 - **Steps:** Lighthouse mobile on `#/learn` → Best Practices → "Serves images with low resolution".

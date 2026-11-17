@@ -934,6 +934,9 @@ await check('Static shell: deeper pages get the header bar only, and a saved lig
   await page.waitForSelector('#root .app-header');
   expect((await page.locator('#shell-head h1').count()) === 0, 'a lesson has no static heading');
   expect((await page.evaluate(() => document.documentElement.dataset.theme)) === 'light', 'light theme set by the boot script');
+  // The theme must be set before <body> starts: on a real network the static header can paint as soon as it arrives.
+  const html = await (await page.request.get(URL0)).text();
+  expect(html.indexOf('ca:prefs') > 0 && html.indexOf('ca:prefs') < html.indexOf('<body'), 'theme script runs in <head>, before anything paints');
   await ctx.close();
 });
 
