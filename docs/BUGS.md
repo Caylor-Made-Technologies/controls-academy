@@ -14,7 +14,7 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 | B-002 | Low | Phase 0 (Lighthouse) | Fixed in 0.5.1 |
 | B-012 | Low | v0.9.0 gate (verify:live) | Fixed at the gate |
 | B-011 | Low | Phase 4 verify (3D suite) | Fixed 4.3 |
-| B-010 | Medium | Phase 3 gate (Lighthouse live) | Fixed 4.1 (local 1.6 s; confirm on live at the gate) |
+| B-010 | Medium | Phase 3 gate (Lighthouse live) | Fixed 4.1; confirmed live at 0.9.0 (LCP ≤ 2.21 s) |
 | B-009 | Low | Phase 3 review | Fixed 3.6 |
 | B-008 | High | Phase 3 review | Fixed 3.3 |
 | B-001 | Medium | Phase 0 (Lighthouse) | Fixed 3.1–3.8 (live 45 → 95) |

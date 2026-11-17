@@ -45,13 +45,12 @@
 - Ladder logic packs tighter on a phone, so most rungs fit without sideways scrolling.
 - Light theme: green, red and blue text darkened slightly to meet AA contrast on tinted chips.
 ### Fixed
-- B-010: LCP 2.7 s on Simulator, Troubleshoot and Wiring. Now about 1.6 s in local throttled runs.
+- B-010: LCP 2.7 s on Simulator, Troubleshoot and Wiring. Confirmed on live at release: LCP 1.68–2.21 s on the six key routes (Lighthouse mobile: performance 98–99, accessibility, best practices and SEO 100, CLS 0).
 - B-011: on a slow device, opening a heavy 3D screen could log a "Transition was aborted" error. Now handled quietly; the screen always updated.
 - B-012: with the light theme saved, the first screen could flash dark for a moment on a real network. The theme now applies before anything paints.
 ### Known issues
 - 3D scenes score mostly 3–4 out of 5 in rubric reviews: materials and some object detail (drive terminals, generator, meter body) are planned for Phase 6.
 - Small markings inside the motor panel are only readable in the close-up camera tours, not the overview on a phone.
-- B-010's page-load (LCP) gain is measured locally; it is confirmed on the live site at this release.
 
 ## 0.8.0 — 2026-11-07 · Phase 3: graphics
 ### Added
