@@ -77,7 +77,7 @@ export default function ProfilePage() {
               <ProgressRing pct={tp.pct} size={44} stroke={5} live={tp.complete} label={`Track ${t.n}`}>{t.n}</ProgressRing>
               <div className="flex-1 min-w-0"><p className="m-0 font-semibold text-heading text-sm leading-snug">{t.title}</p><p className="m-0 text-xs text-muted">{tp.done}/{tp.total} lessons</p></div>
               <Button size="sm" disabled={!tp.complete} onClick={() => saveCertificate({ name: prefs.name, track: t.title, trackN: t.n, date: today(), lessons: tp.total })} aria-label={`Save certificate for track ${t.n}`}>
-                <Icon name={tp.complete ? 'download' : 'shield'} size={16} /> {tp.complete ? 'Save' : 'Locked'}
+                <Icon name={tp.complete ? 'download' : 'shield'} size={16} /> <span className="narrow-hide">{tp.complete ? 'Save' : 'Locked'}</span>
               </Button>
             </div>
           );

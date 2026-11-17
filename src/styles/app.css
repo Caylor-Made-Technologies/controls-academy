@@ -156,7 +156,8 @@
   }
   .btn:hover { border-color: var(--blue-glow); }
   .btn:active { transform: scale(0.96); }
-  .btn:disabled { opacity: 0.5; cursor: not-allowed; transform: none; }
+  /* Disabled: a neutral, readable look (half-transparent blue with white text was too faint to read). */
+  .btn:disabled, .btn-primary:disabled, .btn-danger:disabled { cursor: not-allowed; transform: none; background: var(--surface-sunk); border-color: var(--border); color: var(--text-muted); box-shadow: none; }
   .btn-primary { background: var(--blue-button); border-color: transparent; color: var(--white); box-shadow: 0 var(--space-1h) var(--space-5) rgb(var(--rgb-button) / 0.35); }
   .btn-primary:hover { background: var(--blue-button-hover); border-color: transparent; }
   .btn-ghost { background: transparent; border-color: transparent; }
@@ -207,7 +208,8 @@
   .summary-sec li { margin: 0.3rem 0; }
   .summary-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
   .summary-table th, .summary-table td { text-align: left; vertical-align: top; padding: 0.45rem 0.5rem; border-top: 1px solid var(--border); }
-  .summary-table code { white-space: normal; }
+  /* Formulas stay on one line (they used to break mid-expression); the table scrolls sideways if needed. */
+  .summary-table code { white-space: nowrap; }
   .summary-terms { margin: 0; display: grid; gap: 0.5rem; }
   .summary-terms dt { font-weight: 700; color: var(--text-heading); }
   .summary-terms dd { margin: 0; font-size: var(--text-base); }

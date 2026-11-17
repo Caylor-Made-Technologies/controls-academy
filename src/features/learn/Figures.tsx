@@ -341,7 +341,7 @@ function SeriesParallel() {
         )}
       </svg>
       {!open2 && <Slider label="Lamp 2 resistance" value={r2} min={20} max={240} step={10} unit="Ω" onChange={setR2} />}
-      <div className="overflow-x-auto rounded-xl border border-line mt-2">
+      <div className="overflow-x-auto rounded-xl border border-line mt-2 scroll-cue" tabIndex={0} role="region" aria-label="Lamp readings">
         <table className="w-full text-sm tabular-nums">
           <thead className="bg-raised"><tr><th className="text-left p-2">Lamp 1 (60 Ω)</th><th className="text-left p-2">Lamp 2 ({open2 ? 'out' : `${r2} Ω`})</th><th className="text-left p-2">Total</th></tr></thead>
           <tbody><tr className="border-t border-line">

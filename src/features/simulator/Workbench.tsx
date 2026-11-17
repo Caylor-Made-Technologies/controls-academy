@@ -247,7 +247,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
           {/* Editor toolbar */}
           {editable && (
             <div className="p-2 border-b border-line space-y-2">
-              <div className="flex gap-1.5 overflow-x-auto pb-1" role="toolbar" aria-label="Add instruction">
+              <div className="flex gap-1.5 overflow-x-auto pb-1 scroll-cue" role="toolbar" aria-label="Add instruction">
                 {QUICK.map((op) => (
                   <Button key={op} size="sm" className="!px-2.5 font-mono whitespace-nowrap" onClick={() => addOp(op)} title={OPS[op].title} aria-label={`Add ${OPS[op].title}`}>
                     {skin.mnemonic[op] && skin.mnemonic[op]!.length <= 7 ? skin.mnemonic[op] : op}

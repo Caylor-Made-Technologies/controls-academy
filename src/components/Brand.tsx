@@ -14,7 +14,7 @@ export function AppMark({ size = 32 }: { size?: number }) {
 export function Wordmark({ compact = false }: { compact?: boolean }) {
   return (
     <span className="flex flex-col leading-none">
-      <span className="font-head font-extrabold tracking-tight text-heading text-base">
+      <span className="font-head font-extrabold tracking-tight text-heading text-base wordmark">
         Controls <span className="grad-text">Academy</span>
       </span>
       {!compact && <span className="text-2xs font-semibold tracking-[0.14em] uppercase text-muted mt-1">by Caylor Made Technologies</span>}

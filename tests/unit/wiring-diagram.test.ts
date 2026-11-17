@@ -11,7 +11,7 @@ describe('wiring diagram layout', () => {
       const ys = [...L.dots.values()].map((p) => p.y);
       expect(new Set(ys).size).toBe(ys.length); // no two terminals on one row
       expect(new Set(L.lanes).size).toBe(L.lanes.length);
-      for (const x of L.lanes) expect(x).toBeLessThanOrEqual(360);
+      for (const x of L.lanes) expect(x).toBeLessThanOrEqual(320);
       for (const [a, b] of ex.solution) { expect(L.dots.has(a)).toBe(true); expect(L.dots.has(b)).toBe(true); }
     });
   }

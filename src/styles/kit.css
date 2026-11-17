@@ -231,3 +231,33 @@ a.row:active, button.row:active { transform: scale(0.99); }
 .toggle-row { display: flex; align-items: center; gap: var(--space-3); min-height: var(--tap); padding: var(--space-2) var(--space-3); border: 1px solid var(--border); border-radius: var(--radius-md); background: var(--surface-sunk); cursor: pointer; }
 .toggle-row:has(.toggle-box:checked) { border-color: var(--blue-glow); background: var(--blue-soft); }
 .toggle-box { flex: none; width: var(--space-6); height: var(--space-6); accent-color: var(--blue-glow); margin: 0; }
+
+/* The diagram is drawn for a phone; on wider screens it stops growing so its text stays at reading size. */
+.wiring-diagram { max-width: var(--size-500); }
+
+/* ---------- Reusable "more this way" cue for anything that scrolls sideways ----------
+   Same scroll-driven fade as the rungs: only shows while there is more to scroll, never on content that fits. */
+@supports (animation-timeline: scroll()) {
+  .scroll-cue {
+    mask-image: linear-gradient(90deg, var(--black) calc(100% - var(--space-8) * var(--rung-cue)), transparent);
+    animation: rung-cue linear both;
+    animation-timeline: scroll(self inline);
+  }
+}
+.summary-scroll { overflow-x: auto; }
+/* Skill map nodes are links drawn in SVG: no text underline (light theme showed one on every label). */
+.skill-map a { text-decoration: none; }
+
+/* Text that a very narrow phone (320 px) hides visually but keeps for screen readers (e.g. "Locked" beside its icon). */
+@media (max-width: 359px) {
+  .narrow-hide { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0, 0, 0, 0); white-space: nowrap; border: 0; }
+}
+
+/* ---------- Narrow phones: the wordmark stays on one line; the Learn timeline gives lessons more width ---------- */
+.wordmark { white-space: nowrap; }
+@media (max-width: 359px) { .wordmark { font-size: var(--text-sm); } }
+@media (max-width: 400px) {
+  .track-item { padding-left: var(--space-12); }
+  .track-ring { transform: scale(0.72); transform-origin: top left; }
+  .track-rail { left: var(--space-5); }
+}

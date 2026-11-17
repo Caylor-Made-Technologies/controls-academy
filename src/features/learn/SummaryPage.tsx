@@ -80,7 +80,7 @@ export default function SummaryPage({ track }: { track?: string }) {
       {s.formulas.length > 0 && (
         <section className="summary-sec">
           <h2>Formulas</h2>
-          <table className="summary-table"><tbody>{s.formulas.map((f) => <tr key={f.name}><th scope="row">{f.name}</th><td><code>{f.formula}</code>{f.example && <span className="block text-xs text-muted">e.g. {f.example}</span>}</td></tr>)}</tbody></table>
+          <div className="summary-scroll scroll-cue" tabIndex={0} role="region" aria-label="Formulas (scrolls sideways if wide)"><table className="summary-table"><tbody>{s.formulas.map((f) => <tr key={f.name}><th scope="row">{f.name}</th><td><code>{f.formula}</code>{f.example && <span className="block text-xs text-muted">e.g. {f.example}</span>}</td></tr>)}</tbody></table></div>
         </section>
       )}
 

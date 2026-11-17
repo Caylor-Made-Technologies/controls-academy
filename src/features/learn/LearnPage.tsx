@@ -112,12 +112,12 @@ export default function LearnPage() {
         </span>
       </div>
       <ol className="relative list-none p-0 m-0 space-y-3" aria-label="Tracks">
-        <span className="absolute left-6.75 top-6 bottom-6 w-0.75 rounded bg-line" aria-hidden="true" />
+        <span className="track-rail absolute left-6.75 top-6 bottom-6 w-0.75 rounded bg-line" aria-hidden="true" />
         {TRACKS.map((t, i) => {
           const tp = trackProgress(p, t.id);
           return (
-            <li key={t.id} className="relative pl-17" data-enter="rise" style={{ '--i': Math.min(i, 6) } as CSSProperties}>
-              <div className="absolute left-0 top-2">
+            <li key={t.id} className="relative pl-17 track-item" data-enter="rise" style={{ '--i': Math.min(i, 6) } as CSSProperties}>
+              <div className="absolute left-0 top-2 track-ring">
                 <ProgressRing pct={tp.pct} size={56} live={tp.complete} label={`Track ${t.n} progress`}>
                   {tp.complete ? <Icon name="check" size={20} className="text-live" /> : t.n}
                 </ProgressRing>
