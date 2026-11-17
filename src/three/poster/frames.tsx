@@ -8,10 +8,12 @@ import type { PosterSpec } from './project';
 
 /** Height + backdrop of each kind of 3D view. Shared by the live components and their posters. */
 export const FRAME = {
-  panel: 'relative h-[clamp(380px,68svh,560px)] lg:h-135 panel3d-bg',
+  panel: 'relative h-[clamp(360px,58svh,560px)] lg:h-135 panel3d-bg',
   machine: 'relative h-[clamp(340px,60svh,520px)] lg:h-125 panel3d-bg',
+  /** Long, low machines: on a phone a tall canvas only adds empty floor and sky, so these get a shorter one. */
+  machineWide: 'relative h-[clamp(300px,44svh,520px)] lg:h-125 panel3d-bg',
   wiring: 'relative h-[clamp(320px,55svh,480px)] panel3d-bg rounded-xl overflow-hidden',
-  inside: 'relative h-[clamp(300px,52svh,460px)] panel3d-bg rounded-xl overflow-hidden',
+  inside: 'relative h-[clamp(280px,44svh,460px)] panel3d-bg rounded-xl overflow-hidden',
   meter: 'relative h-[clamp(360px,62svh,520px)] panel3d-bg rounded-xl overflow-hidden',
 } as const;
 
@@ -34,3 +36,8 @@ export function PosterFrame({ kind, spec, label, card, caption }: { kind: keyof 
     </section>
   );
 }
+
+/** Machine scenes that are much wider than tall (they use FRAME.machineWide). Kept here so the loading still,
+ *  drawn before any 3D code downloads, has the same size as the live view (no layout shift). */
+export const WIDE_MACHINES = new Set(['vfd', 'datacenter', 'conveyor', 'mixer']);
+export const machineFrame = (id: string) => (WIDE_MACHINES.has(id) ? FRAME.machineWide : FRAME.machine);

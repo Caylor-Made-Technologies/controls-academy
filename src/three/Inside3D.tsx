@@ -87,6 +87,20 @@ function PartBody({ p, selected }: { p: InsidePart; selected: boolean }) {
   const color = selected ? SELECT : p.color;
   if (s.kind === 'cyl') {
     const rot: [number, number, number] = s.axis === 'x' ? [0, 0, Math.PI / 2] : s.axis === 'z' ? [Math.PI / 2, 0, 0] : [0, 0, 0];
+    if (kind === 'caps' && (s.axis === 'y' || !s.axis)) {
+      // A bank of three electrolytic cans on a small board (one can read as a lone cylinder).
+      return (
+        <group>
+          <Box size={[s.r * 5.6, s.h * 0.08, s.r * 2.4]} pos={[0, -s.h * 0.46, 0]} color="#1e5a3c" s="plasticMatte" />
+          {[-1, 0, 1].map((i) => (
+            <group key={i} position={[i * s.r * 1.8, 0, 0]}>
+              <mesh material={surface('plasticGloss', selected ? SELECT : '#1f3b6b')}><cylinderGeometry args={[s.r * 0.82, s.r * 0.82, s.h * 0.84, 20]} /></mesh>
+              <mesh position={[0, s.h * 0.43, 0]} material={surface('brushedSteel')}><cylinderGeometry args={[s.r * 0.76, s.r * 0.76, s.h * 0.02, 20]} /></mesh>
+            </group>
+          ))}
+        </group>
+      );
+    }
     if (kind === 'coil') {
       // Copper windings on a dark former.
       const turns = 7;
@@ -130,6 +144,17 @@ function PartBody({ p, selected }: { p: InsidePart; selected: boolean }) {
         {Array.from({ length: n }, (_, i) => (
           <mesh key={i} position={[(i / (n - 1) - 0.5) * w * 0.94, 0, -d * 0.125]} material={surface('brushedSteel', selected ? SELECT : '#aab2bb')}><boxGeometry args={[w / n / 2.4, h, d * 0.75]} /></mesh>
         ))}
+        {/* the cooling fan on the fins, when the part includes one */}
+        {/fan/i.test(p.name) && (
+          <group position={[0, -h * 0.05, -d * 0.55]}>
+            <mesh rotation={[Math.PI / 2, 0, 0]} material={surface('plasticMatte', '#1f2328')}><cylinderGeometry args={[Math.min(w, h) * 0.34, Math.min(w, h) * 0.34, d * 0.2, 28]} /></mesh>
+            {[0, 1, 2, 3, 4].map((k) => (
+              <group key={k} rotation={[0, 0, (k * Math.PI * 2) / 5]}>
+                <mesh position={[0, Math.min(w, h) * 0.17, -d * 0.11]} material={surface('plasticMatte', '#3a4049')}><boxGeometry args={[Math.min(w, h) * 0.1, Math.min(w, h) * 0.3, 0.002]} /></mesh>
+              </group>
+            ))}
+          </group>
+        )}
       </group>
     );
   }

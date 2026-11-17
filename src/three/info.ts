@@ -48,16 +48,16 @@ export const TOURS: { id: string; label: string; part: PartId; pos: [number, num
  * enclosure, the wall or the painted clearance box). Fixed numbers from the scene layout in PanelScene.
  */
 const PANEL_MIN: V3 = [-0.46, -0.75, -0.03];
-/** The open door reaches out to here. Wide canvases include it at almost no cost; on a portrait phone it would
- *  shrink the whole panel by a third, so there it runs off the left edge instead. */
-const DOOR_MIN_X = -1.27;
 const PANEL_MAX: V3 = [1.1, 0.62, 0.56];
+/** The open door reaches out to here. Wide canvases include it at almost no cost; on a phone it would shrink the
+ *  inside parts (what the panel teaches) by a quarter or more, so there it runs off the left edge instead. */
+const DOOR_MIN_X = -1.27;
 /** The tour chips cover the top of the canvas and the tool row the bottom (fractions of the half-height). */
 const PANEL_INSETS: Insets = { top: 0.2, bottom: 0.24, left: 0.03, right: 0.03 };
 
 /** Overview camera for this canvas shape, seen from the overview tour's direction. */
 export function panelHome(aspect: number, fov = 38): { pos: V3; target: V3 } {
   const t = TOURS[0];
-  const min: V3 = aspect >= 1 ? [DOOR_MIN_X, PANEL_MIN[1], PANEL_MIN[2]] : PANEL_MIN;
+  const min: V3 = aspect >= 1.3 ? [DOOR_MIN_X, PANEL_MIN[1], PANEL_MIN[2]] : PANEL_MIN;
   return fitViewInsets(min, PANEL_MAX, t.pos, t.target, fov, aspect, PANEL_INSETS);
 }

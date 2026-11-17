@@ -20,7 +20,7 @@ import { OperandSheet } from './OperandSheet';
 import { SimRuntime, type RunMode } from './runtime';
 import { hasWebGL, prefer3D } from '../../three/support';
 import { useAfterPaint } from '../../lib/afterPaint';
-import { MACHINE_CAPTION, PosterFrame } from '../../three/poster/frames';
+import { MACHINE_CAPTION, PosterFrame, WIDE_MACHINES } from '../../three/poster/frames';
 import { POSTERS } from '../../three/poster/sim.gen';
 import { Button, Segmented } from '../../components/ui';
 
@@ -174,7 +174,7 @@ export function Workbench({ initial, editable = true, onProgramChange, onRuntime
       )}
       {!hidePanel && view3d && (() => {
         const panel = rt.scene.view3d === 'motor-panel';
-        const loading = <PosterFrame card kind={panel ? 'panel' : 'machine'} spec={POSTERS[panel ? 'panel' : rt.scene.id]} label={panel ? 'Loading 3D panel' : 'Loading 3D machine'} caption={panel ? 'Drag to orbit, pinch to zoom. Tap any part to learn about it; tap the buttons on the operator station to run the motor.' : MACHINE_CAPTION} />;
+        const loading = <PosterFrame card kind={panel ? 'panel' : WIDE_MACHINES.has(rt.scene.id) ? 'machineWide' : 'machine'} spec={POSTERS[panel ? 'panel' : rt.scene.id]} label={panel ? 'Loading 3D panel' : 'Loading 3D machine'} caption={panel ? 'Drag to orbit, pinch to zoom. Tap any part to learn about it; tap the buttons on the operator station to run the motor.' : MACHINE_CAPTION} />;
         // The 3D layer waits for first paint, so the page shows and responds before WebGL spins up (B-001).
         return painted ? <Suspense fallback={loading}>{rt.scene.view3d === 'motor-panel' ? <Panel3D rt={rt} onDevice={setDevice} /> : <Machine3D rt={rt} onDevice={setDevice} />}</Suspense> : loading;
       })()}

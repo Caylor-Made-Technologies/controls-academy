@@ -286,7 +286,7 @@ export function PanelScene({ rt, skin, selected, onSelect, xray, explode, hw, lo
         {/* Depth on the backplate: a soft shadow baked under everything mounted on it, so parts sit on the plate
             instead of looking pasted on. Re-baked when the PLC hardware changes. */}
         {aoRes > 0 && <GroundShadow key={hw?.id ?? 'generic'} axis="z" size={PLATE_SIZE} at={-0.009} reach={0.16} opacity={look.ao * 0.9} res={512} />}
-        {/* door, hinged on the left and swung open */}
+        {/* door, hinged on the left and swung wide open (review 9: framing the whole door shrank the inside parts) */}
         <group position={[-0.45, 0, 0.275]} rotation={[0, -2.7, 0]}>
           <mesh position={[0.45, 0, 0]} castShadow receiveShadow>
             <boxGeometry args={[0.9, 1.18, 0.018]} />

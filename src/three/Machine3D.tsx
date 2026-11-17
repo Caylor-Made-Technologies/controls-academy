@@ -24,7 +24,7 @@ import { GroundShadow } from './GroundShadow';
 import { capped, pickTier, probeDevice, type Tier } from './support';
 import { retainTextures } from './textures';
 import { Poster } from './poster/Poster';
-import { CAPTION, FRAME, MACHINE_CAPTION } from './poster/frames';
+import { CAPTION, MACHINE_CAPTION, machineFrame } from './poster/frames';
 import { POSTERS } from './poster/sim.gen';
 
 function Invalidator({ rt, extra }: { rt: SimRuntime; extra?: (rt: SimRuntime) => string }) {
@@ -99,7 +99,8 @@ export function portraitView(bounds: { min: FitV3; max: FitV3 }, refPos: FitV3, 
   };
   const dist = (v: { pos: FitV3; target: FitV3 }) => Math.hypot(v.pos[0] - v.target[0], v.pos[1] - v.target[1], v.pos[2] - v.target[2]);
   let best = at(0);
-  if (aspect >= 1) return best;
+  // Not only tall phones: the shorter window for wide machines is about square on a phone, and still needs it.
+  if (aspect >= 1.3) return best;
   for (const yaw of [-0.6, -0.4, -0.2, 0.2, 0.4, 0.6]) {
     const v = at(yaw);
     // Only switch for a clear gain (8 %): small gains aren't worth leaving the chosen angle.
@@ -237,7 +238,7 @@ function Machine3D({ rt, onDevice }: { rt: SimRuntime; onDevice?: (id: string) =
 
   return (
     <section className="card overflow-hidden relative" aria-label="3D machine view">
-      <div ref={wrap} className={FRAME.machine}>
+      <div ref={wrap} className={machineFrame(def.id)}>
         {POSTERS[def.id] && <Poster spec={POSTERS[def.id]} fade={drawn} />}
         <Stage
           onFirstFrame={() => setDrawn(true)}

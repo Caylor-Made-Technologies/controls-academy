@@ -69,7 +69,7 @@ describe('motor panel overview', () => {
       const { panelHome } = await import('../../src/three/info');
       const v = panelHome(aspect);
       const dist = Math.hypot(v.pos[0] - v.target[0], v.pos[1] - v.target[1], v.pos[2] - v.target[2]);
-      expect(dist).toBeLessThan(7); // inside the far plane and the fog-free room
+      expect(dist).toBeLessThan(8); // well inside the far plane (20 m); the zoom limit follows panelHome
       for (const c of boxCorners([-0.46, -0.75, -0.03], [1.1, 0.62, 0.56])) {
         const [x, y] = ndc(c, v.pos, v.target, 38, aspect);
         expect(Math.abs(x)).toBeLessThanOrEqual(0.98);
