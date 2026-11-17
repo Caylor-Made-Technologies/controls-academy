@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Phase 4: premium UI, 3D and motion (in progress, will ship as 0.9.0)
+## 0.9.0 — 2026-11-17 — Phase 4: premium UI, 3D and motion
 ### Added
 - The page heading now appears with the HTML, before any app code has loaded (first paint about 1 s sooner on a slow phone).
 - Every 3D view opens on a blueprint-style still of the same scene from the same angle, then fades into the live view.
@@ -47,6 +47,10 @@
 ### Fixed
 - B-010: LCP 2.7 s on Simulator, Troubleshoot and Wiring. Now about 1.6 s in local throttled runs.
 - B-011: on a slow device, opening a heavy 3D screen could log a "Transition was aborted" error. Now handled quietly; the screen always updated.
+### Known issues
+- 3D scenes score mostly 3–4 out of 5 in rubric reviews: materials and some object detail (drive terminals, generator, meter body) are planned for Phase 6.
+- Small markings inside the motor panel are only readable in the close-up camera tours, not the overview on a phone.
+- B-010's page-load (LCP) gain is measured locally; it is confirmed on the live site at this release.
 
 ## 0.8.0 — 2026-11-07 · Phase 3: graphics
 ### Added
