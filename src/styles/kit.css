@@ -261,3 +261,10 @@ a.row:active, button.row:active { transform: scale(0.99); }
   .track-ring { transform: scale(0.72); transform-origin: top left; }
   .track-rail { left: var(--space-5); }
 }
+
+/* ---------- Brands side by side ---------- */
+.compare-cell { padding: var(--space-2h) var(--space-3); border-radius: var(--radius-md); background: var(--surface-sunk); border: 1px solid var(--border); }
+
+/* ---------- Troubleshooting flowcharts: the trail of answers so far ---------- */
+.flow-trail { list-style: none; margin: 0 0 var(--space-3); padding: 0 0 0 var(--space-3); border-left: 2px solid var(--border-strong); display: grid; gap: var(--space-1h); font-size: var(--text-sm); }
+.flow-end { border-color: var(--live); }

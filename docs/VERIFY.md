@@ -98,3 +98,45 @@ All in `src/content/hardware.ts` and `src/content/brands.ts`. The 3D shapes are 
 - What's inside → VFD: "on a 480 V drive the bus sits around 650–680 VDC" (√2 × 480 ≈ 679 V; lower under load). `src/content/inside.ts`.
 - What's inside → overload relay: setting the dial from nameplate FLA "following the code and the manufacturer's instructions (service factor and ambient can matter)". `src/content/inside.ts`.
 - Fault Hunt cue: "480 V motor leads: meter rated CAT III or higher" — confirm category guidance for the measurement location (CAT III vs CAT IV at the service). `src/features/troubleshoot/TroubleshootPage.tsx`.
+
+## Brands side by side (`src/content/compare.ts`)
+- Allen-Bradley Logix · addressing: module I/O tag format per module
+- Allen-Bradley Logix · forcing: LED states per controller
+- Allen-Bradley Logix · firmware: current flash tool name
+- Allen-Bradley SLC 500 / MicroLogix · online: ports per model
+- Allen-Bradley SLC 500 / MicroLogix · backups: memory module per model
+- Allen-Bradley SLC 500 / MicroLogix · firmware: details vary by model and version
+- Allen-Bradley Micro800 · addressing: embedded I/O variable names
+- Allen-Bradley Micro800 · online: ports per model
+- Allen-Bradley Micro800 · forcing: force indication
+- Allen-Bradley Micro800 · transfer: whether an upload brings back comments
+- Allen-Bradley Micro800 · backups: memory module per model
+- Allen-Bradley Micro800 · firmware: details vary by model and version
+- Siemens S7-1200 / S7-1500 · forcing: force behavior and LED per CPU
+- Siemens S7-1200 / S7-1500 · backups: card role per CPU
+- Siemens S7-1200 / S7-1500 · firmware: details vary by model and version
+- Schneider Electric Modicon · addressing: topological address format
+- Schneider Electric Modicon · forcing: force indication
+- Schneider Electric Modicon · transfer: details vary by model and version
+- Schneider Electric Modicon · backups: details vary by model and version
+- Schneider Electric Modicon · firmware: tool name
+- Mitsubishi Electric MELSEC · addressing: numbering per series
+- Mitsubishi Electric MELSEC · timers: timer ranges per series
+- Mitsubishi Electric MELSEC · forcing: per series
+- Mitsubishi Electric MELSEC · transfer: details vary by model and version
+- Mitsubishi Electric MELSEC · backups: details vary by model and version
+- Mitsubishi Electric MELSEC · firmware: details vary by model and version
+- AutomationDirect · addressing: per family
+- AutomationDirect · timers: per family
+- AutomationDirect · online: ports per family
+- AutomationDirect · forcing: name and indication per family
+- AutomationDirect · backups: details vary by model and version
+- AutomationDirect · firmware: details vary by model and version
+- AutomationDirect · gotchas: details vary by model and version
+- Omron · addressing: details vary by model and version
+- Omron · timers: per model
+- Omron · counters: details vary by model and version
+- Omron · forcing: details vary by model and version
+- Omron · backups: details vary by model and version
+- Omron · firmware: details vary by model and version
+- Omron · gotchas: details vary by model and version

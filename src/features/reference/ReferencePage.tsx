@@ -12,11 +12,15 @@ import { HARDWARE, categoryOf } from '../../content/hardware';
 import { HardwareCard, HardwareDetail, HardwareLibrary } from './HardwarePages';
 import { HwFront } from '../../components/HwFront';
 import { InsideDetail, InsideList } from './InsidePages';
+import ComparePage from './ComparePage';
+import { FlowDetail, FlowList } from './FlowPage';
 import { EmptyState, NotFound, Chip } from '../../components/ui';
 import { Button } from '../../components/ui';
 
 const SECTIONS = [
   { id: 'brands', title: 'Brand field guides', desc: 'Software, hardware, addressing, first-day checklists, tips and gotchas.', icon: 'layers' as const },
+  { id: 'flow', title: 'Troubleshooting flowcharts', desc: 'Motor won\'t start, trips, input not seen, analog wrong, comms lost, VFD faults.', icon: 'wrench' as const },
+  { id: 'compare', title: 'Brands side by side', desc: 'Timers, forcing, going online, backups and more, compared across platforms.', icon: 'branch' as const },
   { id: 'instructions', title: 'Instruction reference', desc: 'Every instruction, with its name on each platform.', icon: 'sim' as const },
   { id: 'glossary', title: 'Glossary', desc: `${GLOSSARY.length} terms in plain English.`, icon: 'book' as const },
   { id: 'safety', title: 'Safety rules', desc: 'The hard stops. Read these before you touch a panel.', icon: 'shield' as const },
@@ -28,6 +32,8 @@ export default function ReferencePage({ section, item }: { section?: string; ite
   const sec = section?.split('?')[0];
   if (sec === 'brand' && item) return <BrandGuide id={item.split('?')[0]} />;
   if (sec === 'brands') return <Brands />;
+  if (sec === 'compare') return <ComparePage />;
+  if (sec === 'flow') return item ? <FlowDetail id={item.split('?')[0]} /> : <FlowList />;
   if (sec === 'hardware') return <HardwareLibrary />;
   if (sec === 'hw' && item) return <HardwareDetail id={item.split('?')[0]} />;
   if (sec === 'instructions') return <Instructions />;
@@ -78,6 +84,11 @@ function Brands() {
     <div>
       <Back />
       <PageHead eyebrow="Reference" title="Brand field guides">Brand names are used only to describe conventions. Not affiliated with any manufacturer.</PageHead>
+      <a href={href('reference/compare')} className="card card-link card-pad mb-3 block">
+        <span className="block eyebrow">Compare</span>
+        <span className="block font-bold text-heading">Brands side by side</span>
+        <span className="block text-sm text-muted mt-1">Pick up to three platforms and read timers, forcing, going online, backups and gotchas next to each other.</span>
+      </a>
       <div className="grid gap-3 sm:grid-cols-2">
         {BRAND_GUIDES.map((b) => (
           <a key={b.id} href={href(`reference/brand/${b.id}`)} className="card card-link card-pad">

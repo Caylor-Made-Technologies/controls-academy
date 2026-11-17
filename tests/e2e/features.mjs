@@ -1056,6 +1056,42 @@ await check('Simulator: the machine picker is a row of links; the chosen machine
   await ctx.close();
 });
 
+await check('Reference: brands side by side — pick platforms and topics, every cell shows, axe clean, no sideways scroll', async () => {
+  const { ctx, page } = await newPage({ w: 375, h: 812 });
+  await go(page, 'reference/compare');
+  const picker = page.getByRole('region', { name: 'Choose platforms' });
+  expect((await page.locator('.compare-cell').count()) === 27, 'three platforms × nine topics by default');
+  await picker.getByRole('button', { name: /^MELSEC/ }).click();
+  expect((await picker.locator('[aria-pressed=true]').count()) === 3, 'at most three: picking a fourth drops the oldest');
+  await page.getByRole('group', { name: 'Topic' }).getByRole('button', { name: 'Timers' }).click();
+  expect((await page.locator('.compare-cell').count()) === 3, 'one topic: three cells');
+  expect((await page.locator('.compare-cell').filter({ hasText: 'MELSEC' }).count()) === 1, 'MELSEC shown');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= 375), 'no sideways scroll');
+  await axe(page, 'brands side by side');
+  await ctx.close();
+});
+
+await check('Reference: a troubleshooting flowchart walks to an answer, steps back and starts over', async () => {
+  const { ctx, page } = await newPage({ w: 375, h: 812 });
+  await go(page, 'reference/flow');
+  await page.getByRole('link', { name: /Motor won't start/ }).click();
+  await page.waitForSelector('#flow-ask');
+  await page.getByRole('button', { name: 'Got the story, move on' }).click();
+  await page.getByRole('button', { name: 'All released and closed' }).click();
+  await page.getByRole('button', { name: 'Tripped', exact: true }).click();
+  expect((await page.locator('#flow-found').textContent()).includes('overload'), 'reaches the overload answer');
+  expect((await page.getByRole('list', { name: 'Your answers so far' }).locator('li').count()) === 3, 'trail shows three answers');
+  await axe(page, 'flowchart end');
+  await page.getByRole('button', { name: 'Back one step' }).first().click();
+  expect((await page.locator('#flow-ask').textContent()).includes('overload relay tripped'), 'back returns to the question');
+  await page.getByRole('button', { name: 'Not tripped', exact: true }).click();
+  expect((await page.locator('#flow-ask').textContent()).includes('PLC input LED'), 'the other branch continues');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= 375), 'no sideways scroll');
+  await go(page, 'reference/flow/no-such-flow');
+  expect((await page.locator('main#main h1').textContent()) === 'Flowchart not found', 'unknown flowchart shows a not-found page');
+  await ctx.close();
+});
+
 await browser.close();
 const relevant = errors.filter((e) => !/net::ERR_INTERNET_DISCONNECTED|Failed to load resource/.test(e));
 console.log(`\n${pass} passed, ${fail} failed`);
