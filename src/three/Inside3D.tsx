@@ -39,7 +39,7 @@ function Part({ p, spread, size, reach, selected, onPick, reduce }: { p: InsideP
   // On a portrait phone the whole device is drawn smaller, so the name tags grow to stay readable.
   const narrow = useThree((s) => s.size.width < s.size.height * 1.1);
   const tag = (selected ? 1.25 : 1) * (narrow ? 1.4 : 1);
-  const label = shortName(p.name);
+  const label = p.tag ?? shortName(p.name);
   const top = p.shape.kind === 'box' ? p.shape.size[1] / 2 : p.shape.axis === 'y' || !p.shape.axis ? p.shape.h / 2 : p.shape.r;
   return (
     <group ref={g} position={home} onClick={click}>
@@ -214,7 +214,7 @@ export function insideBounds(device: InsideDevice): { min: V3; max: V3 } {
     for (const k of [0, 1]) {
       const c = p.pos.map((v, i) => v + (p.dir[i] / l) * d * reachOf(device) * k);
       // Room above for the name tag, which is about as wide as the name.
-      const tagW = (shortName(p.name).length * d * 0.0105 + d * 0.03) * 0.7; // half the widest (phone) tag
+      const tagW = ((p.tag ?? shortName(p.name)).length * d * 0.0105 + d * 0.03) * 0.7; // half the widest (phone) tag
       // Tags turn to face the camera, so they can stick out in depth as well as sideways.
       const lo: V3 = [c[0] - Math.max(half[0], tagW), c[1] - half[1], c[2] - Math.max(half[2], tagW * 0.5)];
       const hi: V3 = [c[0] + Math.max(half[0], tagW), c[1] + half[1] + d * 0.075, c[2] + Math.max(half[2], tagW * 0.5)];

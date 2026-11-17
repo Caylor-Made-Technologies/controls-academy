@@ -85,7 +85,7 @@ function MeasureScene({ group, onBounds }: { group: React.RefObject<Group | null
 
 /**
  * On a portrait canvas a long machine is limited by its width and sits small with empty sky above. Try the
- * scene's chosen direction and a few turned toward the machine's long side (up to about 35°), and keep the
+ * scene's chosen direction and a few turned toward the machine's long side (up to about 35°; further and the cabinets show their sides, hiding keypads and dials), and keep the
  * one that lets the camera come closest. Landscape keeps the chosen direction. Pure; unit-tested.
  */
 export function portraitView(bounds: { min: FitV3; max: FitV3 }, refPos: FitV3, refTarget: FitV3, fov: number, aspect: number): { pos: FitV3; target: FitV3 } {

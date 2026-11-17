@@ -2,7 +2,7 @@ import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import { DoubleSide, type Mesh } from 'three';
 import type { FwdRevState } from '../../plant/fwdrev';
-import { Box, Label } from '../kit';
+import { Box, Label, ScrewHead } from '../kit';
 import { Cabinet, Lamp, Motor, PAINT, Pick, Screw } from './parts';
 import type { MachineSceneDef, MachineSceneProps } from './types';
 
@@ -39,6 +39,11 @@ function Scene(p: MachineSceneProps) {
           <planeGeometry args={[2.4, 0.42]} />
           <meshStandardMaterial color="#cbd5e1" metalness={0.5} roughness={0.4} transparent opacity={0.3} side={DoubleSide} depthWrite={false} />
         </mesh>
+        {/* the cover's steel frame and bolts, so it reads as a cover (on its own the clear sheet looked like a stray plane) */}
+        {[[0, 0.2, 2.42, 0.03], [0, -0.2, 2.42, 0.03], [1.2, 0, 0.03, 0.43], [-1.2, 0, 0.03, 0.43]].map(([x, z, w, d], i) => (
+          <Box key={i} size={[w, 0.02, d]} pos={[x, 0.205, z]} color="#9aa3ad" s="galvanized" round={0} />
+        ))}
+        {[-0.9, -0.3, 0.3, 0.9].flatMap((x) => [-0.2, 0.2].map((z) => <ScrewHead key={`${x}${z}`} pos={[x, 0.218, z]} r={0.012} rot={[-Math.PI / 2, 0, 0]} />))}
         <Label text="LOCK OUT BEFORE OPENING" pos={[0.4, 0.205, 0.1]} rot={[-Math.PI / 2, 0, 0]} w={0.7} h={0.07} fg="#111" bg="#f5c400" />
         {[-1, 1].map((x) => <Box key={x} size={[0.06, 0.55, 0.06]} pos={[x, -0.3, 0]} color="#4b5563" metal={0.5} rough={0.5} />)}
       </group>

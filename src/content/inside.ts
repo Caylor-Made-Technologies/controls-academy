@@ -19,6 +19,8 @@ export interface InsidePart {
   dir: [number, number, number];
   shape: Shape;
   color: string;
+  /** Short name for the on-model tag when `name` is too long to read there (the parts list keeps `name`). */
+  tag?: string;
   metal?: number;
   opacity?: number;
 }
@@ -92,14 +94,14 @@ export const INSIDE: InsideDevice[] = [
     size: 0.5,
     reach: 0.42,
     parts: [
-      { id: 'input', name: 'Input terminals L1, L2, L3', what: 'Three-phase line power comes in here, through the disconnect and the fuses or breaker the manufacturer specifies.', pos: [-0.07, -0.11, 0.05], dir: [-0.5, -1, 0.4], shape: { kind: 'box', size: [0.06, 0.02, 0.02] }, color: '#d1d5db', metal: 0.9 },
+      { id: 'input', name: 'Input terminals L1, L2, L3', tag: 'Input L1 L2 L3', what: 'Three-phase line power comes in here, through the disconnect and the fuses or breaker the manufacturer specifies.', pos: [-0.07, -0.11, 0.05], dir: [-0.5, -1, 0.4], shape: { kind: 'box', size: [0.06, 0.02, 0.02] }, color: '#d1d5db', metal: 0.9 },
       { id: 'rectifier', name: 'Rectifier (diodes)', what: 'Turns incoming AC into DC. This is the first stage of power conversion.', pos: [-0.06, -0.05, 0.0], dir: [-1, -0.3, 0.5], shape: { kind: 'box', size: [0.05, 0.03, 0.02] }, color: '#1f2937' },
       { id: 'caps', name: 'DC bus capacitors', what: 'Smooth and store the DC (on a 480 V drive the bus sits around 650–680 VDC). They stay charged for minutes after power is off.', tip: 'Never trust a dark keypad. Wait, then verify the bus is dead with a meter.', pos: [0, 0.0, 0.0], dir: [0, 0.3, 1], shape: { kind: 'cyl', r: 0.018, h: 0.06, axis: 'y' }, color: '#1e3a8a' },
       { id: 'igbt', name: 'Inverter (IGBTs)', what: 'Fast transistors that switch the DC bus on and off thousands of times a second (PWM) to build the output voltage and frequency the motor needs.', tip: 'The output is pulses, not a clean sine wave. Use a meter rated for drive outputs, and expect odd readings from a basic meter.', pos: [0.06, -0.05, 0.0], dir: [1, -0.3, 0.5], shape: { kind: 'box', size: [0.05, 0.03, 0.02] }, color: '#334155' },
-      { id: 'heatsink', name: 'Heatsink and cooling fan', what: 'The rectifier and IGBTs make heat. A clogged heatsink or a dead fan leads to over-temperature trips.', tip: 'In a dusty mill, cleaning the heatsink is preventive maintenance.', pos: [0, -0.03, -0.045], dir: [1, 0.1, -0.8], shape: { kind: 'box', size: [0.16, 0.12, 0.03] }, color: '#9ca3af', metal: 0.85 },
+      { id: 'heatsink', name: 'Heatsink and cooling fan', tag: 'Heatsink + fan', what: 'The rectifier and IGBTs make heat. A clogged heatsink or a dead fan leads to over-temperature trips.', tip: 'In a dusty mill, cleaning the heatsink is preventive maintenance.', pos: [0, -0.03, -0.045], dir: [1, 0.1, -0.8], shape: { kind: 'box', size: [0.16, 0.12, 0.03] }, color: '#9ca3af', metal: 0.85 },
       { id: 'control', name: 'Control board and keypad', what: 'Runs the drive: reads the run command and speed reference, applies parameters (accel, decel, limits), shows faults.', pos: [0, 0.06, 0.04], dir: [0, 1, 1], shape: { kind: 'box', size: [0.1, 0.06, 0.006] }, color: '#15803d' },
-      { id: 'terminals', name: 'Control terminals and STO inputs', what: 'Run/stop, speed reference (4–20 mA or 0–10 V), relay outputs, and Safe Torque Off inputs from the safety circuit.', pos: [0, 0.0, 0.06], dir: [0.3, -0.5, 1], shape: { kind: 'box', size: [0.08, 0.015, 0.012] }, color: '#f97316' },
-      { id: 'output', name: 'Output terminals T1, T2, T3', what: 'To the motor. Never put a contactor or a capacitor between the drive and the motor unless the drive maker says how.', pos: [0.07, -0.11, 0.05], dir: [0.5, -1, 0.4], shape: { kind: 'box', size: [0.06, 0.02, 0.02] }, color: '#d1d5db', metal: 0.9 },
+      { id: 'terminals', name: 'Control terminals and STO inputs', tag: 'Control + STO terminals', what: 'Run/stop, speed reference (4–20 mA or 0–10 V), relay outputs, and Safe Torque Off inputs from the safety circuit.', pos: [0, 0.0, 0.06], dir: [0.3, -0.5, 1], shape: { kind: 'box', size: [0.08, 0.015, 0.012] }, color: '#f97316' },
+      { id: 'output', name: 'Output terminals T1, T2, T3', tag: 'Output T1 T2 T3', what: 'To the motor. Never put a contactor or a capacitor between the drive and the motor unless the drive maker says how.', pos: [0.07, -0.11, 0.05], dir: [0.5, -1, 0.4], shape: { kind: 'box', size: [0.06, 0.02, 0.02] }, color: '#d1d5db', metal: 0.9 },
       { id: 'housing', name: 'Enclosure', what: 'Holds it all, directs the cooling air and protects you from live parts. Keep the cover on.', pos: [0, 0, 0.0], dir: [0, 0, 1.6], shape: { kind: 'box', size: [0.2, 0.28, 0.13] }, color: '#e5e7eb', opacity: 0.25 },
     ],
   },
