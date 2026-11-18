@@ -15,6 +15,7 @@ const ok = (c, msg) => { console.log(c ? '✓' : '✗', msg); if (!c) process.ex
 const VIEWS = [
   ['sim', 'motor panel'], ...['vfd', 'fwdrev', 'conveyor', 'tank', 'pumps', 'datacenter', 'mixer'].map((m) => [`sim?m=${m}`, m]),
   ['reference/hw/controllogix', 'hardware viewer'], ['reference/inside/vfd', 'exploded VFD'], ['wiring/three-wire', 'wiring board'], ['troubleshoot/tk-wire', 'Fault Hunt (machine + meter)'],
+  ['reference/device/prox-inductive', 'field device: prox'], ['reference/device/mcc-bucket', 'field device: MCC bucket'], ['reference/device/light-curtain', 'field device: light curtain'],
 ];
 // Both ends of the quality range must stay inside the budgets: "high" (most detail) and "low" (what a weak
 // phone or a software GPU gets). Idle scenes must stop drawing on both.

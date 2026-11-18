@@ -3,8 +3,12 @@
 ## Unreleased — Phase 5: Reference (in progress, will ship as 0.10.0)
 ### Added
 - Brands side by side: compare up to three PLC platforms on addressing, timers, counters, going online, forcing, upload/download, backups, firmware and gotchas.
+- Field devices: 19 generic devices (sensors, operator devices, motor control, safety devices, process instruments) with a 3D model, wiring, print symbol, failure modes and safe tests.
+- Cheat sheets to print or save as PDF: wire colors, contact numbering, NEMA vs IEC symbols, 4–20 mA math, Ohm's law and power, drive fault families.
+- Day one at a new plant: a checklist you can tick (saved on the device) and export.
 - Troubleshooting flowcharts: motor won't start, motor trips, input not seen, output on but device off, analog reads wrong, communication lost, VFD faults. Each step says what to check and when to lock out first.
 ### Fixed
+- B-013: a change followed by a very quick reload (a ticked checklist item, a setting) could be lost. Saved data now goes to the fast local copy first.
 - The 3D memory-leak check waits for the scene to settle before taking its baseline (it could fail on a busy machine).
 
 ## 0.9.0 — 2026-11-17 — Phase 4: premium UI, 3D and motion

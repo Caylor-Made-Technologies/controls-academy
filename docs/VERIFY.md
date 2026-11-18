@@ -165,3 +165,21 @@ All in `src/content/hardware.ts` and `src/content/brands.ts`. The 3D shapes are 
 - NEMA vs IEC symbols: letter codes per print legend
 - 4–20 mA math: per transmitter and card
 - Ohm's law and power: code edition
+
+## Field devices (`src/content/devices.ts`)
+- Inductive proximity sensor: per sensor
+- Inductive proximity sensor: per sensor
+- Capacitive proximity sensor: per sensor
+- Photo-eye: through-beam: per model
+- Photo-eye: through-beam: per model
+- Photo-eye: retroreflective: per model
+- Photo-eye: diffuse: per model
+- Pushbutton: color rules per NFPA 79 / IEC 60204-1 and your site
+- Pilot light: per model
+- Emergency stop (E-stop): per model
+- Overload relay: setting rule and trip class per maker
+- Safety relay: terminal numbers per model
+- Light curtain: per standard and machine
+- Pressure transmitter: per model
+- Level transmitter: per technology
+- Solenoid valve: per model

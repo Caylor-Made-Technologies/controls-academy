@@ -15,6 +15,7 @@ import { InsideDetail, InsideList } from './InsidePages';
 import ComparePage from './ComparePage';
 import CheatPage from './CheatPage';
 import DayOnePage from './DayOnePage';
+import { DeviceDetail, DeviceList } from './DevicePages';
 import { FlowDetail, FlowList } from './FlowPage';
 import { EmptyState, NotFound, Chip } from '../../components/ui';
 import { Button } from '../../components/ui';
@@ -22,6 +23,7 @@ import { Button } from '../../components/ui';
 const SECTIONS = [
   { id: 'brands', title: 'Brand field guides', desc: 'Software, hardware, addressing, first-day checklists, tips and gotchas.', icon: 'layers' as const },
   { id: 'flow', title: 'Troubleshooting flowcharts', desc: 'Motor won\'t start, trips, input not seen, analog wrong, comms lost, VFD faults.', icon: 'wrench' as const },
+  { id: 'devices', title: 'Field devices', desc: 'Prox sensors, photo-eyes, E-stops, starters, safety relays, transmitters and valves, in 3D.', icon: 'meter' as const },
   { id: 'day-one', title: 'Day one at a new plant', desc: 'A checklist for your first days: safety, people, prints, backups. Tick and export.', icon: 'check' as const },
   { id: 'cheats', title: 'Cheat sheets', desc: 'Wire colors, contact numbers, NEMA vs IEC symbols, 4–20 mA and Ohm\'s law. Printable.', icon: 'download' as const },
   { id: 'compare', title: 'Brands side by side', desc: 'Timers, forcing, going online, backups and more, compared across platforms.', icon: 'branch' as const },
@@ -39,6 +41,8 @@ export default function ReferencePage({ section, item }: { section?: string; ite
   if (sec === 'compare') return <ComparePage />;
   if (sec === 'cheats') return <CheatPage />;
   if (sec === 'day-one') return <DayOnePage />;
+  if (sec === 'devices') return <DeviceList />;
+  if (sec === 'device' && item) return <DeviceDetail id={item.split('?')[0]} />;
   if (sec === 'flow') return item ? <FlowDetail id={item.split('?')[0]} /> : <FlowList />;
   if (sec === 'hardware') return <HardwareLibrary />;
   if (sec === 'hw' && item) return <HardwareDetail id={item.split('?')[0]} />;

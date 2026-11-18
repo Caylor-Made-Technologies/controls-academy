@@ -48,9 +48,9 @@ phase report and vault update. Items found in the Phase 0 audit are marked **(au
 
 ## Phase 5 — Reference → v0.10.0
 - [x] 5.1 Brands side by side (`#/reference/compare`): 9 platforms × 9 topics, pick up to three; forcing and download safety notes; accuracy review applied (Siemens memory card, CTUD QU/QD, Mitsubishi forcing, DirectLOGIC, upload/download data and comments, LED states); 40 VERIFY items.
-- [ ] 5.2 Field devices in the hardware library: data schema and page template first, then the devices.
+- [x] 5.2 Field devices (`#/reference/devices`): one data schema and one page template, 19 generic devices with procedural 3D (material library, ground shadow, self-framing camera; 18–24 draw calls each, in the perf suite), wiring, print symbol, failures, safe tests, safety notes; safety review applied (MCC line side stays live, E-stop is not lockout, light-curtain distance, loop measurement without opening the loop); 16 VERIFY items.
 - [x] 5.3 Troubleshooting flowcharts (`#/reference/flow`): 7 charts as data with one renderer; tests prove every path ends, no loops, every step reachable, VERIFY markers last. Safety review applied (no locked-rotor holding, loop in manual before breaking it, disconnect the drive before meggering, auto-restart warnings, arc-flash note for open panels); 10 VERIFY items.
-- [ ] 5.4 Printable cheat sheets · [ ] 5.5 "Day one at a new plant" · [ ] 5.6 VERIFY sweep
+- [x] 5.4 Printable cheat sheets (`#/reference/cheats`): 6 sheets, print styles, reviewed (11 VERIFY items) · [x] 5.5 Day one at a new plant (`#/reference/day-one`): 30 items, saved on the device, export and print, reviewed; found and fixed B-013 · [ ] 5.6 VERIFY sweep
 
 ## Phase 6 — Finish → v1.0.0
 - 6.0 3D detail and materials pass (from reviews 5–9: drive terminals and nameplate, generator, meter body, metal/plastic variety, small in-scene text; judge by before/after) · 6.1 Lighthouse 95+ on every main route (key routes 98–99 on live at 0.9.0; still to do: every other route) · 6.2 QA sweep · 6.3 tests + coverage in README · 6.4 docs/About · 6.5 business-site portfolio page · 6.6 release

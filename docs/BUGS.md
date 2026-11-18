@@ -12,6 +12,7 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 | B-004 | High | Phase 0 | Fixed in 0.5.1 |
 | B-003 | High | Phase 0 | Fixed in 0.5.1 |
 | B-002 | Low | Phase 0 (Lighthouse) | Fixed in 0.5.1 |
+| B-013 | Low | Phase 5 verify (day-one e2e) | Fixed 5.5 |
 | B-012 | Low | v0.9.0 gate (verify:live) | Fixed at the gate |
 | B-011 | Low | Phase 4 verify (3D suite) | Fixed 4.3 |
 | B-010 | Medium | Phase 3 gate (Lighthouse live) | Fixed 4.1; confirmed live at 0.9.0 (LCP ≤ 2.21 s) |
@@ -66,6 +67,11 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 - **Expected:** *Protection devices* (next in Track 1). **Actual:** *Reading ladder prints* (Track 2); *Protection devices* is skipped. 9 of 49 "Next" links pointed to the wrong lesson.
 - **Cause:** `LESSONS` kept source-file order; tracks have their own order.
 - **Fix:** `LESSONS` sorted by `COURSE_ORDER` (track by track). **Test:** `tests/unit/quality.test.ts` → "course order".
+
+## B-013 — A change followed by a quick reload could be lost
+- **Steps:** tick an item on Day one (or change any saved setting), reload at once (seen under load in the day-one e2e check).
+- **Cause:** `save()` wrote IndexedDB first and the synchronous localStorage copy only after it finished; a reload in between lost both. `load()` also preferred IndexedDB, which could still hold the older value.
+- **Fix:** localStorage is written first (synchronously) and read first; a failed localStorage write removes the older copy. Test: the e2e check waits for the restore and the tick must survive the reload.
 
 ## B-012 — Light theme could flash dark on first load
 - **Steps:** save the light theme, reload the live site on a normal connection (verify:live "Static shell" check).

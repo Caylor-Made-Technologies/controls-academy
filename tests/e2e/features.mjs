@@ -1110,12 +1110,32 @@ await check('Reference: cheat sheets filter to one sheet and a day-one checklist
   expect((await page.getByText(/^1 of \d+ done$/).count()) === 1, 'count updates');
   await page.reload();
   await page.waitForSelector('main#main h1');
-  await page.waitForTimeout(400);
-  expect(await page.locator('.toggle-box').first().isChecked(), 'tick survives a reload');
+  const kept = await page.locator('.toggle-box').first().evaluate((el) => new Promise((ok) => { const t0 = Date.now(); const f = () => (el.checked || Date.now() - t0 > 5000 ? ok(el.checked) : setTimeout(f, 100)); f(); }));
+  expect(kept, 'tick survives a reload');
   const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export as text' }).click()]);
   expect(/day-one-checklist-\d{4}-\d{2}-\d{2}\.txt/.test(dl.suggestedFilename()), 'export downloads a dated text file');
   await axe(page, 'day one');
   await ctx.close();
+});
+
+await check('Reference: field devices — grouped list, a device page with its 3D model, axe clean; reduced motion keeps it 2D', async () => {
+  const { ctx, page } = await newPage({ prefs: { onboarded: true, quality: 'medium' }, w: 375, h: 812, motion: 'no-preference' });
+  await go(page, 'reference/devices');
+  expect((await page.locator('a[href*="reference/device/"]').count()) >= 19, 'all devices listed');
+  await page.getByRole('link', { name: /Emergency stop/ }).click();
+  await page.waitForSelector('section[aria-label$="model"] canvas', { timeout: 30000 });
+  expect((await page.getByRole('heading', { name: 'How to test it' }).count()) === 1, 'test section shown');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= 375), 'no sideways scroll');
+  await axe(page, 'device page');
+  await page.getByRole('link', { name: /Next/ }).click();
+  await page.waitForSelector('main#main h1:has-text("Contactor")');
+  await ctx.close();
+  const r = await newPage({ prefs: { onboarded: true, quality: 'auto' }, w: 375, h: 812, motion: 'reduce' });
+  await go(r.page, 'reference/device/contactor');
+  await r.page.waitForTimeout(800);
+  expect((await r.page.locator('canvas').count()) === 0, 'reduced motion does not load 3D');
+  expect(await r.page.getByRole('button', { name: 'Show in 3D' }).isVisible(), 'offers 3D on request');
+  await r.ctx.close();
 });
 
 await browser.close();
