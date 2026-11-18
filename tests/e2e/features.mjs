@@ -1094,6 +1094,30 @@ await check('Reference: a troubleshooting flowchart walks to an answer, steps ba
   await ctx.close();
 });
 
+await check('Reference: cheat sheets filter to one sheet and a day-one checklist remembers ticks and exports', async () => {
+  const { ctx, page } = await newPage({ w: 375, h: 812 });
+  await go(page, 'reference/cheats');
+  const all = await page.locator('.cheat-sheet').count();
+  expect(all >= 6, `all sheets shown (${all})`);
+  await page.getByRole('group', { name: 'Which sheet' }).getByRole('button', { name: '4–20 mA math' }).click();
+  expect((await page.locator('.cheat-sheet').count()) === 1, 'one sheet after filtering');
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= 375), 'no sideways scroll');
+  await axe(page, 'cheat sheets');
+  await go(page, 'reference/day-one');
+  const first = page.locator('.toggle-box').first();
+  await first.check();
+  await page.getByRole('status').filter({ hasText: 'of' }).first().waitFor();
+  expect((await page.getByText(/^1 of \d+ done$/).count()) === 1, 'count updates');
+  await page.reload();
+  await page.waitForSelector('main#main h1');
+  await page.waitForTimeout(400);
+  expect(await page.locator('.toggle-box').first().isChecked(), 'tick survives a reload');
+  const [dl] = await Promise.all([page.waitForEvent('download'), page.getByRole('button', { name: 'Export as text' }).click()]);
+  expect(/day-one-checklist-\d{4}-\d{2}-\d{2}\.txt/.test(dl.suggestedFilename()), 'export downloads a dated text file');
+  await axe(page, 'day one');
+  await ctx.close();
+});
+
 await browser.close();
 const relevant = errors.filter((e) => !/net::ERR_INTERNET_DISCONNECTED|Failed to load resource/.test(e));
 console.log(`\n${pass} passed, ${fail} failed`);

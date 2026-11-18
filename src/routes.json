@@ -37,7 +37,7 @@
   },
   "reference": {
     "page": "ReferencePage",
-    "samples": ["reference", "reference/brand/rockwell", "reference/compare", "reference/flow", "reference/flow/motor-wont-start", "reference/hardware", "reference/hw/controllogix", "reference/instructions", "reference/glossary", "reference/inside", "reference/inside/vfd"]
+    "samples": ["reference", "reference/brand/rockwell", "reference/compare", "reference/cheats", "reference/day-one", "reference/flow", "reference/flow/motor-wont-start", "reference/hardware", "reference/hw/controllogix", "reference/instructions", "reference/glossary", "reference/inside", "reference/inside/vfd"]
   },
   "profile": {
     "page": "ProfilePage",

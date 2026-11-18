@@ -268,3 +268,19 @@ a.row:active, button.row:active { transform: scale(0.99); }
 /* ---------- Troubleshooting flowcharts: the trail of answers so far ---------- */
 .flow-trail { list-style: none; margin: 0 0 var(--space-3); padding: 0 0 0 var(--space-3); border-left: 2px solid var(--border-strong); display: grid; gap: var(--space-1h); font-size: var(--text-sm); }
 .flow-end { border-color: var(--live); }
+
+/* ---------- Cheat sheets: readable tables on screen, black on white on paper ---------- */
+.cheat-table { width: 100%; border-collapse: collapse; font-size: var(--text-sm); }
+.cheat-table caption { text-align: left; font-weight: 700; color: var(--text-heading); padding-bottom: var(--space-1h); }
+.cheat-table th, .cheat-table td { text-align: left; vertical-align: top; padding: var(--space-1h) var(--space-2); border-top: 1px solid var(--border); }
+.cheat-table thead th { color: var(--text-muted); font-weight: 600; border-top: 0; }
+.cheat-table tbody th { font-weight: 600; color: var(--text-heading); }
+.cheat-lines { margin: var(--space-3) 0 0; padding-left: var(--space-5); display: grid; gap: var(--space-1h); font-size: var(--text-sm); }
+.cheat-lines code { white-space: normal; }
+@media print {
+  .cheats .card, .cheats .card * { background: transparent !important; color: var(--black) !important; box-shadow: none !important; }
+  .cheats .card { border-color: var(--print-rule) !important; break-inside: avoid; }
+  .cheats .cheat-sheet + .cheat-sheet { break-before: page; }
+  .cheat-table th, .cheat-table td { border-color: var(--print-rule) !important; }
+  .cheats .scroll-cue { mask-image: none !important; overflow: visible !important; }
+}

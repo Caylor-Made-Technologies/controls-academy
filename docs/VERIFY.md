@@ -152,3 +152,16 @@ All in `src/content/hardware.ts` and `src/content/brands.ts`. The 3D shapes are 
 - VFD faults · read: details vary
 - VFD faults · end-oc: details vary by model
 - VFD faults · end-ot: details vary by model
+
+## Cheat sheets (`src/content/cheatsheets.ts`)
+- Wire colors: edition
+- Wire colors: edition
+- Wire colors: code edition
+- Wire colors: code edition
+- Wire colors: site spec
+- Wire colors: site spec
+- Wire colors: the machine's prints
+- Contact and terminal numbering: per relay
+- NEMA vs IEC symbols: letter codes per print legend
+- 4–20 mA math: per transmitter and card
+- Ohm's law and power: code edition
