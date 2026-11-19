@@ -1,4 +1,5 @@
-import { useEffect, useMemo, useState } from 'react';
+import { lazy, Suspense, useEffect, useMemo, useState, type ReactNode } from 'react';
+import { SkeletonPage } from '../../components/Skeleton';
 import { PageHead, RouteHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
@@ -12,11 +13,16 @@ import { HARDWARE, categoryOf } from '../../content/hardware';
 import { HardwareCard, HardwareDetail, HardwareLibrary } from './HardwarePages';
 import { HwFront } from '../../components/HwFront';
 import { InsideDetail, InsideList } from './InsidePages';
-import ComparePage from './ComparePage';
-import CheatPage from './CheatPage';
-import DayOnePage from './DayOnePage';
-import { DeviceDetail, DeviceList } from './DevicePages';
-import { FlowDetail, FlowList } from './FlowPage';
+// Sub-pages load on demand, so the Reference index doesn't download their content (Lighthouse on 0.10.0:
+// LCP 2.13 s → 2.63 s when they were bundled in).
+const ComparePage = lazy(() => import('./ComparePage'));
+const CheatPage = lazy(() => import('./CheatPage'));
+const DayOnePage = lazy(() => import('./DayOnePage'));
+const DeviceList = lazy(() => import('./DevicePages').then((m) => ({ default: m.DeviceList })));
+const DeviceDetail = lazy(() => import('./DevicePages').then((m) => ({ default: m.DeviceDetail })));
+const FlowList = lazy(() => import('./FlowPage').then((m) => ({ default: m.FlowList })));
+const FlowDetail = lazy(() => import('./FlowPage').then((m) => ({ default: m.FlowDetail })));
+const sub = (node: ReactNode) => <Suspense fallback={<SkeletonPage />}>{node}</Suspense>;
 import { EmptyState, NotFound, Chip } from '../../components/ui';
 import { Button } from '../../components/ui';
 
@@ -38,12 +44,12 @@ export default function ReferencePage({ section, item }: { section?: string; ite
   const sec = section?.split('?')[0];
   if (sec === 'brand' && item) return <BrandGuide id={item.split('?')[0]} />;
   if (sec === 'brands') return <Brands />;
-  if (sec === 'compare') return <ComparePage />;
-  if (sec === 'cheats') return <CheatPage />;
-  if (sec === 'day-one') return <DayOnePage />;
-  if (sec === 'devices') return <DeviceList />;
-  if (sec === 'device' && item) return <DeviceDetail id={item.split('?')[0]} />;
-  if (sec === 'flow') return item ? <FlowDetail id={item.split('?')[0]} /> : <FlowList />;
+  if (sec === 'compare') return sub(<ComparePage />);
+  if (sec === 'cheats') return sub(<CheatPage />);
+  if (sec === 'day-one') return sub(<DayOnePage />);
+  if (sec === 'devices') return sub(<DeviceList />);
+  if (sec === 'device' && item) return sub(<DeviceDetail id={item.split('?')[0]} />);
+  if (sec === 'flow') return sub(item ? <FlowDetail id={item.split('?')[0]} /> : <FlowList />);
   if (sec === 'hardware') return <HardwareLibrary />;
   if (sec === 'hw' && item) return <HardwareDetail id={item.split('?')[0]} />;
   if (sec === 'instructions') return <Instructions />;
