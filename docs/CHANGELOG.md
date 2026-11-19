@@ -13,11 +13,14 @@
 - Simulator: DIV by zero now behaves like Logix (minor fault, and the destination gets Source A for integers or infinity for REAL) instead of leaving the destination unchanged.
 - B-013: a change followed by a very quick reload (a ticked checklist item, a setting) could be lost. Saved data now goes to the fast local copy first.
 - The 3D memory-leak check waits until geometry and texture counts hold steady for 2 s before both readings (it could fail on a busy machine).
-- Reference loads faster on a slow phone: the index needs one 2 KB file instead of twelve (about 60 KB), and each view behind it (brand guides, glossary, hardware, field devices, compare and the rest) loads when opened. A direct link to one of them fetches its code straight away. Lighthouse on live, Reference index LCP: 2.64 s before this fix.
+- Reference loads faster on a slow phone: the index needs one 2 KB file instead of twelve (about 60 KB), and each view behind it (brand guides, glossary, hardware, field devices, compare and the rest) loads when opened. A direct link to one of them fetches its code straight away. Lighthouse on live, Reference index LCP 2.64 → 1.83 s, Brands side by side 2.88 → 2.06 s, Field devices 2.86 → 2.28 s.
 - Field device pages read lesson titles from the small catalog instead of downloading every lesson (80 KB).
 - The overload reset test allows for slow CI machines (the overload cools for about 35 s of simulated time).
+### Release gate (live, 2026-11-19)
+- Live e2e: all suites green, 137/137 feature checks; routes axe 0, no console errors, no sideways scroll at any tested width.
+- Lighthouse mobile on live: performance 98–99, accessibility, best practices and SEO 100 on learn, sim, troubleshoot, wiring, reference, profile, reference/compare and reference/devices; LCP 1.83–2.28 s, TBT ≤ 6 ms, CLS 0.
 ### Known issues
-- Pages opened by a direct link to a sub-page (for example a glossary or field-device link) paint their heading only after their code arrives: Lighthouse LCP about 2.5–2.9 s on a throttled phone, over the 2.5 s budget. Phase 6.1 extends the instant HTML heading to these pages.
+- Other deep links (a glossary term, a brand guide, a hardware model) paint their heading only after their code arrives; not yet measured on live. Phase 6.1 extends the instant HTML heading to sub-pages.
 - 172 details are still marked "check your manual" (listed in docs/VERIFY.md) for an expert or a sourced check.
 - Whether a counter reset (RES) also clears its count-up/down bits is unconfirmed; the simulator keeps them.
 - 3D detail and materials polish is planned for Phase 6.
