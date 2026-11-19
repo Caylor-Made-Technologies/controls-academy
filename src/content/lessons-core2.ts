@@ -111,7 +111,7 @@ export const CORE2_LESSONS: Lesson[] = [
         'The **panel layout** is drawn to scale or dimensioned: back plate, DIN rails (metal mounting rails), wire duct, every device with its tag (CR3, FU12, TB1).',
         'The **terminal plan** lists each terminal block: number, [[wire-number|wire number]], where it goes inside, where it goes in the field.',
         '**[[io|I/O]] pages** show each card point: [[address|address]], tag, description, field device, wire numbers.',
-        'Device tags often include the drawing page and line: `CR3` coil on page 12 line 7 might be written 12-7 or 1207. // VERIFY drafting standard',
+        'Device tags often include the drawing page and line: `CR3` coil on page 12 line 7 might be written 12-7, 12.7 or 1207, depending on the drafting style.',
       ] },
       { t: 'p', text: 'In the 3D panel, the terminal strip shows wire numbers L1–L3, T1–T3, 1–8, +24 and 0V — the same numbers you\'d trace on the print.' },
       { t: 'callout', tone: 'tip', title: 'Read it like a map', text: 'Start at the I/O page for the point you care about, follow the wire number to the terminal plan, then use the layout to find the terminal strip in the cabinet. Ten minutes on the prints saves an hour of guessing.' },

@@ -254,7 +254,7 @@ export const PRO_LESSONS: Lesson[] = [
     blocks: [
       { t: 'p', text: 'An [[hmi]] reads and writes PLC tags over the network: it shows values, sends button presses and setpoints, raises alarms and draws trends.' },
       { t: 'list', items: [
-        '**Tags** on the HMI point at PLC tags. When comms are lost, most HMIs grey out, hatch or flag the fields — the exact look varies by brand. (On many HMIs "####" means the value doesn\'t fit the field.) // VERIFY per HMI platform',
+        '**Tags** on the HMI point at PLC tags. When comms are lost, most HMIs grey out, hatch or flag the fields — the exact look varies by brand. (On many HMIs "####" means the value doesn\'t fit the field.)',
         '**Momentary buttons** set a bit while pressed. If comms drop mid-press, the bit can stick — logic should time it out.',
         '**Security levels** limit who can change setpoints or force modes.',
         '**Alarms** are often generated in the HMI from PLC bits; the PLC still needs its own interlocks.',
@@ -370,7 +370,7 @@ export const PRO_LESSONS: Lesson[] = [
     ],
     safety: { note: 'Safety functions (E-stop, guards) go through a safety relay or safety controller designed and validated for it. Combustible-dust interlocks are part of the plant\'s hazard analysis — don\'t remove or bypass them.' },
     blocks: [
-      { t: 'p', text: '**Machine:** a flour batch mixer. Two ingredient feed screws weigh product into a hopper on load cells, a mixer runs for a set time, then a discharge gate opens to a conveyor. A dust collector must be running before any feed screw starts — flour dust is combustible (NFPA 61, now being folded into NFPA 660, covers agricultural and food facilities). // VERIFY current NFPA edition' },
+      { t: 'p', text: '**Machine:** a flour batch mixer. Two ingredient feed screws weigh product into a hopper on load cells, a mixer runs for a set time, then a discharge gate opens to a conveyor. A dust collector must be running before any feed screw starts — flour dust is combustible (NFPA 660, 2025 edition, replaced NFPA 61 and the other combustible-dust standards; check which edition your site follows).' },
       { t: 'h', text: 'Your deliverables' },
       { t: 'list', ordered: true, items: [
         '**I/O list:** each input/output with tag, type (DI/DO/AI/AO) and description (feed screws, mixer motor, gate open/closed limits, dust collector running, load cell 4–20 mA, E-stop monitor, high-level probe).',

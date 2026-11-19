@@ -50,7 +50,7 @@ export const DEVICES: FieldDevice[] = [
   {
     id: 'prox-capacitive', name: 'Capacitive proximity sensor', kind: 'prox-capacitive', group: 'sensors',
     what: 'Senses almost any material (plastic, grain, liquid, flour) by the change it makes in an electric field. Often used for bin levels.',
-    wiring: ['Wired like an inductive prox: usually three-wire DC with a PNP or NPN output. // VERIFY per sensor'],
+    wiring: ['Wired like an inductive prox: usually three-wire DC with a PNP or NPN output (two-wire AC/DC types also exist).'],
     symbol: 'Like a proximity sensor; the print or device list says capacitive.',
     fails: ['Sensitivity set wrong: it sees the bin wall, or misses the product.', 'Product buildup on the face (flour, dust) holds it ON.', 'Moisture changes how it sees the product.'],
     test: ['Watch its LED as product reaches it.', 'Clean the face and re-check; adjust sensitivity only per its manual and with permission.'],
@@ -60,7 +60,7 @@ export const DEVICES: FieldDevice[] = [
   {
     id: 'eye-through', name: 'Photo-eye: through-beam', kind: 'eye-through', group: 'sensors',
     what: 'A separate emitter and receiver face each other; an object breaking the beam is detected. Longest range and most reliable.',
-    wiring: ['The emitter needs only power; the receiver has power and the output. // VERIFY per model', 'Light-operate or dark-operate decides whether the output is on with the beam made or broken; it is set by a switch, a wire or a teach button. // VERIFY per model'],
+    wiring: ['The emitter needs power (some also have a test input); the receiver has power and the output.', 'Light-operate or dark-operate decides whether the output is on with the beam made or broken; it is set by a switch, a wire or a teach button. // VERIFY per model'],
     symbol: 'An emitter and receiver pair, often drawn as two boxes with an arrow between them.',
     fails: ['Misaligned after a bump.', 'Dirty lenses.', 'Bright ambient light or another sensor\'s beam (crosstalk).', 'Light-operate / dark-operate set wrong after a replacement.'],
     test: ['Check both LEDs: power on the emitter, signal strength on the receiver.', 'Block and unblock the beam and watch the output LED and the PLC input.'],
@@ -70,7 +70,7 @@ export const DEVICES: FieldDevice[] = [
   {
     id: 'eye-retro', name: 'Photo-eye: retroreflective', kind: 'eye-retro', group: 'sensors',
     what: 'The sensor and a reflector face each other; the sensor sees its own light come back until something blocks it. One wired device.',
-    wiring: ['Wired like a prox: power plus a PNP or NPN output. // VERIFY per model'],
+    wiring: ['Usually wired like a prox: power plus a PNP or NPN output (some models have a relay output).'],
     symbol: 'A sensor box with an arrow to a reflector.',
     fails: ['Reflector missing, dirty or knocked out of line.', 'Shiny objects reflect the light back and aren\'t seen (a polarized model helps; it needs a corner-cube reflector, and tape may not work).', 'Clear objects (bottles, film) may not be seen.', 'Bright ambient light or another sensor\'s beam (crosstalk).'],
     test: ['Watch the LED with the reflector in place, then with a hand in the beam.', 'Clean the lens and the reflector.'],
@@ -80,7 +80,7 @@ export const DEVICES: FieldDevice[] = [
   {
     id: 'eye-diffuse', name: 'Photo-eye: diffuse', kind: 'eye-diffuse', group: 'sensors',
     what: 'Sees light bounced back off the object itself. Short range; dark or shiny objects are harder to see.',
-    wiring: ['Wired like a prox: power plus a PNP or NPN output. // VERIFY per model'],
+    wiring: ['Usually wired like a prox: power plus a PNP or NPN output (some models have a relay output).'],
     symbol: 'A sensor box with an arrow to the object.',
     fails: ['Background (a shiny wall) reflects light and holds it ON.', 'Dark objects not seen; sensitivity set wrong.'],
     test: ['Watch the LED with and without the object, at the real distance.'],
@@ -167,7 +167,7 @@ export const DEVICES: FieldDevice[] = [
   {
     id: 'safety-relay', name: 'Safety relay', kind: 'safety-relay', group: 'safety',
     what: 'A monitored relay that watches E-stops, gate switches or light curtains on two channels and removes power when any opens. It checks its own wiring and contacts.',
-    wiring: ['Two input channels from each safety device, a reset input, and safety outputs that feed the contactors\' coils. // VERIFY terminal numbers per model', 'Usually two contactors in series; their mechanically linked (mirror) NC contacts feed back to the relay to prove they really opened.', 'Reset is usually monitored (press and release), and the reset button must be placed where you can see the hazard area.'],
+    wiring: ['Two input channels from each safety device, a reset input, and safety outputs that feed the contactors\' coils. Terminal numbers vary by model: use its manual.', 'Usually two contactors in series; their mechanically linked (mirror) NC contacts feed back to the relay to prove they really opened.', 'Reset is usually monitored (press and release), and the reset button must be placed where you can see the hazard area.'],
     symbol: 'A box with its terminal numbers, drawn in the safety circuit section of the print.',
     fails: ['Won\'t reset: one channel open, a feedback contact stuck, or a short between channels.', 'Reset pressed while a device is still open.'],
     test: ['Read its status LEDs against the manual: they usually show which channel is open.', 'Check each safety device on its own.'],
@@ -197,7 +197,7 @@ export const DEVICES: FieldDevice[] = [
   {
     id: 'xmtr-level', name: 'Level transmitter', kind: 'xmtr-level', group: 'process',
     what: 'Measures the level in a tank or bin (by pressure, radar, ultrasonic and more) and sends it as 4–20 mA.',
-    wiring: ['Usually two-wire loop-powered, like a pressure transmitter. // VERIFY per technology'],
+    wiring: ['Many are two-wire loop-powered, like a pressure transmitter; some types need separate power (four-wire). Check the nameplate.'],
     symbol: 'A circle with LT and a tag number on the P&ID.',
     fails: ['Buildup on the sensor or false echoes from the tank\'s inside.', 'Range set to the wrong tank height.'],
     test: ['Compare with a sight glass, a dip reading or a known level.'],
@@ -217,7 +217,7 @@ export const DEVICES: FieldDevice[] = [
   {
     id: 'solenoid-valve', name: 'Solenoid valve', kind: 'solenoid-valve', group: 'process',
     what: 'An electrically operated valve: a coil pulls a plunger that shifts air, water or oil. Used to move cylinders and open lines. A spring-return valve goes back when power is lost; a double-solenoid (detented) valve stays in its last position.',
-    wiring: ['Coil from a PLC output (often 24 VDC or 120 VAC) and its return.', 'Many valves have a manual override button to shift them without power.', 'DC coils need surge suppression (a diode), often built in. // VERIFY per model'],
+    wiring: ['Coil from a PLC output (often 24 VDC or 120 VAC) and its return.', 'Many valves have a manual override button to shift them without power.', 'DC coils need surge suppression (a diode or other suppressor), often built into the coil or connector.'],
     symbol: 'A solenoid symbol (a box with a diagonal line) on the pneumatic or hydraulic diagram; a coil on the ladder.',
     fails: ['Coil open or wrong voltage; an AC coil burns out if the spool is stuck.', 'Spool stuck from dirt or no lubrication.', 'No air pressure, or a blocked exhaust.'],
     test: [`Check the coil voltage when it should shift; many coil connectors have an LED. ${LIVE_NOTE}`, 'Check the air pressure gauge.'],

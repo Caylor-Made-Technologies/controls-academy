@@ -397,7 +397,12 @@ export class Plc {
         if (rc) {
           const y = t.readNum(a[1]);
           if (y === 0) {
-            this.minor(`Divide by zero in rung ${ctx.rungId}. Destination left unchanged.`); // VERIFY: Logix sets Dest on /0
+            // Logix DIV by zero: minor fault (arithmetic overflow) and Dest is still written: Source A when every
+            // operand is an integer, infinity when any is REAL (Logix Designer DIV instruction help).
+            const intOnly = this.isIntegerOperand(a[0]) && this.isIntegerOperand(a[1]) && this.isIntegerOperand(a[2]);
+            this.minor(`Divide by zero in rung ${ctx.rungId}. ${intOnly ? 'Destination set to Source A' : 'Destination set to infinity'}.`);
+            if (intOnly) this.store(a[2], t.readNum(a[0]), [a[0]]);
+            else if (!this.isIntegerOperand(a[2])) this.store(a[2], Infinity, [a[0], a[1]]);
           } else {
             const x = t.readNum(a[0]);
             const intOnly = this.isIntegerOperand(a[0]) && this.isIntegerOperand(a[1]);

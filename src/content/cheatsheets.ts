@@ -53,7 +53,7 @@ export const SHEETS: Sheet[] = [
           ['L1, L2, L3', 'Brown, black, gray'],
           ['Neutral', 'Blue'],
           ['Protective earth', 'Green-yellow'],
-          ['Older imported machines', 'May use other colors (for example red, yellow, blue phases and a black neutral) // VERIFY the machine\'s prints'],
+          ['Older imported machines', 'May use other colors (for example older UK machines: red, yellow, blue phases and a black neutral). Always check the machine\'s prints.'],
         ],
       },
     ],

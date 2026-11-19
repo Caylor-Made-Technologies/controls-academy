@@ -112,7 +112,7 @@ export const ZERO_LESSONS: Lesson[] = [
         { text: 'The incoming power to a large motor speed [[vfd|drive]]', bin: 2, why: 'Big drives for plant motors are usually fed 480 V three-phase (small ones can be 208/240 V).' },
       ] },
     ],
-    realWorld: { site: 'datacenter', text: 'A data center takes utility power in at a much higher voltage, steps it to 480 V for the UPS (battery backup) and chillers (the big cooling machines), then to 208/120 V (or a similar rack voltage) for the servers. One building, several voltages — the label on the gear tells you which. // VERIFY: rack voltage varies by site (208/120 V, 415/240 V and others are used).' },
+    realWorld: { site: 'datacenter', text: 'A data center takes utility power in at a much higher voltage, steps it to 480 V for the UPS (battery backup) and chillers (the big cooling machines), then to 208/120 V (or a similar rack voltage) for the servers. One building, several voltages — the label on the gear tells you which. Rack voltage varies by site (208/120 V and 415/240 V are both common).' },
     mistakes: [
       'Assuming every panel is 120 V. Control sections and power sections often share a cabinet.',
       'Reading AC on the meter\'s DC setting (or the reverse) and trusting the zero.',

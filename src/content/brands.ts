@@ -33,7 +33,7 @@ const BASE_GUIDES: BrandGuide[] = [
       { name: 'RSLinx Classic / FactoryTalk Linx', for: 'Communication drivers' },
     ],
     hardware: ['ControlLogix (1756 chassis)', 'CompactLogix (5370/5380/5480)', 'GuardLogix (safety)', 'SLC 500 / MicroLogix (legacy)', 'Micro800', 'PowerFlex drives', 'PanelView HMIs'],
-    addressing: [['Logix tag', 'Start_PB, Motor1.Run'], ['Logix module I/O', 'Local:1:I.Data.0 // VERIFY per module'], ['Timer member', 'MyTimer.DN, .ACC, .PRE (ms)'], ['SLC input', 'I:1/0'], ['SLC bit / int / timer', 'B3:0/5, N7:10, T4:0.DN']],
+    addressing: [['Logix tag', 'Start_PB, Motor1.Run'], ['Logix module I/O', 'Local:1:I.Data.0 (member names vary by module type)'], ['Timer member', 'MyTimer.DN, .ACC, .PRE (ms)'], ['SLC input', 'I:1/0'], ['SLC bit / int / timer', 'B3:0/5, N7:10, T4:0.DN']],
     firstDay: [
       'Find the controller, note its catalog number and firmware revision.',
       'Get a copy of the program: go online and UPLOAD, save with today\'s date.',
@@ -87,7 +87,7 @@ const BASE_GUIDES: BrandGuide[] = [
       'PROFINET device names must match the project exactly, or the device won\'t connect.',
       'Some downloads (hardware config, certain block changes) need the CPU in STOP.',
       'IEC timers and counters need an instance DB (or a multi-instance in an FB).',
-      'A forced value shows as a force indication on the CPU. // VERIFY per model',
+      'A forced value lights a force/maintenance LED on the CPU (label varies by model).',
     ],
   },
   {
@@ -98,7 +98,7 @@ const BASE_GUIDES: BrandGuide[] = [
       { name: 'EcoStruxure Machine Expert – Basic', for: 'M221' },
     ],
     hardware: ['Modicon M221', 'M241 / M251', 'M340', 'M580', 'Quantum (legacy)', 'Altivar drives'],
-    addressing: [['Topological I/O', '%I0.1.0 (rack.slot.channel)'], ['Memory', '%M100, %MW100'], ['Modbus mapping', '%MW0 ↔ 400001 (usually) // VERIFY per device']],
+    addressing: [['Topological I/O', '%I0.1.0 (rack.slot.channel)'], ['Memory', '%M100, %MW100'], ['Modbus mapping', '%MW0 ↔ 400001 (usually; check the device\'s Modbus map)']],
     firstDay: ['Upload and archive the application.', 'Identify which variables are mapped to Modbus for SCADA/BMS.', 'Note the CPU and network modules in each rack.'],
     tips: ['Modicon invented Modbus; many register maps trace back to %MW words.', 'Use the animation tables to watch values live.'],
     gotchas: ['Off-by-one between %MW numbers and 4xxxx registers.', 'Word order for 32-bit values differs between devices.'],
@@ -110,7 +110,7 @@ const BASE_GUIDES: BrandGuide[] = [
     addressing: [['Inputs / outputs', 'X0–X7, X10… / Y0… (octal on FX)'], ['Internal relay', 'M0'], ['Data register', 'D0'], ['Timer / counter', 'T0 K50, C0 K10']],
     firstDay: ['Read the PLC and save a copy.', 'Check whether I/O numbering is octal (FX) or hex (Q/iQ-R). // VERIFY', 'Find the device comments file — it\'s often separate.'],
     tips: ['Huge in OEM machines; you\'ll meet it on packaging and imported equipment.', 'Device comments make addresses readable — always load them.'],
-    gotchas: ['FX X/Y numbers are octal: there is no X8 or X9.', 'Timer resolution depends on the timer number range. // VERIFY per series'],
+    gotchas: ['FX X/Y numbers are octal: there is no X8 or X9.', 'On FX3, timer resolution depends on the timer number range (e.g. T0–T199 = 100 ms); newer series set it differently. Check your series\' manual.'],
   },
   {
     id: 'automationdirect', name: 'AutomationDirect', skin: 'automationdirect',
@@ -128,7 +128,7 @@ const BASE_GUIDES: BrandGuide[] = [
     addressing: [['CIO bits', '0.00 (word 0, bit 00)'], ['Work / holding', 'W0.00 / H0.00'], ['Data memory', 'D0'], ['Timer', 'T0000 with #50 (0.1 s units)']],
     firstDay: ['Transfer from PLC and save.', 'Check which areas are retentive (H, D) — they survive power loss.'],
     tips: ['Sysmac (NX/NJ) is IEC variable-based; CX-Programmer is address-based. Different worlds.'],
-    gotchas: ['Classic TIM timers count DOWN and are BCD by default. // VERIFY per model'],
+    gotchas: ['Classic TIM timers count DOWN, and the set value is BCD unless the project is set to binary mode.'],
   },
   {
     id: 'emerson', name: 'Emerson (formerly GE) PACSystems', skin: 'iec',
@@ -137,7 +137,7 @@ const BASE_GUIDES: BrandGuide[] = [
     addressing: [['Discrete in / out', '%I00001, %Q00001'], ['Internal bits', '%M00001'], ['Registers', '%R00001']],
     firstDay: ['Upload and save.', 'Note the register (%R) map used by HMIs and SCADA.'],
     tips: ['%R registers are 16-bit words, 1-based.'],
-    gotchas: ['Old 90-30 systems are still common in water/wastewater. // VERIFY'],
+    gotchas: ['Legacy Series 90-30 systems are still running at many older sites; plan for spare parts and migration.'],
   },
   {
     id: 'beckhoff', name: 'Beckhoff', skin: 'iec',
@@ -154,7 +154,7 @@ const BASE_GUIDES: BrandGuide[] = [
 const US_NOTES: Record<string, Pick<BrandGuide, 'us' | 'hmi' | 'drives' | 'networks'>> = {
   rockwell: {
     us: 'The most common PLC brand in US plants. Expect it in food and beverage, grain and flour, automotive, water, and data-center utility controls. If you learn one platform first, learn this one.',
-    hmi: ['PanelView Plus / PanelView 5000 (FactoryTalk View ME or Optix) // VERIFY current names', 'FactoryTalk View SE (SCADA)'],
+    hmi: ['PanelView Plus 7 (FactoryTalk View ME), PanelView 5000 (Studio 5000 View Designer), OptixPanel (FactoryTalk Optix)', 'FactoryTalk View SE (SCADA)'],
     drives: ['PowerFlex 4-class (40, 525) small drives', 'PowerFlex 750-series large drives'],
     networks: ['EtherNet/IP (current standard)', 'DeviceNet and ControlNet (older)', 'DH+ and Remote I/O (legacy PLC-5/SLC)', 'DF1 serial'],
   },
@@ -190,7 +190,7 @@ const US_NOTES: Record<string, Pick<BrandGuide, 'us' | 'hmi' | 'drives' | 'netwo
   },
   emerson: {
     us: 'Formerly GE Fanuc / GE Intelligent Platforms. Still strong in US municipal water and wastewater, power and oil and gas.',
-    hmi: ['QuickPanel+ HMIs', 'iFIX / Cimplicity SCADA (often seen with these PLCs) // VERIFY current ownership of these SCADA products'],
+    hmi: ['QuickPanel+ HMIs', 'iFIX / CIMPLICITY SCADA (a separate software line, often seen with these PLCs)'],
     drives: ['Not a major drive brand; expect third-party drives'],
     networks: ['Ethernet (SRTP, EGD), Modbus TCP', 'PROFINET on RX3i', 'Genius bus (legacy)'],
   },
@@ -208,7 +208,7 @@ const MORE_GUIDES: BrandGuide[] = [
     id: 'idec', name: 'IDEC', skin: 'iec',
     software: [{ name: 'WindLDR (Automation Organizer)', for: 'MicroSmart PLCs' }, { name: 'WindO/I-NV4', for: 'HMIs // VERIFY' }],
     hardware: ['MicroSmart FC6A / FC6A Plus', 'MicroSmart FC5A (older)', 'SmartAXIS logic modules', 'HG HMIs'],
-    addressing: [['Inputs / outputs', 'I0, Q0 // VERIFY numbering scheme per model'], ['Internal relay', 'M0'], ['Data register', 'D0']],
+    addressing: [['Inputs / outputs', 'I0, Q0 (check the numbering scheme in your model\'s manual)'], ['Internal relay', 'M0'], ['Data register', 'D0']],
     firstDay: ['Upload the program and save it with the date.', 'Note the model and any expansion modules.'],
     tips: ['IDEC is also a big name in pushbuttons, relays and E-stops — you will see their devices even where the PLC is another brand.'],
     gotchas: ['Check the address numbering on your model before you write new logic. // VERIFY'],
@@ -228,7 +228,7 @@ const MORE_GUIDES: BrandGuide[] = [
   },
   {
     id: 'wago', name: 'WAGO', skin: 'iec',
-    software: [{ name: 'e!COCKPIT', for: 'PFC100 / PFC200 // VERIFY current tool name' }, { name: 'CODESYS V3', for: 'PFC controllers' }],
+    software: [{ name: 'e!COCKPIT', for: 'PFC100 / PFC200 (many existing projects)' }, { name: 'CODESYS V3', for: 'PFC controllers' }],
     hardware: ['PFC100 / PFC200 controllers', '750 / 753 I/O system', 'Compact Controller 100', 'Terminal blocks and relays'],
     addressing: [['Variables', 'IEC 61131-3 variables (CODESYS)'], ['I/O', '%IX / %QX linked to the I/O image']],
     firstDay: ['Get the project and the controller\'s web management page address.', 'List the I/O slices in order; it must match the project.'],
@@ -269,7 +269,7 @@ const MORE_GUIDES: BrandGuide[] = [
     tips: ['Keyence sensors and vision cameras are common even where the PLC is another brand.'],
     gotchas: ['Address names differ a lot from other brands. Keep the manual handy. // VERIFY'],
     us: 'Growing fast in US automotive and electronics assembly, inspection and packaging, partly because of strong local sales support.',
-    networks: ['EtherNet/IP', 'KV proprietary links // VERIFY'],
+    networks: ['EtherNet/IP', 'Other networks vary by model and option unit'],
   },
   {
     id: 'opto22', name: 'Opto 22', skin: 'iec',
@@ -301,21 +301,21 @@ const MORE_GUIDES: BrandGuide[] = [
     addressing: [['Variables', 'IEC 61131-3 variables']],
     firstDay: ['Get the Automation Studio project and the exact version used.', 'Ask the OEM for support contacts; many B&R machines are tightly OEM-controlled.'],
     tips: ['Heavy on motion and Structured Text.'],
-    gotchas: ['Projects often need the exact Automation Studio version that built them. // VERIFY'],
+    gotchas: ['Open a project with the Automation Studio version that built it; upgrading a project is a deliberate step.'],
     us: 'Seen on European packaging, plastics and printing machines in US plants.',
     networks: ['POWERLINK', 'OPC UA', 'Ethernet'],
   },
 
   {
     id: 'yaskawa', name: 'Yaskawa', skin: 'iec',
-    software: [{ name: 'DriveWizard', for: 'GA500, GA800, A1000, V1000 drives' }, { name: 'DriveWizard Mobile', for: 'Phone app over Bluetooth on newer drives // VERIFY' }],
+    software: [{ name: 'DriveWizard', for: 'GA500, GA800, A1000, V1000 drives' }, { name: 'DriveWizard Mobile', for: 'Phone app, connecting over Bluetooth through a Bluetooth keypad on newer drives' }],
     hardware: ['GA500 (compact)', 'GA800 (general purpose)', 'A1000 / V1000 / J1000 (older)', 'Motoman robots', 'Servo drives (Sigma series)'],
     addressing: [['Parameters', 'Grouped by letter and number (e.g. b1-01, C1-01) // VERIFY per model'], ['Fault codes', 'Short codes on the keypad (e.g. oC overcurrent, ov overvoltage) // VERIFY']],
     firstDay: ['Find the drive model and the motor nameplate it is set up for.', 'Save the parameter set (DriveWizard or keypad copy function) before changing anything.', 'Find out where the run command and speed reference come from: keypad, terminals or network.'],
     tips: ['Yaskawa drives are everywhere in the US — on conveyors, pumps, fans and OEM machines of every brand.', 'The keypad fault history shows the last several faults and the conditions at the time. // VERIFY'],
     gotchas: ['Changing the control method or motor data after commissioning can make the motor misbehave. Write down every parameter you touch.'],
     us: 'One of the most common drive brands in US plants (Japanese company with a large US headquarters near Chicago). Also big in robots and servos.',
-    networks: ['Modbus RTU built in', 'Option cards for EtherNet/IP, PROFINET, Modbus TCP, BACnet // VERIFY'],
+    networks: ['Modbus RTU built in', 'Option cards for EtherNet/IP, PROFINET, Modbus TCP; BACnet is built in on the HVAC drive models'],
   },
   {
     id: 'abb', name: 'ABB', skin: 'iec',
@@ -349,13 +349,13 @@ const MORE_GUIDES: BrandGuide[] = [
     tips: ['Red Lion boxes are often the glue between a PLC and a SCADA, a drive or a BMS that speak different protocols.', 'Their digital panel meters and counters are common on machines.'],
     gotchas: ['If one brand of device stops talking to another, check the Red Lion in the middle before blaming either end.'],
     us: 'A US company (Pennsylvania). Common in water, oil and gas, and mixed-brand plants as HMIs and protocol converters.',
-    networks: ['Talks many protocols at once (Modbus, EtherNet/IP, PROFINET, DF1, and more) // VERIFY per model'],
+    networks: ['Talks many protocols at once (Modbus, EtherNet/IP, PROFINET, DF1 and more; which ones depends on the model and its ports)'],
   },
   {
     id: 'pilz', name: 'Pilz', skin: 'iec',
     software: [{ name: 'PNOZmulti Configurator', for: 'Configurable safety relays' }, { name: 'PAS4000', for: 'PSS 4000 safety controllers // VERIFY' }],
     hardware: ['PNOZ X / PNOZsigma / PNOZ s (safety relays)', 'PNOZmulti 2 (configurable)', 'PSS 4000 (safety controller)', 'Safety gate switches and light curtains'],
-    addressing: [['Safety relay', 'Terminals S11/S12/S21/S22 for channels, 13-14 / 23-24 for safety outputs // VERIFY per model']],
+    addressing: [['Safety relay', 'Terminals S11/S12/S21/S22 for channels and 13-14 / 23-24 for safety outputs are typical; always check the model\'s wiring diagram']],
     firstDay: ['Find every safety relay and what device each one monitors.', 'Read the LEDs: power, channel 1, channel 2, outputs.', 'Ask who is qualified to change safety circuits — usually nobody on a normal shift.'],
     tips: ['A safety relay that will not reset usually means one channel opened and the other did not: a stuck contact or broken wire. That is it doing its job.'],
     gotchas: ['Never jumper a safety relay input to get a machine running. It removes the protection and is a serious violation.'],
@@ -386,7 +386,7 @@ const MORE_GUIDES: BrandGuide[] = [
   {
     id: 'honeywell', name: 'Honeywell Building Automation', skin: 'iec',
     software: [{ name: 'WEBs (Niagara-based)', for: 'Building automation // VERIFY' }, { name: 'EBI / Enterprise Buildings Integrator', for: 'Large sites // VERIFY' }],
-    hardware: ['WEBs controllers', 'Spyder field controllers', 'Excel controllers (older) // VERIFY', 'Sensors, valves and actuators'],
+    hardware: ['WEBs controllers', 'Spyder field controllers', 'Excel controllers (common on older sites)', 'Sensors, valves and actuators'],
     addressing: [['Points', 'Named points; BACnet or LON objects underneath']],
     firstDay: ['Find out which front end the site uses.', 'Learn where overrides and schedules live.'],
     tips: ['Honeywell valves, actuators and sensors show up on almost every brand of BAS.'],

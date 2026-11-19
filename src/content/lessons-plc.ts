@@ -60,7 +60,7 @@ export const PLC_LESSONS: Lesson[] = [
     realWorld: { site: 'mill', text: 'At a flour mill, a failed proximity sensor on a bucket elevator\'s speed switch is replaced from the stock room. The new sensor\'s LED blinks with every bucket, but the PLC input never turns on: it\'s NPN, and the card is wired sinking. The right part is a PNP sensor.' },
     mistakes: [
       'Ordering a replacement sensor by shape and thread only. Check PNP or NPN, and NO or NC, on the label.',
-      'Trusting card names. Some makers name a card by what the CARD does, some by what the DEVICE must be — read the wiring diagram in the card\'s manual. // VERIFY per manufacturer',
+      'Trusting card names. Some makers name a card by what the CARD does, some by what the DEVICE must be — read the wiring diagram in the card\'s manual.',
       'Trusting the sensor\'s own LED. It shows the sensor switched, not that current reached the card.',
     ],
     safety: { note: '24 VDC is low risk for shock, but sensor wiring shares the panel with 120 V and 480 V. And a sensor that "won\'t switch" may be part of a guard or interlock — fix it, never jumper it.' },

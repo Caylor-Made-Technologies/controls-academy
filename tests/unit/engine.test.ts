@@ -436,7 +436,11 @@ describe('math and move', () => {
     const plc = run(program('x', [N('A', 'DINT', 1), N('Z'), N('Q', 'DINT', 42)], ['DIV(A,Z,Q)', 'MOD(A,Z,Q)']));
     expect(plc.scan(10)).toBe(true);
     expect(plc.minorFaults.length).toBe(2);
-    expect(plc.tags.read('Q')).toBe(42);
+    // Logix writes Source A into an integer Dest on /0 (MOD leaves it); a REAL Dest gets infinity.
+    expect(plc.tags.read('Q')).toBe(1);
+    const r = run(program('y', [N('F', 'REAL', 2.5), N('Z'), N('R', 'REAL', 7)], ['DIV(F,Z,R)']));
+    r.scan(10);
+    expect(r.tags.read('R')).toBe(Infinity);
   });
   it('INT overflow wraps and flags overflow', () => {
     const plc = run(program('x', [N('A', 'INT', 32767), N('Q', 'INT')], ['ADD(A,1,Q)']));

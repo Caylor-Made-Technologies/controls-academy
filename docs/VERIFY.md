@@ -1,185 +1,216 @@
 # VERIFY — details to confirm against manufacturer documentation
 
-Every item is marked `// VERIFY` in code/content and shows a "check your manual" chip in the app.
-Confirm each against current manuals before removing the marker.
+Every item below is marked `// VERIFY` in the code or content and shows a "check your manual" chip in the app.
 
-## Engine behavior (Logix-style baseline)
-- `src/engine/plc.ts` — ONS / OSR / OSF storage-bit state set by prescan.
-- `src/engine/plc.ts` — DIV by zero: we raise a minor fault and leave Dest unchanged; confirm what Logix writes to Dest.
-- `src/engine/plc.ts` — TON clamps .ACC at .PRE once done.
-- `src/engine/plc.ts` — prescan sets counter .CU/.CD so a true-at-start rung doesn't count.
-- `src/engine/plc.ts` — whether RES on a COUNTER also clears .CU/.CD.
-- `src/engine/plc.ts` — integer-only DIV truncates; mixed with a REAL Dest — confirm.
-- `src/engine/tags.ts` — REAL → integer conversion rounds half-to-even.
-
-## Skins (`src/skins/index.ts`)
-- Logix module I/O tag format (`Local:1:I.Data.0`) per module type.
-- SLC 500 vs MicroLogix one-shot names (OSR vs ONS); SLC PID control block shown as N10.
-- Micro800 embedded I/O variable names (`_IO_EM_DI_00`).
-- IEC "TONR"/LIMIT notes.
-- S7-300 default I/O start addresses (I 0.0 / Q 4.0) per hardware config; S5 timer range.
-- Modicon topological addressing per model (M340/M580 vs M221).
-- Mitsubishi FX timer resolution by number range; retentive timer and up/down counter ranges; iQ-R/Q hex I/O numbering.
-- AutomationDirect CLICK address ranges.
-- Omron TIM BCD/down-counting default per model/setting.
-
-## Content
-- `lessons-foundations.ts` — contact cross-reference underline convention on prints.
-- `lessons-plc.ts` — sinking/sourcing card naming per manufacturer; under-range (~3.6 mA) fault threshold per card; Siemens 0–27648 raw range per module.
-- `lessons-field.ts` — online-edit wording per software version; FORCE LED / Siemens force indication per model.
-- `brands.ts` — Logix module tags; Siemens force indication; Modbus %MW ↔ 400001 mapping per device; Mitsubishi numbering; Omron TIM; Emerson 90-30 prevalence.
-- Practice tools page: licensing and availability — the page itself tells learners to check vendor sites; no prices stated.
+**Sweep 2026-11-19 (step 5.6):** four researchers checked every marker. Applied: 19 corrections and 49 rewordings to safely general text; markers removed only where a source page backed the fact (5 hardware items, plus rewordings that no longer state an uncertain detail). Confirmations from knowledge alone were kept below for an expert or a sourced check. One engine fix: Logix DIV by zero now writes Source A (integers) or infinity (REAL), per the vendor's instruction help.
 
 ## Needs a qualified reviewer
-- All safety text (LOTOTO, NFPA 70E summary, meter use, forcing). Labeled "training, not procedure".
+- All safety text (LOTOTO, NFPA 70E summary, meter use, forcing, live work). Labeled "training, not procedure".
+- Engine: whether RES on a COUNTER also clears .CU/.CD (sweep suggested yes, medium confidence; changes behavior, so not applied).
+- Practice tools page: licensing and availability — the page tells learners to check vendor sites; no prices stated.
 
-## Hardware library and US brand notes (added 0.4.0)
-All in `src/content/hardware.ts` and `src/content/brands.ts`. The 3D shapes are simplified look-alikes; dimensions are approximate and are not a VERIFY item.
-- GuardLogix safety status LED name per controller.
-- CompactLogix 5380 field-side power terminals per module; 5370 built-in I/O per catalog number.
-- MicroLogix 1100/1400 lifecycle status; port mix per model.
-- PLC-5 octal rack/group addressing.
-- POINT I/O field/potential distributor behavior; FLEX I/O module swap under power.
-- ET 200SP light/dark base unit potential groups.
-- S7-300 projects opening in TIA Portal; MMC per CPU.
-- LOGO! programming languages per version.
-- M221 built-in Ethernet per model; M251 has no built-in I/O.
-- Quantum software (Unity/Concept/ProWORX) and Modbus Plus prevalence.
-- FX3 Ethernet add-on; Q series hex I/O numbering; iQ-R CPU display.
-- BRX port module; DL05/DL06 option slots; DL205 base power supply.
-- Omron CP retentive areas per model.
-- Series 90-30 software history and RX3i migration path.
-- IDEC FC6A display options and I/O numbering; WindO/I-NV4.
-- Unitronics I/O mounting per model, Vision operand names, EtherNet/IP support, U90 Ladder.
-- WAGO tool name (e!COCKPIT vs CODESYS) and BACnet controllers.
-- Phoenix Contact EtherNet/IP support.
-- Eaton easyE4 operands and programming languages; XSOFT-CODESYS; Galileo.
-- Keyence KV unit layout, device names (R, MR, DM), timers/counters, proprietary links.
-- Opto 22 groov EPIC software (PAC Control, CODESYS), Node-RED, OPC UA/MQTT.
-- Delta DVP octal X/Y, software names (ISPSoft/WPLSoft/DIADesigner), EtherNet/IP.
-- B&R Automation Studio version matching.
-- Rockwell HMI product names (PanelView / Optix); Schneider HMI names; Emerson SCADA product ownership; AutomationDirect EtherNet/IP per model.
+## `src/engine/plc.ts`
+- line 345: details vary
+- line 352: OSR prescan state
+- line 358: OSF prescan state
+- line 528: Logix clamps ACC at PRE when done
+- line 594: Logix prescan sets .CU
+- line 618: whether RES also clears CU/CD
 
-## Added 0.5.0
-- Motor model constants are illustrative (10 HP / 460 V / 14 A FLA / 1770 rpm, J = 0.22 kg·m², NEMA B–like curve, Class 10 thermal with τ heat 134 s / cool 150 s (cooling slower than heating since 0.7.0), reset below 80 %). Not a specific motor or relay; real overload reset rules vary by device.
-- Drive details: parameter naming per Yaskawa/ABB/Danfoss model, Yaskawa fault code examples, DriveWizard Mobile, ABB/Danfoss built-in BACnet, Danfoss multiple set-ups, PowerFlex 4/40 and MICROMASTER lifecycle, Eaton and Delta software names, Altivar web server.
-- HMI software names (FactoryTalk View ME vs Optix on PanelView Plus 7; Harmony tool names).
-- Safety relays: Pilz terminal names and reset configuration per model; Guardmaster rotary function switch and configuration software.
-- Building automation: JACE 8000/9000 names and expansion; Metasys engine/controller names, CCT, command priority behavior; Honeywell WEBs/EBI/Excel; Desigo PXC tools and I/O; SmartX tool name; Niagara SNMP.
-- PLCs: MicroLogix 1500 processor/base split and ports; CompactLogix 5480 layout; S7-200 mode switch; FX2N front cover details.
-- Red Lion protocol list per model; Keyence/Opto 22 items from 0.4.0 still open.
+## `src/skins/index.ts`
+- line 83: details vary
+- line 129: per processor
+- line 130: details vary
+- line 147: exact naming per controller
+- line 213: details vary
+- line 214: per hardware config
+- line 275: per series
+- line 277: details vary
+- line 308: ranges
+- line 337: per model/setting
 
-## Added 0.6.0 (Track 0 — Start from Zero)
-- `z-ac-dc` realWorld: rack voltage in data centers (208/120 V, 415/240 V and others are used) — confirm wording is general enough.
-- `z-jobs`: Texas electrician licensing (TDLR) and whether plant-maintenance work is exempt — check current TDLR rules.
-- `z-safety` realWorld: roller-mill roll-engage mechanism (pneumatic vs spring) by make — check an OEM lockout procedure.
-- `what-is-a-plc`: Logix RPI-based I/O update (inputs can change mid-scan) and buffering practice, per controller family.
-- `analog-420`: low/high fault thresholds (~3.6 / ~21 mA, NAMUR NE 43 style) per analog card.
-- `data-types`: array out-of-range behavior on non-Logix platforms (S7-1200/1500, FX and others).
-- `latch-unlatch`: retentive memory on power-up — Siemens retentive settings; Mitsubishi FX latched M range per model.
-- `compare-math`: integer division (Logix DIV truncates, SLC DIV rounds; REAL→DINT rounding) per instruction.
-- `forcing`: FORCE LED solid vs flashing (installed vs enabled) per controller model; Siemens force-table indication.
-- `upload-download`: online-edit wording (accept / test / assemble) per software version.
-- `fault-codes`: Logix fault routine behavior; Siemens error OBs per CPU family.
-- `legacy-networks`: terminator values and readings per network (DeviceNet ~60 Ω pair; Profibus active; ControlNet 75 Ω; DH+ 150/82 Ω).
-- `vfd-basics`: output-contactor switching rules per drive manual.
-- `hmi-basics`: how each HMI platform shows comms loss vs field overflow ("####").
-- `ip-basics`: DHCP/BOOTP defaults per device.
-- `capstone-mixer`: NFPA 61 → NFPA 660 consolidation status.
-- `analog-alarming`: limits on alarm delays for regulatory (e.g. filter turbidity) alarms per plant permit.
+## `src/content/hardware.ts`
+- line 162: per catalog number
+- line 203: details vary
+- line 258: details vary
+- line 269: per CPU
+- line 304: per model
+- line 314: details vary
+- line 346: per system
+- line 370: details vary
+- line 379: details vary
+- line 452: details vary
+- line 510: details vary
+- line 568: per model
+- line 608: per model
+- line 630: details vary
+- line 651: details vary
+- line 672: details vary
+- line 682: details vary
+- line 792: details vary
+- line 801: details vary
+- line 802: details vary
+- line 811: details vary
+- line 820: details vary
+- line 830: details vary
+- line 831: details vary
 
-## Added 0.7.0 (Phase 2 — machines)
-- `vfd` machine: all drive numbers are illustrative generic values, not a product — DC bus nominal 680 V (√2 × 480), OV trip 840 V, chopper 790 V, bus capacitance 4.7 mF, overcurrent trip 2× FLA, current limit 150 %, losses 600 W, min 6 Hz. Fault names (OC, OV, LOSS OF REF, MOTOR OL, STO status) differ by brand. Whether STO shows as a status or a fault, and the loss-of-reference action (fault vs preset speed), are drive parameters.
-- `datacenter` machine: generator start-to-ready time (10 s), utility-loss delay (2 s), retransfer delay (30 s here; real sites commonly use minutes), cooldown (20 s here; often ~5 min), ATS transfer time, coil UA and room heat capacity are illustrative and shortened for the simulator. 27 °C high-temperature alarm follows the commonly cited top of the recommended inlet range — site limits vary.
-- `tank`, `pumps`, `conveyor`, `fwdrev`: dimensions, flows, timers and set levels are illustrative teaching values.
+## `src/content/lessons-foundations.ts`
+- line 186: conventions vary by drafter
 
-## 0.8.0 (Phase 3)
-- Wiring trainer, 3-wire control: "switch the hot side; one side of the coil goes straight to the grounded conductor (only the overload contact may be between)" — confirm wording against NFPA 79 and NEC 430.74 practice before citing section numbers. `src/lib/wiring.ts`.
-- What's inside → VFD: "on a 480 V drive the bus sits around 650–680 VDC" (√2 × 480 ≈ 679 V; lower under load). `src/content/inside.ts`.
-- What's inside → overload relay: setting the dial from nameplate FLA "following the code and the manufacturer's instructions (service factor and ambient can matter)". `src/content/inside.ts`.
-- Fault Hunt cue: "480 V motor leads: meter rated CAT III or higher" — confirm category guidance for the measurement location (CAT III vs CAT IV at the service). `src/features/troubleshoot/TroubleshootPage.tsx`.
+## `src/content/lessons-core2.ts`
+- line 77: per drawing
+- line 261: per platform guidance
+- line 263: per platform
+- line 312: per instruction
+- line 417: exact OB numbers per CPU family
+
+## `src/content/lessons-plc.ts`
+- line 39: per controller family
+- line 107: per card
+- line 117: per module
+- line 336: per platform
+- line 341: range per model
+
+## `src/content/brands.ts`
+- line 111: details vary
+- line 169: current names
+- line 183: per model
+- line 209: details vary
+- line 214: details vary
+- line 220: details vary
+- line 222: details vary
+- line 222: details vary
+- line 227: details vary
+- line 238: details vary
+- line 249: details vary
+- line 253: details vary
+- line 253: details vary
+- line 255: details vary
+- line 267: details vary
+- line 267: details vary
+- line 270: details vary
+- line 276: details vary
+- line 279: details vary
+- line 283: details vary
+- line 287: details vary
+- line 287: details vary
+- line 289: details vary
+- line 295: details vary
+- line 313: per model
+- line 313: details vary
+- line 315: details vary
+- line 324: details vary
+- line 326: details vary
+- line 330: details vary
+- line 336: details vary
+- line 339: details vary
+- line 341: details vary
+- line 356: details vary
+- line 367: details vary
+- line 373: details vary
+- line 377: details vary
+- line 378: details vary
+- line 378: details vary
+- line 382: details vary
+- line 388: details vary
+- line 388: details vary
+
+## `src/content/lessons-field.ts`
+- line 27: exact wording per software version
+- line 67: per model
+- line 69: per model
+
+## `src/content/lessons-pro.ts`
+- line 27: tool names per software version
+- line 70: details vary
+- line 71: details vary
+- line 111: per device
+- line 141: per project setup
+- line 180: per network
+- line 205: per manual
+- line 478: details vary
+- line 545: delay limits with the plant's permit
+- line 558: card thresholds
+
+## `src/content/lessons-zero.ts`
+- line 270: roll-engage mechanism (pneumatic vs spring) varies by roller-mill make; check the OEM lockout procedure.
+- line 429: confirm current Texas electrician licensing rules and plant-maintenance exemptions with TDLR.
+
+## `src/plant/datacenter.ts`
+- line 98: site limits
+
+## `src/three/info.ts`
+- line 27: your site standard
+
+## `src/lib/wiring.ts`
+- line 158: wording vs NFPA 79 / NEC 430.74 practice (docs/VERIFY.md).
 
 ## Brands side by side (`src/content/compare.ts`)
-- Allen-Bradley Logix · addressing: module I/O tag format per module
-- Allen-Bradley Logix · forcing: LED states per controller
-- Allen-Bradley Logix · firmware: current flash tool name
-- Allen-Bradley SLC 500 / MicroLogix · online: ports per model
-- Allen-Bradley SLC 500 / MicroLogix · backups: memory module per model
-- Allen-Bradley SLC 500 / MicroLogix · firmware: details vary by model and version
-- Allen-Bradley Micro800 · addressing: embedded I/O variable names
-- Allen-Bradley Micro800 · online: ports per model
-- Allen-Bradley Micro800 · forcing: force indication
-- Allen-Bradley Micro800 · transfer: whether an upload brings back comments
-- Allen-Bradley Micro800 · backups: memory module per model
-- Allen-Bradley Micro800 · firmware: details vary by model and version
-- Siemens S7-1200 / S7-1500 · forcing: force behavior and LED per CPU
-- Siemens S7-1200 / S7-1500 · backups: card role per CPU
-- Siemens S7-1200 / S7-1500 · firmware: details vary by model and version
-- Schneider Electric Modicon · addressing: topological address format
-- Schneider Electric Modicon · forcing: force indication
-- Schneider Electric Modicon · transfer: details vary by model and version
-- Schneider Electric Modicon · backups: details vary by model and version
-- Schneider Electric Modicon · firmware: tool name
-- Mitsubishi Electric MELSEC · addressing: numbering per series
-- Mitsubishi Electric MELSEC · timers: timer ranges per series
-- Mitsubishi Electric MELSEC · forcing: per series
-- Mitsubishi Electric MELSEC · transfer: details vary by model and version
-- Mitsubishi Electric MELSEC · backups: details vary by model and version
-- Mitsubishi Electric MELSEC · firmware: details vary by model and version
-- AutomationDirect · addressing: per family
-- AutomationDirect · timers: per family
-- AutomationDirect · online: ports per family
-- AutomationDirect · forcing: name and indication per family
-- AutomationDirect · backups: details vary by model and version
-- AutomationDirect · firmware: details vary by model and version
-- AutomationDirect · gotchas: details vary by model and version
-- Omron · addressing: details vary by model and version
-- Omron · timers: per model
-- Omron · counters: details vary by model and version
-- Omron · forcing: details vary by model and version
-- Omron · backups: details vary by model and version
-- Omron · firmware: details vary by model and version
-- Omron · gotchas: details vary by model and version
+- line 40: module I/O tag format per module
+- line 44: LED states per controller
+- line 57: ports per model
+- line 60: memory module per model
+- line 68: embedded I/O variable names
+- line 72: force indication
+- line 73: whether an upload brings back comments
+- line 74: memory module per model
+- line 75: details vary
+- line 86: force behavior and LED per CPU
+- line 88: card role per CPU
+- line 96: topological address format
+- line 100: force indication
+- line 101: details vary
+- line 110: numbering per series
+- line 111: timer ranges per series
+- line 114: per series
+- line 115: details vary
+- line 116: details vary
+- line 117: details vary
+- line 124: per family
+- line 127: ports per family
+- line 128: name and indication per family
+- line 130: details vary
+- line 131: details vary
+- line 132: details vary
+- line 138: details vary
+- line 139: per model
+- line 140: details vary
+- line 142: details vary
+- line 145: details vary
+- line 146: details vary
 
 ## Troubleshooting flowcharts (`src/content/flowcharts.ts`)
-- Analog reads wrong · end-open: fault limits (NAMUR NE43) per transmitter and card
-- Motor trips · what-tripped: breaker type and setting
-- Motor trips · setting: setting rule per overload maker and NEC 430.32
-- Output on, device off · term: per card
-- Communication lost · safe: comm-loss action per device
-- Communication lost · scope: per network
-- VFD faults · safe: auto-restart setting
-- VFD faults · read: details vary
-- VFD faults · end-oc: details vary by model
-- VFD faults · end-ot: details vary by model
+- line 84: fault limits (NAMUR NE43) per transmitter and card
+- line 94: breaker type and setting
+- line 97: setting rule per overload maker and NEC 430.32
+- line 112: per card
+- line 124: comm-loss action per device
+- line 126: per network
+- line 141: auto-restart setting
+- line 142: details vary
+- line 143: details vary by model
+- line 147: details vary by model
 
 ## Cheat sheets (`src/content/cheatsheets.ts`)
-- Wire colors: edition
-- Wire colors: edition
-- Wire colors: code edition
-- Wire colors: code edition
-- Wire colors: site spec
-- Wire colors: site spec
-- Wire colors: the machine's prints
-- Contact and terminal numbering: per relay
-- NEMA vs IEC symbols: letter codes per print legend
-- 4–20 mA math: per transmitter and card
-- Ohm's law and power: code edition
+- line 33: edition
+- line 35: edition
+- line 42: code edition
+- line 43: code edition
+- line 44: site spec
+- line 45: site spec
+- line 77: per relay
+- line 100: letter codes per print legend
+- line 116: per transmitter and card
+- line 131: code edition
 
 ## Field devices (`src/content/devices.ts`)
-- Inductive proximity sensor: per sensor
-- Inductive proximity sensor: per sensor
-- Capacitive proximity sensor: per sensor
-- Photo-eye: through-beam: per model
-- Photo-eye: through-beam: per model
-- Photo-eye: retroreflective: per model
-- Photo-eye: diffuse: per model
-- Pushbutton: color rules per NFPA 79 / IEC 60204-1 and your site
-- Pilot light: per model
-- Emergency stop (E-stop): per model
-- Overload relay: setting rule and trip class per maker
-- Safety relay: terminal numbers per model
-- Light curtain: per standard and machine
-- Pressure transmitter: per model
-- Level transmitter: per technology
-- Solenoid valve: per model
+- line 44: per sensor
+- line 46: per sensor
+- line 63: per model
+- line 92: color rules per NFPA 79 / IEC 60204-1 and your site
+- line 112: per model
+- line 123: per model
+- line 141: setting rule and trip class per maker
+- line 180: per standard and machine
+- line 192: per model

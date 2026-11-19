@@ -1,7 +1,7 @@
 /**
  * Machine — Data-center mechanical bus: automatic transfer switch (ATS) + standby generator, feeding a
  * CRAH (computer-room air handler) whose chilled-water valve holds supply-air temperature with a PID.
- * Generic: no specific site, client or product. Times are shortened for the simulator. // VERIFY
+ * Generic: no specific site, client or product. Times are shortened for the simulator, not real equipment timing.
  *
  *   DI0 Utility OK (voltage/frequency sensing relay)  DI1 Generator ready (at voltage and frequency)
  *   DI2 ATS in Normal (position switch)  DI3 ATS in Emergency (position switch)  DI4 CRAH airflow proven

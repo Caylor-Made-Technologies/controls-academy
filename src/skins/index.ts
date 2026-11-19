@@ -97,7 +97,7 @@ export const SKINS: Record<SkinId, Skin> = {
       'Tag-based: you name the data (Start_PB) and alias it to the I/O point (Local:1:I.Data.0).',
       'TIMER is a data type with .PRE, .ACC, .EN, .TT and .DN. Time is in milliseconds: 5 s = 5000.',
       'Code lives in Tasks → Programs → Routines. The Main Routine calls the others with JSR.',
-      'Local:1:I.Data.0 here means slot 1 of the local chassis; slot numbers depend on your rack. // VERIFY exact module tag format per module type',
+      'Local:1:I.Data.0 is the slot 1 input word on many 1756 digital cards; slot numbers depend on your rack, and other modules use names like Local:1:I.Pt00.Data or Ch0Data, so check the module\'s tags.',
     ],
   },
 
@@ -240,7 +240,7 @@ export const SKINS: Record<SkinId, Skin> = {
     timerPreset: (ms) => `PT := ${iecTime(ms, false)}`,
     numberNote: 'Modbus mapping: %MW0 is usually holding register 400001 (offset 0). Off-by-one is the #1 Modbus bug.',
     notes: [
-      'Topological I/O: %I0.1.0 = rack 0, slot 1, channel 0 (M340/M580 style). M221 uses %I0.0 instead. // VERIFY per model',
+      'Topological I/O on an M340 local rack: %I0.1.0 = rack 0, slot 1, channel 0. M580 remote drops add more fields; M221 uses %I0.0 instead.',
       'Located memory: %M bits, %MW words. Many systems map %MW straight to Modbus holding registers.',
       'Uses IEC function blocks (TON with PT := t#5s).',
     ],
@@ -273,7 +273,7 @@ export const SKINS: Record<SkinId, Skin> = {
     notes: [
       'X = inputs, Y = outputs (octal on FX), M = internal relays, D = data registers, T = timers, C = counters.',
       'Timer preset is a K constant × the timer\'s time base; on FX, T0–T199 are commonly 100 ms timers, so K50 = 5 s. // VERIFY per series',
-      'Retentive timers and up/down counters use specific number ranges on FX (e.g. T246–T255, C200+). // VERIFY per series',
+      'On FX2N/FX3U, T246–T255 are retentive timers and C200–C234 are 32-bit up/down counters; other FX models differ, so check your series\' manual.',
       'iQ-R and Q series use hex I/O numbering instead of octal. // VERIFY',
     ],
   },

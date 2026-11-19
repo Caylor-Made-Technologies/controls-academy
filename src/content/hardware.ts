@@ -135,7 +135,7 @@ export const HARDWARE: HwModel[] = [
     id: 'guardlogix', brand: 'rockwell', name: 'GuardLogix safety controller (1756)', role: 'Safety-rated controller that runs standard and safety tasks', status: 'current', skin: 'ab-logix',
     where: 'Machines with safety PLCs: robot cells, palletizers, presses. Safety I/O often sits out on the machine on a safety network.',
     software: 'Studio 5000 Logix Designer (safety task)',
-    spot: ['Safety tags and routines are signature-locked. Changes need authorization and re-validation.', 'Look for the safety status LED (often labeled SAFE or SAFETY). // VERIFY per controller', 'Safety I/O is often distributed on the machine rather than in the chassis.'],
+    spot: ['Safety tags and routines are signature-locked. Changes need authorization and re-validation.', 'Look for the safety status indicator on the controller; the manual explains what each LED state means.', 'Safety I/O is often distributed on the machine rather than in the chassis.'],
     shape: { mount: 'chassis', h: 145, d: 140, body: 'charcoal', units: [
       { kind: 'psu', w: 55, label: 'PSU' },
       { kind: 'safety', w: 35, label: 'SAFETY CPU', screen: 'status', key: true, sd: true, ports: 1 },
@@ -148,7 +148,7 @@ export const HARDWARE: HwModel[] = [
     id: 'compactlogix-5380', brand: 'rockwell', name: 'CompactLogix 5380 (5069 I/O)', role: 'Mid-size DIN-rail controller with slim I/O', status: 'current', skin: 'ab-logix',
     where: 'New machines and skids, packaging, OEM equipment, building utility skids. Very common on newer US installs.',
     software: 'Studio 5000 Logix Designer',
-    spot: ['Mode switch and status display on the controller face.', 'Two Ethernet ports on the controller. Check how they are configured before plugging in.', 'I/O modules plug in to the right with removable front terminal blocks.', 'Separate field-side power terminals feed the I/O. // VERIFY per module'],
+    spot: ['Mode switch and status display on the controller face.', 'Two Ethernet ports on the controller. Check how they are configured before plugging in.', 'I/O modules plug in to the right with removable front terminal blocks.', 'Separate field-side power terminals feed the I/O.'],
     shape: { mount: 'din', h: 140, d: 105, body: 'charcoal', units: [
       { kind: 'cpu', w: 90, label: 'CPU', screen: 'status', key: true, sd: true, ports: 2, term: 'front' },
       io('di', 22, 16, { term: 'front' }), io('di', 22, 16, { term: 'front' }), io('do', 22, 16, { term: 'front' }), io('do', 22, 16, { term: 'front' }), io('ai', 22, 8, { term: 'front' }), io('ao', 22, 4, { term: 'front' }),
@@ -178,9 +178,9 @@ export const HARDWARE: HwModel[] = [
   },
   {
     id: 'micrologix', brand: 'rockwell', name: 'MicroLogix 1100 / 1400', role: 'Small brick PLC with a built-in LCD', status: 'legacy', skin: 'ab-slc',
-    where: 'Very common in older small machines, well pumps, lift stations, HVAC skids. Check the maker\'s lifecycle status before buying spares. // VERIFY lifecycle',
+    where: 'Very common in older small machines, well pumps, lift stations, HVAC skids. Check the maker\'s lifecycle status before buying spares.',
     software: 'RSLogix 500 / RSLogix Micro',
-    spot: ['The small LCD and arrow keys let you view I/O and some data without a laptop.', 'Addresses are SLC-style: I:0/0, O:0/0, B3, N7, T4.', 'An Ethernet port and a serial port are typical. // VERIFY per model'],
+    spot: ['The small LCD and arrow keys let you view I/O and some data without a laptop.', 'Addresses are SLC-style: I:0/0, O:0/0, B3, N7, T4.', 'An Ethernet port plus at least one serial port (the 1400 has two).'],
     shape: { mount: 'din', h: 90, d: 87, body: 'light', units: [
       { kind: 'brick', w: 180, label: 'CPU', inputs: 16, outputs: 12, term: 'top-bottom', ports: 1, screen: 'lcd' },
     ] },
@@ -211,7 +211,7 @@ export const HARDWARE: HwModel[] = [
     id: 'point-io', brand: 'rockwell', name: 'POINT I/O (1734)', role: 'Slim remote I/O on DIN rail', status: 'current', skin: 'ab-logix',
     where: 'Out in the field near the machine, connected back to a Logix controller over EtherNet/IP.',
     software: 'Configured from the controller project in Studio 5000',
-    spot: ['The adapter on the left has the network address switches and ports.', 'Each thin module shows module and network status LEDs plus point LEDs.', 'A field power distributor or potential distributor can start a new power group. // VERIFY'],
+    spot: ['The adapter on the left has the network address switches and ports.', 'Each thin module shows module and network status LEDs plus point LEDs.', 'A field potential distributor or an expansion power supply starts a new power group.'],
     shape: { mount: 'din', h: 75, d: 75, body: 'charcoal', units: [
       { kind: 'coupler', w: 54, label: 'ADAPTER', ports: 2, term: 'spring' },
       ...rep(3, io('di', 12, 4, { term: 'spring' })), ...rep(3, io('do', 12, 4, { term: 'spring' })), io('ai', 12, 2, { term: 'spring' }),
@@ -222,7 +222,7 @@ export const HARDWARE: HwModel[] = [
     id: 'flex-io', brand: 'rockwell', name: 'FLEX I/O (1794)', role: 'Remote I/O on terminal bases', status: 'mature', skin: 'ab-logix',
     where: 'Remote I/O drops in older and mid-age systems, often on ControlNet or EtherNet/IP.',
     software: 'Configured from the controller project',
-    spot: ['Each module sits on its own terminal base; the base holds the wiring.', 'The module can be swapped without rewiring the base. // VERIFY under power rules'],
+    spot: ['Each module sits on its own terminal base; the base holds the wiring.', 'The module can be swapped without rewiring the base. Follow the manual and site rules before pulling a module with power on.'],
     shape: { mount: 'din', h: 94, d: 70, body: 'charcoal', units: [
       { kind: 'coupler', w: 94, label: 'ADAPTER', ports: 1, term: 'front' },
       io('di', 94, 16, { term: 'front' }), io('do', 94, 16, { term: 'front' }), io('ai', 94, 4, { term: 'front' }),
@@ -265,7 +265,7 @@ export const HARDWARE: HwModel[] = [
   {
     id: 's7-300', brand: 'siemens', name: 'SIMATIC S7-300', role: 'Classic modular PLC on a mounting rail', status: 'legacy', skin: 'siemens-classic',
     where: 'Huge installed base in older plants and machines. Many are being migrated to S7-1500.',
-    software: 'STEP 7 Classic (SIMATIC Manager); some can be opened in TIA Portal. // VERIFY',
+    software: 'STEP 7 V5.x (SIMATIC Manager), or STEP 7 Professional in TIA Portal.',
     spot: ['PS 307 power supply on the left, then the CPU.', 'The CPU has a mode selector and a slot for a memory card (MMC on many). // VERIFY per CPU', 'SF (system fault) red LED: read the diagnostic buffer.', 'Signal modules have front doors over a front connector.'],
     shape: { mount: 'din', h: 125, d: 120, body: 'graphite', units: [
       { kind: 'psu', w: 50, label: 'PS' },
@@ -289,7 +289,7 @@ export const HARDWARE: HwModel[] = [
     id: 'logo', brand: 'siemens', name: 'LOGO! logic module', role: 'Small logic module with display and keys', status: 'current', skin: 'siemens-tia',
     where: 'Lighting, gates, small pumps, simple building and farm control. Replaces a handful of relays and timers.',
     software: 'LOGO! Soft Comfort',
-    spot: ['Small display and four arrow keys plus ESC/OK on the base module.', 'Programs are function blocks, not ladder, on most versions. // VERIFY', 'Expansion modules clip to the right.'],
+    spot: ['Small display and four arrow keys plus ESC/OK on the base module.', 'On the device, programs are built from function blocks; the PC software (LOGO! Soft Comfort) also offers ladder.', 'Expansion modules clip to the right.'],
     shape: { mount: 'din', h: 90, d: 60, body: 'offwhite', units: [
       { kind: 'logic', w: 72, label: 'BASE', inputs: 8, outputs: 4, screen: 'lcd', keys: true, term: 'top-bottom', ports: 1 },
       io('di', 36, 4, { term: 'top-bottom' }),
@@ -344,7 +344,7 @@ export const HARDWARE: HwModel[] = [
     id: 'quantum', brand: 'schneider', name: 'Modicon Quantum', role: 'Large legacy rack PLC', status: 'legacy', skin: 'modicon',
     where: 'Older water, wastewater and process plants. Often being migrated to M580.',
     software: 'Unity Pro / Control Expert, or older Concept and ProWORX. // VERIFY per system',
-    spot: ['Tall modules with hinged terminal doors.', 'Many installs still use Modbus Plus networks. // VERIFY'],
+    spot: ['Tall modules with hinged terminal doors.', 'Older installs may still use Modbus Plus networks.'],
     shape: { mount: 'chassis', h: 250, d: 105, body: 'graphite', units: [
       { kind: 'psu', w: 40, label: 'PSU' },
       { kind: 'cpu', w: 40, label: 'CPU', screen: 'lcd', key: true, ports: 1 },
@@ -387,7 +387,7 @@ export const HARDWARE: HwModel[] = [
     id: 'iq-r', brand: 'mitsubishi', name: 'MELSEC iQ-R', role: 'High-end modular PLC on a base unit', status: 'current', skin: 'mitsubishi',
     where: 'Newer large machines and lines from Japanese OEMs.',
     software: 'GX Works3',
-    spot: ['Looks like a newer Q series; the CPU has a small display on some models. // VERIFY'],
+    spot: ['Looks like a newer Q series; the CPU front has status LEDs, a RUN/STOP/RESET switch and a memory-card slot.'],
     shape: { mount: 'chassis', h: 106, d: 110, body: 'offwhite', units: [
       { kind: 'psu', w: 55, label: 'POWER' },
       { kind: 'cpu', w: 28, label: 'CPU', ports: 1, sd: true, key: true },
@@ -430,7 +430,7 @@ export const HARDWARE: HwModel[] = [
     id: 'brx', brand: 'automationdirect', name: 'BRX (Do-more)', role: 'Brick PLC with expansion', status: 'current', skin: 'automationdirect',
     where: 'Motion and process machines, upgrades from DirectLOGIC.',
     software: 'Do-more Designer (has a built-in simulator)',
-    spot: ['Built-in I/O with removable terminals; plug-in port module on some models. // VERIFY'],
+    spot: ['Built-in I/O with removable terminals on most models; every CPU has one slot for a pluggable option module (POM).'],
     shape: { mount: 'din', h: 90, d: 75, body: 'light', units: [
       { kind: 'brick', w: 125, label: 'CPU', inputs: 12, outputs: 8, term: 'top-bottom', ports: 1, sd: true },
       io('di', 30, 8, { term: 'front' }),
@@ -440,7 +440,7 @@ export const HARDWARE: HwModel[] = [
     id: 'dl06', brand: 'automationdirect', name: 'DirectLOGIC DL05 / DL06', role: 'Brick PLC (older)', status: 'mature', skin: 'automationdirect',
     where: 'Thousands of small US machines and panels from the 1990s onward.',
     software: 'DirectSOFT',
-    spot: ['Octal I/O (X0–X7, X10…) and V-memory.', 'Option-card slots on the front. // VERIFY per model'],
+    spot: ['Octal I/O (X0–X7, X10…) and V-memory.', 'Option-card slots on the front (one on the DL05, four on the DL06).'],
     shape: { mount: 'din', h: 110, d: 70, body: 'light', units: [
       { kind: 'brick', w: 175, label: 'CPU', inputs: 16, outputs: 12, term: 'top-bottom', ports: 1 },
     ] },
@@ -462,7 +462,7 @@ export const HARDWARE: HwModel[] = [
     id: 'omron-cp', brand: 'omron', name: 'Omron CP1 / CP2E', role: 'Compact brick PLC', status: 'current', skin: 'omron',
     where: 'Small machines, packaging, imported equipment.',
     software: 'CX-Programmer (CX-One)',
-    spot: ['CIO bit addresses like 0.00 and 100.00.', 'Battery or retentive areas (H, D) keep values through power loss. // VERIFY per model'],
+    spot: ['CIO bit addresses like 0.00 and 100.00.', 'Retentive areas such as H and D keep values through power loss; how (battery or built-in memory) depends on the model.'],
     shape: { mount: 'din', h: 90, d: 85, body: 'offwhite', units: [
       { kind: 'brick', w: 150, label: 'CPU', inputs: 18, outputs: 12, term: 'top-bottom', door: true, ports: 1 },
     ] },
@@ -506,7 +506,7 @@ export const HARDWARE: HwModel[] = [
   {
     id: 'series-90-30', brand: 'emerson', name: 'Series 90-30', role: 'Legacy modular PLC on a base', status: 'legacy', skin: 'iec',
     where: 'Older water plants, lift stations, machines. Still running in many US towns.',
-    software: 'Proficy Machine Edition, or older Logicmaster / VersaPro. // VERIFY',
+    software: 'PAC Machine Edition (formerly Proficy Machine Edition), or older Logicmaster 90 / VersaPro.',
     spot: ['Power supply in the leftmost slot.', 'Many have been replaced by RX3i, which has a migration path. // VERIFY'],
     shape: { mount: 'chassis', h: 135, d: 140, body: 'charcoal', units: [
       { kind: 'psu', w: 45, label: 'PSU' },
@@ -555,7 +555,7 @@ export const HARDWARE: HwModel[] = [
     id: 'idec-fc6a', brand: 'idec', name: 'IDEC MicroSmart FC6A', role: 'Compact brick PLC', status: 'current', skin: 'iec',
     where: 'Small machines, pump and HVAC panels, OEM equipment.',
     software: 'WindLDR (Automation Organizer)',
-    spot: ['Built-in I/O with expansion on the right.', 'Some models have a built-in display or plug-in HMI. // VERIFY'],
+    spot: ['Built-in I/O with expansion on the right.', 'An optional plug-in HMI module is available for some models.'],
     shape: { mount: 'din', h: 90, d: 80, body: 'light', units: [
       { kind: 'brick', w: 120, label: 'CPU', inputs: 16, outputs: 12, term: 'top-bottom', ports: 1, sd: true },
       io('di', 24, 8, { term: 'top-bottom' }),
@@ -595,7 +595,7 @@ export const HARDWARE: HwModel[] = [
     id: 'easy-e4', brand: 'eaton', name: 'Eaton easyE4', role: 'Programmable relay / logic module', status: 'current', skin: 'iec',
     where: 'Lighting, simple machines, building and farm controls.',
     software: 'easySoft',
-    spot: ['Display and arrow keys on the base module (display versions).', 'Ladder or function-block programming. // VERIFY'],
+    spot: ['Display and arrow keys on the base module (display versions).', 'Ladder, function block, structured text or EDP, programmed in easySoft.'],
     shape: { mount: 'din', h: 90, d: 60, body: 'offwhite', units: [
       { kind: 'logic', w: 72, label: 'BASE', inputs: 8, outputs: 4, screen: 'lcd', keys: true, term: 'top-bottom', ports: 1 },
       io('di', 36, 8, { term: 'top-bottom' }),
@@ -605,7 +605,7 @@ export const HARDWARE: HwModel[] = [
     id: 'keyence-kv', brand: 'keyence', name: 'Keyence KV series', role: 'Building-block PLC', status: 'current', skin: 'iec',
     where: 'Automotive and electronics assembly, inspection cells. Growing in the US.',
     software: 'KV STUDIO',
-    spot: ['CPU on the left with units added to the right; an end unit closes the bus. // VERIFY per model', 'Address-based devices (R relays, DM data memory). // VERIFY'],
+    spot: ['CPU on the left with units added to the right; an end unit closes the bus. // VERIFY per model', 'Address-based devices (R relays, DM data memory).'],
     shape: { mount: 'din', h: 90, d: 95, body: 'black', units: [
       { kind: 'cpu', w: 60, label: 'CPU', ports: 1, sd: true, screen: 'status' },
       io('di', 30, 16, { term: 'front' }), io('do', 30, 16, { term: 'front' }), io('ai', 30, 4, { term: 'front' }),
@@ -615,7 +615,7 @@ export const HARDWARE: HwModel[] = [
   {
     id: 'groov-epic', brand: 'opto22', name: 'Opto 22 groov EPIC', role: 'Edge controller with built-in display', status: 'current', skin: 'iec',
     where: 'Water, energy monitoring, data and IIoT projects, test stands.',
-    software: 'PAC Control, CODESYS, or groov tools. // VERIFY',
+    software: 'PAC Control, CODESYS, or groov tools.',
     spot: ['The processor has a small built-in touchscreen.', 'I/O modules sit in a chassis with the power supply.'],
     shape: { mount: 'chassis', h: 150, d: 95, body: 'charcoal', units: [
       { kind: 'psu', w: 35, label: 'PSU' },
@@ -626,7 +626,7 @@ export const HARDWARE: HwModel[] = [
   {
     id: 'delta-dvp', brand: 'delta', name: 'Delta DVP / AS series', role: 'Low-cost compact PLC', status: 'current', skin: 'mitsubishi',
     where: 'Low-cost OEM machines and imported equipment.',
-    software: 'ISPSoft / WPLSoft (DVP), DIADesigner (newer AS). // VERIFY',
+    software: 'ISPSoft or WPLSoft (DVP); ISPSoft or DIADesigner (AS).',
     spot: ['DVP uses X/Y addressing similar to Mitsubishi FX (octal). // VERIFY'],
     shape: { mount: 'din', h: 90, d: 80, body: 'charcoal', units: [
       { kind: 'brick', w: 130, label: 'CPU', inputs: 16, outputs: 16, term: 'top-bottom', ports: 1 },
@@ -648,7 +648,7 @@ export const HARDWARE: HwModel[] = [
     id: 'micrologix-1500', brand: 'rockwell', name: 'MicroLogix 1000 / 1200 / 1500', role: 'Older small brick PLCs', status: 'legacy', skin: 'ab-slc',
     where: 'Thousands of older US machines, pump panels and conveyors. You will meet them for years.',
     software: 'RSLogix 500 / RSLogix Micro',
-    spot: ['SLC-style addresses (I:0/0, O:0/0, N7, T4).', 'The 1500 has a separate processor that clips onto the base unit. // VERIFY', 'Serial programming port on many; Ethernet only on some. // VERIFY per model'],
+    spot: ['SLC-style addresses (I:0/0, O:0/0, N7, T4).', 'The 1500 has a separate processor that clips onto the base unit. // VERIFY', 'Serial programming port; Ethernet needs an add-on adapter on these models.'],
     shape: { mount: 'din', h: 118, d: 87, body: 'light', units: [
       { kind: 'brick', w: 160, label: 'CPU', inputs: 16, outputs: 12, term: 'top-bottom', door: true, key: true },
       io('di', 35, 8, { door: true }),
@@ -658,7 +658,7 @@ export const HARDWARE: HwModel[] = [
     id: 'compactlogix-5480', brand: 'rockwell', name: 'CompactLogix 5480', role: 'Controller with a built-in Windows computer', status: 'current', skin: 'ab-logix',
     where: 'Newer machines that need data collection or analytics beside the control program.',
     software: 'Studio 5000 Logix Designer',
-    spot: ['Looks like a wider 5380 with extra ports and a separate PC side. // VERIFY', 'Uses the same 5069 I/O.'],
+    spot: ['Wider than a 5380, with extra ports for its built-in Windows computer.', 'Uses the same 5069 I/O.'],
     shape: { mount: 'din', h: 140, d: 105, body: 'charcoal', units: [
       { kind: 'cpu', w: 135, label: 'CPU', screen: 'status', key: true, sd: true, ports: 3, term: 'front' },
       io('di', 22, 16, { term: 'front' }), io('do', 22, 16, { term: 'front' }), io('ai', 22, 8, { term: 'front' }),
@@ -710,12 +710,12 @@ export const HARDWARE: HwModel[] = [
   ...[
     ['powerflex-525', 'rockwell', 'PowerFlex 525', 'Compact AC drive', 'current', 'Conveyors, fans, pumps and mixers on Rockwell plants. Probably the most common small drive in US plants.', 'Connected Components Workbench, Studio 5000 (Add-on Profile), or the keypad', 72, 152, 'charcoal'],
     ['powerflex-755', 'rockwell', 'PowerFlex 753 / 755', 'Large architecture-class AC drive', 'current', 'Big fans, pumps, process lines, and high-horsepower motors.', 'Connected Components Workbench / DriveExecutive / Studio 5000', 165, 400, 'charcoal'],
-    ['powerflex-40', 'rockwell', 'PowerFlex 4 / 40', 'Older compact AC drive', 'legacy', 'Older conveyors and small machines; many are being replaced by PowerFlex 525. // VERIFY lifecycle', 'Keypad, Connected Components Workbench', 72, 152, 'charcoal'],
+    ['powerflex-40', 'rockwell', 'PowerFlex 4 / 40', 'Older compact AC drive', 'legacy', 'Older conveyors and small machines; PowerFlex 40 is discontinued and Rockwell names the PowerFlex 525 as its replacement.', 'Keypad, Connected Components Workbench', 72, 152, 'charcoal'],
     ['sinamics-g120', 'siemens', 'SINAMICS G120 / G120C', 'Modular / compact AC drive', 'current', 'Machines and HVAC from European OEMs, process lines.', 'TIA Portal (Startdrive), or the operator panel', 73, 196, 'graphite'],
     ['sinamics-v20', 'siemens', 'SINAMICS V20', 'Basic compact AC drive', 'current', 'Simple pumps, fans and conveyors.', 'Built-in keypad (BOP)', 90, 166, 'graphite'],
-    ['micromaster', 'siemens', 'MICROMASTER 420 / 440', 'Older AC drive', 'legacy', 'Older machines; replaced by SINAMICS. // VERIFY lifecycle', 'Operator panel, STARTER', 73, 173, 'graphite'],
+    ['micromaster', 'siemens', 'MICROMASTER 420 / 440', 'Older AC drive', 'legacy', 'Older machines; replaced by SINAMICS.', 'Operator panel, STARTER', 73, 173, 'graphite'],
     ['atv320', 'schneider', 'Altivar Machine ATV320', 'Compact machine drive', 'current', 'OEM machines, conveyors, packaging.', 'SoMove, or the keypad', 60, 150, 'offwhite'],
-    ['atv630', 'schneider', 'Altivar Process ATV600 / ATV900', 'Process / HVAC drive', 'current', 'Pumps and fans in water plants and buildings.', 'SoMove, the graphic keypad, or the built-in web server // VERIFY', 145, 350, 'offwhite'],
+    ['atv630', 'schneider', 'Altivar Process ATV600 / ATV900', 'Process / HVAC drive', 'current', 'Pumps and fans in water plants and buildings.', 'SoMove, the graphic keypad, or the built-in web server', 145, 350, 'offwhite'],
     ['yaskawa-ga500', 'yaskawa', 'Yaskawa GA500', 'Compact AC drive', 'current', 'Conveyors, pumps, fans and OEM machines all over the US.', 'DriveWizard, DriveWizard Mobile, or the keypad', 68, 128, 'black'],
     ['yaskawa-ga800', 'yaskawa', 'Yaskawa GA800 / A1000', 'General-purpose AC drive', 'current', 'Larger fans, pumps, cranes and process lines. The A1000 is the older family it replaces.', 'DriveWizard, or the keypad', 140, 260, 'black'],
     ['yaskawa-v1000', 'yaskawa', 'Yaskawa V1000 / J1000', 'Older compact AC drive', 'mature', 'Older small machines; replaced by the GA500.', 'DriveWizard, or the keypad', 68, 128, 'black'],
@@ -725,8 +725,8 @@ export const HARDWARE: HwModel[] = [
     ['danfoss-fc302', 'danfoss', 'Danfoss VLT AutomationDrive FC 302', 'Industrial drive', 'current', 'Process lines, conveyors, cranes.', 'MCT 10, or the LCP', 90, 270, 'black'],
     ['gs20', 'automationdirect', 'GS20 / DURApulse GS4', 'Low-cost AC drives', 'current', 'Small machines and shops buying from AutomationDirect.', 'GSoft2, or the keypad', 68, 128, 'light'],
     ['fr-e800', 'mitsubishi', 'FR-E800 / FR-A800', 'Compact / advanced inverters', 'current', 'Japanese-built machines and packaging lines.', 'FR Configurator2, or the operation panel', 68, 128, 'offwhite'],
-    ['eaton-dg1', 'eaton', 'Eaton PowerXL DG1', 'General-purpose drive', 'current', 'HVAC, pumps and fans, often in Eaton MCCs.', 'Power Xpert inX, or the keypad // VERIFY', 100, 270, 'graphite'],
-    ['delta-ms300', 'delta', 'Delta MS300 / C2000', 'Compact / general drives', 'current', 'Low-cost OEM machines and imported equipment.', 'VFDSoft, or the keypad // VERIFY', 68, 142, 'charcoal'],
+    ['eaton-dg1', 'eaton', 'Eaton PowerXL DG1', 'General-purpose drive', 'current', 'HVAC, pumps and fans, often in Eaton MCCs.', 'Power Xpert inControl, or the keypad', 100, 270, 'graphite'],
+    ['delta-ms300', 'delta', 'Delta MS300 / C2000', 'Compact / general drives', 'current', 'Low-cost OEM machines and imported equipment.', 'VFDSoft (DIADesigner on some newer drives), or the keypad', 68, 142, 'charcoal'],
   ].map(([id, brand, name, role, status, where, software, w, h, body]) => ({
     id: id as string, brand: brand as string, name: name as string, role: role as string, status: status as HwStatus, skin: 'iec' as SkinId,
     where: where as string, software: software as string,
@@ -743,12 +743,12 @@ export const HARDWARE: HwModel[] = [
 
   // ---------------- HMIs ----------------
   ...[
-    ['panelview-plus-7', 'rockwell', 'PanelView Plus 7', 'Touchscreen HMI', 'current', 'The operator screen on most Rockwell lines.', 'FactoryTalk View ME (or FactoryTalk Optix on newer models) // VERIFY', 260, 190],
+    ['panelview-plus-7', 'rockwell', 'PanelView Plus 7', 'Touchscreen HMI', 'current', 'The operator screen on most Rockwell lines.', 'FactoryTalk View Machine Edition (ME)', 260, 190],
     ['panelview-800', 'rockwell', 'PanelView 800', 'Small touchscreen HMI', 'current', 'Small machines with Micro800 PLCs.', 'Connected Components Workbench', 140, 110],
     ['siemens-comfort', 'siemens', 'SIMATIC Comfort / Unified Comfort panel', 'Touchscreen HMI', 'current', 'Operator screens on Siemens machines.', 'WinCC in TIA Portal', 270, 190],
     ['cmore-ea9', 'automationdirect', 'C-more EA9', 'Touchscreen HMI', 'current', 'Small and mid machines on AutomationDirect PLCs (and others).', 'C-more Programming Software', 210, 160],
     ['redlion-graphite', 'redlion', 'Red Lion Graphite / FlexEdge', 'HMI and protocol converter', 'current', 'Water, oil and gas, and plants that need to talk to many brands at once.', 'Crimson', 260, 190],
-    ['harmony-hmi', 'schneider', 'Harmony HMI (formerly Magelis)', 'Touchscreen HMI', 'current', 'Schneider machines and water plants.', 'EcoStruxure Operator Terminal Expert / Vijeo Designer // VERIFY', 230, 170],
+    ['harmony-hmi', 'schneider', 'Harmony HMI (formerly Magelis)', 'Touchscreen HMI', 'current', 'Schneider machines and water plants.', 'EcoStruxure Operator Terminal Expert (formerly Vijeo XD) or Vijeo Designer, depending on the model', 230, 170],
     ['got2000', 'mitsubishi', 'GOT2000', 'Touchscreen HMI', 'current', 'Mitsubishi-based machines.', 'GT Designer3', 230, 170],
   ].map(([id, brand, name, role, status, where, software, w, h]) => ({
     id: id as string, brand: brand as string, name: name as string, role: role as string, status: status as HwStatus, skin: 'iec' as SkinId,
@@ -769,7 +769,7 @@ export const HARDWARE: HwModel[] = [
     id: 'pnoz', brand: 'pilz', name: 'Pilz PNOZ safety relays', role: 'Safety relays for E-stops, gates and light curtains', status: 'current', skin: 'iec',
     where: 'Machine guarding everywhere: E-stop circuits, guard doors, light curtains. Pilz invented the safety relay category.',
     software: 'None for basic relays; PNOZmulti Configurator for the configurable versions',
-    spot: ['Power, input channel and output LEDs tell you which channel opened.', 'Reset type (manual or auto) is set by wiring or a dial. // VERIFY per model', 'Two channels: a fault on one channel blocks restart on purpose.'],
+    spot: ['Power, input channel and output LEDs tell you which channel opened.', 'Reset type (manual or auto) is set by wiring or a switch, depending on the model.', 'Two channels: a fault on one channel blocks restart on purpose.'],
     shape: { mount: 'din', h: 98, d: 115, body: 'offwhite', units: [
       { kind: 'relay', w: 22.5, label: 'SAFE', term: 'top-bottom' }, { kind: 'relay', w: 22.5, label: 'SAFE', term: 'top-bottom' }, { kind: 'relay', w: 45, label: 'MULTI', term: 'top-bottom', screen: 'status' },
     ] },
@@ -777,8 +777,8 @@ export const HARDWARE: HwModel[] = [
   {
     id: 'guardmaster', brand: 'rockwell', name: 'Guardmaster 440R safety relays', role: 'Single-function and configurable safety relays', status: 'current', skin: 'ab-logix',
     where: 'E-stop and guard-door circuits on Rockwell-based machines.',
-    software: 'Connected Components Workbench for the configurable ones // VERIFY',
-    spot: ['Status LEDs per channel and a rotary switch for the function on some models. // VERIFY', 'Safety relays are hardwired. Never jumper an input to "get running".'],
+    software: 'None for single-function relays; the 440C-CR30 configurable relay uses Connected Components Workbench.',
+    spot: ['Status LEDs on the front; some models set their function or reset mode with a front switch.', 'Safety relays are hardwired. Never jumper an input to "get running".'],
     shape: { mount: 'din', h: 113, d: 115, body: 'charcoal', units: [
       { kind: 'relay', w: 22.5, label: 'GSR', term: 'top-bottom' }, { kind: 'relay', w: 22.5, label: 'GSR', term: 'top-bottom' }, { kind: 'relay', w: 22.5, label: 'GSR', term: 'top-bottom' },
     ] },
@@ -818,7 +818,7 @@ export const HARDWARE: HwModel[] = [
     id: 'desigo-pxc', brand: 'siemens', name: 'Desigo PXC automation stations', role: 'Building automation controllers', status: 'current', skin: 'iec',
     where: 'Siemens building automation in data centers, hospitals and campuses.',
     software: 'Desigo CC / ABT tools // VERIFY',
-    spot: ['BACnet/IP controller with I/O modules or TX-I/O on the side. // VERIFY', 'Point names come from the project; get the points list.'],
+    spot: ['BACnet controller with onboard I/O and/or add-on I/O modules (TX-I/O on many).', 'Point names come from the project; get the points list.'],
     shape: { mount: 'din', h: 110, d: 60, body: 'offwhite', units: [
       { kind: 'bas', w: 90, label: 'PXC', ports: 2, term: 'top-bottom', screen: 'status' },
       io('ai', 32, 8, { term: 'top-bottom' }), io('do', 32, 8, { term: 'top-bottom' }),
