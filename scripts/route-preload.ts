@@ -52,8 +52,10 @@ export function routePreload(): Plugin {
         for (const [seg, r] of Object.entries(routes)) map[seg] = filesFor(r.page);
         // Deep links into lazily loaded sub-pages (e.g. #/reference/compare) fetch the sub-page's code at full
         // priority alongside the route's, instead of one after the other (0.10.0 Lighthouse: LCP 2.8 s).
-        const SUB: Record<string, string> = { 'reference/compare': 'ComparePage', 'reference/cheats': 'CheatPage', 'reference/day-one': 'DayOnePage', 'reference/devices': 'DevicePages', 'reference/device': 'DevicePages', 'reference/flow': 'FlowPage' };
+        const SUB: Record<string, string> = { 'reference/compare': 'ComparePage', 'reference/cheats': 'CheatPage', 'reference/day-one': 'DayOnePage', 'reference/devices': 'DevicePages', 'reference/device': 'DevicePages', 'reference/flow': 'FlowPage', 'reference/brands': 'ReferenceViews', 'reference/brand': 'ReferenceViews', 'reference/instructions': 'ReferenceViews', 'reference/glossary': 'ReferenceViews', 'reference/safety': 'ReferenceViews', 'reference/practice': 'ReferenceViews', 'reference/hardware': 'HardwarePages', 'reference/hw': 'HardwarePages', 'reference/inside': 'InsidePages' };
         for (const [k, page] of Object.entries(SUB)) map[k] = [filesFor(page)[0], []];
+        // The Reference index links to a dozen views; prefetching them all (even at low priority) competes with its first paint on a slow phone.
+        if (map.reference) map.reference[1] = [];
         const first = filesFor('Onboarding')[0];
         // Static shell: the header bar and (for top-level screens) the page heading, painted straight from the
         // HTML. The markup mirrors App.tsx's pre-hydration shell and PageHead; an e2e test compares them.

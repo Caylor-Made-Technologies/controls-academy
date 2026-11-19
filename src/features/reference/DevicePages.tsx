@@ -4,7 +4,7 @@ import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
 import { Button, Callout, NotFound } from '../../components/ui';
 import { DEVICES, DEVICE_BY_ID, GROUP_TEXT, type DeviceGroup } from '../../content/devices';
-import { LESSONS } from '../../content';
+import { LESSON_META_BY_ID } from '../../content/catalog';
 import { useAfterPaint } from '../../lib/afterPaint';
 import { href } from '../../lib/router';
 import { usePrefs } from '../../state/prefs';
@@ -57,7 +57,7 @@ export function DeviceDetail({ id }: { id: string }) {
   const prev = DEVICES[i - 1];
   const next = DEVICES[i + 1];
   const loading = <PosterFrame kind="inside" label={`Loading 3D ${d.name}`} />;
-  const lessons = d.lessons.map((l) => LESSONS.find((x) => x.id === l)).filter(Boolean);
+  const lessons = d.lessons.map((l) => LESSON_META_BY_ID.get(l)).filter(Boolean);
   return (
     <div>
       <Button href={href('reference/devices')} variant="ghost" size="sm" icon="back" className="-ml-2 mb-2">Field devices</Button>

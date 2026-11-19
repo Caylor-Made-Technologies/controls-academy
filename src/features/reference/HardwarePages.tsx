@@ -214,3 +214,15 @@ export function HardwareDetail({ id }: { id: string }) {
     </div>
   );
 }
+
+/** The three front views on the Reference index's hardware card (loaded after the index paints). */
+export function FeaturedFronts() {
+  return (
+    <>
+      {['controllogix', 'powerflex-525', 's7-1200'].map((id) => {
+        const m = HARDWARE.find((x) => x.id === id);
+        return m ? <HwFront key={id} model={m} className="block w-full h-16 sm:h-24 hw-thumb-svg" title="" /> : null;
+      })}
+    </>
+  );
+}
