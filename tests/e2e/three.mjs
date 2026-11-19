@@ -70,6 +70,18 @@ await p.getByRole('button', { name: /^Stop/ }).first().click();
 await p.getByText('Motor stopped').first().waitFor({ timeout: 30000 });
 
 // Leak test: open and close the 3D panel 20 times.
+// Steady state: the scene can still be adding geometry or textures after it mounts on a busy machine, so wait
+// until both counts hold for four samples in a row (2 s) before reading them. One short pause was not enough
+// (0.10.0: a baseline of 280 against a steady 291 failed the gate once).
+const settled = async () => {
+  let prev = '', same = 0;
+  for (let k = 0; k < 60 && same < 4; k++) {
+    await p.waitForTimeout(500);
+    const st = (await stats()).stages[0]; const key = `${st.geometries}/${st.textures}`;
+    same = key === prev ? same + 1 : 0; prev = key;
+  }
+  return (await stats()).stages[0];
+};
 const first = await stats();
 let fresh = null; // GPU counts of the first fresh mount: the same conditions as the 20th
 for (let i = 0; i < 20; i++) {
@@ -78,15 +90,10 @@ for (let i = 0; i < 20; i++) {
   await p.getByRole('button', { name: '3D panel' }).click();
   await p.waitForSelector('section[aria-label="3D control panel"] canvas');
   await p.waitForFunction(() => window.__ca3d.stats().live === 1);
-  if (i === 2) {
-    // Steady state: wait until the scene stops adding geometry (a busy machine can still be building it after a
-    // fixed pause, which made the baseline too low and the leak check flaky).
-    let prev = -1;
-    for (let k = 0; k < 20; k++) { await p.waitForTimeout(500); const g = (await stats()).stages[0].geometries; if (g === prev) break; prev = g; }
-    fresh = (await stats()).stages[0];
-  }
+  if (i === 2) fresh = await settled();
 }
 await p.waitForTimeout(1500); // R3F releases the old contexts shortly after unmount
+await settled();
 const last = await stats();
 const glLive = await p.evaluate(() => window.__gl);
 ok(last.opened - first.opened === 20 && last.closed - first.closed === 20, `20 opens and 20 closes counted (${last.opened - first.opened}/${last.closed - first.closed})`);

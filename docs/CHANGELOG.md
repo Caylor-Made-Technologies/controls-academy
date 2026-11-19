@@ -12,7 +12,7 @@
 ### Fixed
 - Simulator: DIV by zero now behaves like Logix (minor fault, and the destination gets Source A for integers or infinity for REAL) instead of leaving the destination unchanged.
 - B-013: a change followed by a very quick reload (a ticked checklist item, a setting) could be lost. Saved data now goes to the fast local copy first.
-- The 3D memory-leak check waits for the scene to settle before taking its baseline (it could fail on a busy machine).
+- The 3D memory-leak check waits until geometry and texture counts hold steady for 2 s before both readings (it could fail on a busy machine).
 - Reference loads faster on a slow phone: the index needs one 2 KB file instead of twelve (about 60 KB), and each view behind it (brand guides, glossary, hardware, field devices, compare and the rest) loads when opened. A direct link to one of them fetches its code straight away. Lighthouse on live, Reference index LCP: 2.64 s before this fix.
 - Field device pages read lesson titles from the small catalog instead of downloading every lesson (80 KB).
 - The overload reset test allows for slow CI machines (the overload cools for about 35 s of simulated time).
