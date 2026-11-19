@@ -355,7 +355,8 @@ await check('Task capstone-build: write start/stop from a blank rung in the edit
     // A thermal overload has to cool before it will reset.
     await page.getByRole('button', { name: /Cooling — reset in/ }).waitFor();
     expect(await page.getByRole('button', { name: /Cooling — reset in/ }).isDisabled(), 'reset blocked while hot');
-    await page.getByRole('button', { name: 'Reset overload', exact: true }).click({ timeout: 90000 });
+    // About 35 s of simulated cooling; slow CI machines run the sim slower than real time (frames are capped at 100 ms).
+    await page.getByRole('button', { name: 'Reset overload', exact: true }).click({ timeout: 180000 });
     await page.getByText('OL tripped').waitFor({ state: 'detached' });
   });
   await check2('Sim: Slow-mo and Step modes, scan pointer', async () => {
