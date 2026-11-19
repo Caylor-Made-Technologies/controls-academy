@@ -1,6 +1,6 @@
 # Changelog
 
-## Unreleased — Phase 5: Reference (in progress, will ship as 0.10.0)
+## 0.10.0 — 2026-11-19 — Phase 5: Reference
 ### Added
 - Brands side by side: compare up to three PLC platforms on addressing, timers, counters, going online, forcing, upload/download, backups, firmware and gotchas.
 - Field devices: 19 generic devices (sensors, operator devices, motor control, safety devices, process instruments) with a 3D model, wiring, print symbol, failure modes and safe tests.
@@ -13,6 +13,10 @@
 - Simulator: DIV by zero now behaves like Logix (minor fault, and the destination gets Source A for integers or infinity for REAL) instead of leaving the destination unchanged.
 - B-013: a change followed by a very quick reload (a ticked checklist item, a setting) could be lost. Saved data now goes to the fast local copy first.
 - The 3D memory-leak check waits for the scene to settle before taking its baseline (it could fail on a busy machine).
+### Known issues
+- 172 details are still marked "check your manual" (listed in docs/VERIFY.md) for an expert or a sourced check.
+- Whether a counter reset (RES) also clears its count-up/down bits is unconfirmed; the simulator keeps them.
+- 3D detail and materials polish is planned for Phase 6.
 
 ## 0.9.0 — 2026-11-17 — Phase 4: premium UI, 3D and motion
 ### Added
