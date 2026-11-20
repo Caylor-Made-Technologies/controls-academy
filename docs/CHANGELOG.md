@@ -6,7 +6,7 @@
 - 3D meter: a dark face in a yellow rubber holster, and four input jacks (V Ω, mA µA, A, COM) like most handheld meters. The red lead moves to the jack the dial setting needs, and the jacks in use are lit.
 - 3D standby generator: roof cap, lifting eyes, a muffler on brackets feeding the exhaust stack with a rain cap, door handles, a radiator core behind the fan, and larger GENERATOR / MAY START AUTOMATICALLY labels.
 - 3D lift station: the 1–3 m level marks are large enough to read on a phone and clear of the float tag.
-- Faster first load (Lighthouse on live, every route measured; 36 of 41 already passed):
+- Faster first load. Lighthouse mobile on live, all 41 route samples: before, 36 passed (lessons up to 2.93 s); now all pass, performance 97–100, accessibility, best practices and SEO 100, LCP 1.2–2.33 s, CLS 0:
   - A lesson downloads only the file that holds it (6–24 KB) instead of all 60 lessons (80 KB), and a direct link fetches that file straight away.
   - Lessons with a hands-on task, and Fault Hunt, start loading the workbench after the page text has painted, not before.
   - Study summaries: the track list no longer downloads every lesson; a track's summary loads only that track's lessons when opened.
