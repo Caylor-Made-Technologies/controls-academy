@@ -1047,7 +1047,6 @@ await check('Narrow phones: no sideways scroll on any route at 320 px, with the 
   const { ctx, page } = await newPage({ w: 320, h: 640, prefs: { onboarded: true, quality: '2d', name: 'W'.repeat(30) } });
   const wide = [];
   for (const r of routes) {
-    await page.goto('about:blank');
     await go(page, r);
     if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)) wide.push(r);
   }
