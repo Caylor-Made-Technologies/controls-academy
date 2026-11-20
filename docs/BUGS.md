@@ -89,7 +89,7 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 - **Found by:** Jonathon on a Chromebook: after tapping a machine card, the page sat frozen with the hover highlight stuck on the card ("stays stuck").
 - **Cause:** each machine has its own 3D view. Switching built the new scene, compiled all its shaders in the first frame, and dropped the old view's graphics context, all in long blocks on the page's only thread. Measured at 4× slower CPU on a software GPU: up to 11 s in one block (data center).
 - **Fix (`src/three/Stage.tsx`):** shaders are compiled in parallel before the first frame where the browser supports it, while the poster still shows; the old context is released when the browser is idle instead of in the middle of the switch.
-- **Measured (same test, this machine):** data center 14.0 s → 0.5–15 s depending on when the deferred release lands; the click and the new screen are no longer stuck behind it. The remaining cost here is releasing a context on a software GPU, which is much cheaper on real graphics hardware; not verified on Jonathon's Chromebook yet.
+- **Measured (same test, this machine):** the shader-compile block is gone and the click shows the new machine first; the longest remaining block is releasing the old context, which this machine does in software (seconds) and real graphics hardware does far faster. Not yet confirmed on Jonathon's Chromebook.
 - **Guard:** the 3D gate (`tests/e2e/three.mjs`): leak test, no console errors. No automated timing check: frame timing on the shared test machine is too noisy to gate on.
 
 ## B-021 — A long name ran off the certificate

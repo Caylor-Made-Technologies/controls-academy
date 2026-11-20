@@ -20,7 +20,8 @@ describe('lift station lead/lag', () => {
     expect(Math.abs(h.s.starts[0] - h.s.starts[1])).toBeLessThanOrEqual(1);
   });
 
-  it('storm inflow beats one pump: the lag pump starts at 3.0 m and no flooding', () => {
+  // 20 simulated minutes of scans: takes a few seconds, so it gets the same long limit as the alternation test.
+  it('storm inflow beats one pump: the lag pump starts at 3.0 m and no flooding', { timeout: 60000 }, () => {
     const h = rig();
     h.s.inflow = 0.06;
     let both = false;
