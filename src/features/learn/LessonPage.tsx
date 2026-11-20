@@ -1,8 +1,10 @@
 import { vtName } from '../../lib/motion';
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import { Suspense, use, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
-import { LESSONS, LESSON_BY_ID, TRACK_BY_ID } from '../../content';
+import { LESSON_META, LESSON_META_BY_ID, TRACK_BY_ID } from '../../content/catalog';
+import { loadLesson } from '../../content/lesson-load';
+import { SkeletonPage } from '../../components/Skeleton';
 import type { Block, Lesson, Site } from '../../content/types';
 import { program as buildProgram } from '../../engine/text';
 import { href } from '../../lib/router';
@@ -12,7 +14,8 @@ import { usePrefs } from '../../state/prefs';
 import { useProgress } from '../../state/progress';
 import { Ladder } from '../simulator/Ladder';
 import type { SimRuntime } from '../simulator/runtime';
-import { Workbench } from '../simulator/LazyWorkbench';
+import { Workbench, WorkbenchSkeleton } from '../simulator/LazyWorkbench';
+import { useAfterPaint } from '../../lib/afterPaint';
 import { OrderDrill, SortDrill } from './Drills';
 import { Figure } from './Figures';
 import { QuestionCard } from './Quiz';
@@ -100,7 +103,7 @@ function Prereqs({ ids }: { ids: string[] }) {
       <p className="text-sm m-0 mb-1.5"><strong className="text-heading">Before this:</strong></p>
       <ul className="flex flex-wrap gap-2 p-0 m-0 list-none">
         {ids.map((pid) => {
-          const l = LESSON_BY_ID.get(pid);
+          const l = LESSON_META_BY_ID.get(pid);
           if (!l) return null;
           return <li key={pid}><a className={`chip ${done[pid] ? 'chip-live' : ''}`} href={href(`lesson/${pid}`)}>{done[pid] && <Icon name="check" size={12} />} {l.title}</a></li>;
         })}
@@ -131,8 +134,16 @@ function OnTheJob({ lesson }: { lesson: Lesson }) {
   );
 }
 
-export default function LessonPage({ id }: { id: string }) {
-  const lesson = LESSON_BY_ID.get(id);
+/** A lesson route: loads just the file that holds this lesson, then shows it. */
+export default function LessonRoute({ id }: { id: string }) {
+  return <Suspense fallback={<SkeletonPage />}><LoadedLesson id={id} /></Suspense>;
+}
+
+function LoadedLesson({ id }: { id: string }) {
+  return <LessonPage id={id} lesson={use(loadLesson(id))} />;
+}
+
+function LessonPage({ id, lesson }: { id: string; lesson: Lesson | undefined }) {
   const completeLesson = useProgress((s) => s.completeLesson);
   const completeTask = useProgress((s) => s.completeTask);
   const record = useProgress((s) => s.lessons[id]);
@@ -140,6 +151,8 @@ export default function LessonPage({ id }: { id: string }) {
   const [taskDone, setTaskDone] = useState(Boolean(record?.taskDone));
   const [gained, setGained] = useState<number | null>(null);
   const rtRef = useRef<SimRuntime | null>(null);
+  // The hands-on workbench sits below the lesson text: start its download after the text has painted.
+  const painted = useAfterPaint();
 
   useEffect(() => {
     setAnswers({});
@@ -167,8 +180,8 @@ export default function LessonPage({ id }: { id: string }) {
   if (!lesson) return <NotFound what="Lesson" backHref={href('learn')} backLabel="Back to Learn" />;
 
   const track = TRACK_BY_ID.get(lesson.track)!;
-  const idx = LESSONS.findIndex((l) => l.id === id);
-  const next = LESSONS[idx + 1];
+  const idx = LESSON_META.findIndex((l) => l.id === id);
+  const next = LESSON_META[idx + 1];
   const answered = Object.keys(answers).length;
   const score = Object.values(answers).filter(Boolean).length;
   const allAnswered = answered === lesson.quiz.length;
@@ -210,7 +223,7 @@ export default function LessonPage({ id }: { id: string }) {
               {taskDone ? <><Icon name="check" /> Done! +25 XP</> : 'Not done yet — try it below.'}
             </p>
           </div>
-          <Workbench key={lesson.id} initial={initial} editable={Boolean(lesson.task.edit)} onRuntime={onRuntime} />
+          {painted ? <Workbench key={lesson.id} initial={initial} editable={Boolean(lesson.task.edit)} onRuntime={onRuntime} /> : <WorkbenchSkeleton />}
         </section>
       )}
 

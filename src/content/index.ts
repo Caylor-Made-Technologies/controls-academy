@@ -6,6 +6,7 @@ import { CORE2_LESSONS } from './lessons-core2';
 import { PRO_LESSONS } from './lessons-pro';
 import { COURSE_ORDER } from './tracks';
 import type { Lesson } from './types';
+import { withQuizIds } from './normalize';
 
 /**
  * Full lesson content. Heavy: import it only from lazy-loaded screens (lesson, review, search) and tests.
@@ -15,7 +16,7 @@ const raw = [...ZERO_LESSONS, ...FOUNDATION_LESSONS, ...PLC_LESSONS, ...FIELD_LE
 
 /** Lessons in course order, with globally unique question ids (`lessonId.q1`). */
 export const LESSONS: Lesson[] = raw
-  .map((l) => ({ ...l, quiz: l.quiz.map((q) => ({ ...q, id: `${l.id}.${q.id}` })) }))
+  .map(withQuizIds)
   .sort((a, b) => COURSE_ORDER.indexOf(a.id) - COURSE_ORDER.indexOf(b.id));
 export const LESSON_BY_ID = new Map(LESSONS.map((l) => [l.id, l]));
 

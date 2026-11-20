@@ -11,6 +11,8 @@ import { createHash } from 'node:crypto';
 import { readFileSync } from 'node:fs';
 import type { Plugin } from 'vite';
 import { ROUTE_HEADS } from '../src/content/heads';
+import { LESSON_META } from '../src/content/catalog.gen';
+import { TRACKS } from '../src/content/tracks';
 
 interface Chunk { type: 'chunk'; fileName: string; isEntry: boolean; facadeModuleId: string | null; moduleIds: string[]; imports: string[]; dynamicImports: string[] }
 
@@ -33,7 +35,7 @@ export function routePreload(): Plugin {
         const walk = (f: string, into: Set<string>) => { if (into.has(f)) return; into.add(f); for (const i of byFile.get(f)?.imports ?? []) walk(i, into); };
         if (entry) walk(entry.fileName, loaded);
         const pageChunk = (page: string): Chunk => {
-          const c = chunks.find((x) => x.facadeModuleId?.endsWith(`/${page}.tsx`)) ?? chunks.find((x) => x.moduleIds.some((m) => m.endsWith(`/${page}.tsx`)));
+          const c = chunks.find((x) => /\.tsx?$/.test(x.facadeModuleId ?? '') && x.facadeModuleId!.replace(/\.tsx?$/, '').endsWith(`/${page}`)) ?? chunks.find((x) => x.moduleIds.some((m) => m.endsWith(`/${page}.tsx`)));
           if (!c) throw new Error(`route-preload: no chunk found for page "${page}"`);
           return c;
         };
@@ -53,15 +55,25 @@ export function routePreload(): Plugin {
         // Deep links into lazily loaded sub-pages (e.g. #/reference/compare) fetch the sub-page's code at full
         // priority alongside the route's, instead of one after the other (0.10.0 Lighthouse: LCP 2.8 s).
         const SUB: Record<string, string> = { 'reference/compare': 'ComparePage', 'reference/cheats': 'CheatPage', 'reference/day-one': 'DayOnePage', 'reference/devices': 'DevicePages', 'reference/device': 'DevicePages', 'reference/flow': 'FlowPage', 'reference/brands': 'ReferenceViews', 'reference/brand': 'ReferenceViews', 'reference/instructions': 'ReferenceViews', 'reference/glossary': 'ReferenceViews', 'reference/safety': 'ReferenceViews', 'reference/practice': 'ReferenceViews', 'reference/hardware': 'HardwarePages', 'reference/hw': 'HardwarePages', 'reference/inside': 'InsidePages' };
+        for (const t of TRACKS) SUB[`summary/${t.id}`] = 'SummaryTrack';
         for (const [k, page] of Object.entries(SUB)) map[k] = [filesFor(page)[0], []];
         // The Reference index links to a dozen views; prefetching them all (even at low priority) competes with its first paint on a slow phone.
         if (map.reference) map.reference[1] = [];
+        // A lesson link (#/lesson/<id>) fetches the one content file that holds that lesson, at full priority.
+        // Lessons share six files, so each id points at its file's entry ("@lessons-plc") instead of repeating it.
+        const alias: Record<string, string> = {};
+        for (const f of new Set(LESSON_META.map((l) => l.file))) map[`@${f}`] = [closure(pageChunk(f).fileName), []];
+        for (const l of LESSON_META) alias[`lesson/${l.id}`] = `@${l.file}`;
+        if (map.lesson) map.lesson[1] = [];
+        if (map.summary) map.summary[1] = [];
+        // Any deeper Fault Hunt link (#/troubleshoot/<hunt>) needs the hunt screens at full priority, not later.
+        if (map.troubleshoot) { map['troubleshoot/*'] = [map.troubleshoot[1], []]; map.troubleshoot[1] = []; }
         const first = filesFor('Onboarding')[0];
         // Static shell: the header bar and (for top-level screens) the page heading, painted straight from the
         // HTML. The markup mirrors App.tsx's pre-hydration shell and PageHead; an e2e test compares them.
         const heads = Object.fromEntries(Object.entries(ROUTE_HEADS).map(([k, h]) => [k, [h.eyebrow, h.title, h.body ?? '', ...(h.back ?? [])]]));
         const shell = `<div class="with-rail" aria-busy="true"><header class="app-header lg:hidden" data-scrolled="false"><div class="app-header-inner"><a href="#/learn" class="flex items-center gap-2.5 no-underline min-w-0"><img src="${base}favicon.svg" width="32" height="32" alt="" class="rounded-[22%]"><span class="flex flex-col leading-none"><span class="font-head font-extrabold tracking-tight text-heading text-base">Controls <span class="grad-text">Academy</span></span></span></a></div></header><main class="page"><div id="shell-head"></div></main></div>`;
-        const js = `(function(){var m=${JSON.stringify(map)},o=${JSON.stringify(first)},H=${JSON.stringify(heads)},d=document,q=location.hash.replace(/^#\\/?/,"").split("?")[0].split("/"),s=q[0]||"learn",r=m[s]||m.learn,a=r[0].slice(),k=m[s+"/"+(q[1]||"")],c="";if(k)a=a.concat(k[0]);try{c=localStorage.getItem("ca:prefs")||"";if(!/"onboarded":true/.test(c))a=a.concat(o)}catch(e){}function p(l,low){for(var i=0;i<l.length;i++){var e=d.createElement("link");e.rel="modulepreload";if(low)e.fetchPriority="low";e.href=${JSON.stringify(base)}+l[i];d.head.appendChild(e)}}p(a);p(r[1],1);var h=H[s],x=function(v){return v.replace(/&/g,"&amp;").replace(/</g,"&lt;")};if(h&&q.length<2){d.getElementById("shell-head").innerHTML=(h[3]?'<a href="#/'+h[4]+'" class="btn btn-ghost btn-sm -ml-2 mb-2"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg> '+x(h[3])+"</a>":"")+'<header class="page-head"><p class="eyebrow m-0 mb-1.5">'+x(h[0])+'</p><h1 class="text-2xl sm:text-3xl font-extrabold">'+x(h[1])+"</h1>"+(h[2]?'<div class="mt-2 text-muted max-w-[60ch]">'+x(h[2])+"</div>":"")+"</header>"}})();`;
+        const js = `(function(){var m=${JSON.stringify(map)},A=${JSON.stringify(alias)},o=${JSON.stringify(first)},H=${JSON.stringify(heads)},d=document,q=location.hash.replace(/^#\\/?/,"").split("?")[0].split("/"),s=q[0]||"learn",r=m[s]||m.learn,a=r[0].slice(),k=m[s+"/"+(q[1]||"")]||m[A[s+"/"+(q[1]||"")]]||(q[1]&&m[s+"/*"]),c="";if(k)a=a.concat(k[0]);try{c=localStorage.getItem("ca:prefs")||"";if(!/"onboarded":true/.test(c))a=a.concat(o)}catch(e){}function p(l,low){for(var i=0;i<l.length;i++){var e=d.createElement("link");e.rel="modulepreload";if(low)e.fetchPriority="low";e.href=${JSON.stringify(base)}+l[i];d.head.appendChild(e)}}p(a);p(r[1],1);var h=H[s],x=function(v){return v.replace(/&/g,"&amp;").replace(/</g,"&lt;")};if(h&&q.length<2){d.getElementById("shell-head").innerHTML=(h[3]?'<a href="#/'+h[4]+'" class="btn btn-ghost btn-sm -ml-2 mb-2"><svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M15 6l-6 6 6 6"/></svg> '+x(h[3])+"</a>":"")+'<header class="page-head"><p class="eyebrow m-0 mb-1.5">'+x(h[0])+'</p><h1 class="text-2xl sm:text-3xl font-extrabold">'+x(h[1])+"</h1>"+(h[2]?'<div class="mt-2 text-muted max-w-[60ch]">'+x(h[2])+"</div>":"")+"</header>"}})();`;
         const hash = createHash('sha256').update(js).digest('base64');
         // The saved theme is applied by its own tiny script in <head>, before anything in <body> can paint. (It used to
         // run in the script above, after the static header: over a real network the header could paint dark first.)

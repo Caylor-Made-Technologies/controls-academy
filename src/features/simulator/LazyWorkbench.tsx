@@ -8,9 +8,13 @@ const Impl = lazy(() => import('./Workbench').then((m) => ({ default: m.Workbenc
  * it as its own chunk: the page heading and instructions paint first, the workbench fills in below.
  * The placeholder holds roughly the workbench's height so the page doesn't jump when it arrives.
  */
+export function WorkbenchSkeleton() {
+  return <div className="workbench-skeleton" role="status" aria-busy="true" aria-label="Loading the workbench"><div className="skeleton" /><div className="skeleton" /></div>;
+}
+
 export function Workbench(props: WorkbenchProps) {
   return (
-    <Suspense fallback={<div className="workbench-skeleton" role="status" aria-busy="true" aria-label="Loading the workbench"><div className="skeleton" /><div className="skeleton" /></div>}>
+    <Suspense fallback={<WorkbenchSkeleton />}>
       <Impl {...props} />
     </Suspense>
   );

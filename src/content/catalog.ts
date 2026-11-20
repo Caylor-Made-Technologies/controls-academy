@@ -1,4 +1,5 @@
 import type { TrackId } from './types';
+import type { LessonFile } from './lesson-load';
 import { LESSON_META } from './catalog.gen';
 
 /** What the main bundle knows about a lesson. Full content lives in `./index` (lazy). */
@@ -9,6 +10,8 @@ export interface LessonMeta {
   minutes: number;
   summary: string;
   task: boolean;
+  /** The content file that holds the lesson (see ./lesson-load). */
+  file: LessonFile;
 }
 
 export { LESSON_META };

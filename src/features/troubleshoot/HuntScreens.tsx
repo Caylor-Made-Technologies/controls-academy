@@ -7,7 +7,7 @@ import { href, navigate } from '../../lib/router';
 import { buzz, sfx } from '../../lib/sound';
 import { useProgress } from '../../state/progress';
 import type { SimRuntime } from '../simulator/runtime';
-import { Workbench } from '../simulator/LazyWorkbench';
+import { Workbench, WorkbenchSkeleton } from '../simulator/LazyWorkbench';
 import { hasWebGL, prefer3D } from '../../three/support';
 import { useAfterPaint } from '../../lib/afterPaint';
 import { PosterFrame } from '../../three/poster/frames';
@@ -301,7 +301,8 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
         <p className="text-xs text-muted mb-0 mt-2">{proved ? 'Meter proved on a known source. Prove it again after any dead reading.' : 'Tip: set the mode, then prove the meter on the 24 VDC supply first (live-dead-live). Voltage readings are to 0 V / neutral unless the point says "across".'} Training sim: on real gear, measuring live needs the right PPE, a CAT-rated meter, and authorization.</p>
       </section>
 
-      <Workbench initial={initial} machine={fault.machine} editable={false} onRuntime={onRuntime} onUnsafe={(w) => penalize(`${w}. Forcing can start equipment with someone in the machine. Find the cause with your meter and the logic instead — forcing is a last resort with authorization and everyone clear.`, 20)} onDevicePick={pick} devicePickLabel="This is the problem" />
+      {/* The workbench sits below the complaint and the hunt's heading: start its download after they paint. */}
+      {painted ? <Workbench initial={initial} machine={fault.machine} editable={false} onRuntime={onRuntime} onUnsafe={(w) => penalize(`${w}. Forcing can start equipment with someone in the machine. Find the cause with your meter and the logic instead — forcing is a last resort with authorization and everyone clear.`, 20)} onDevicePick={pick} devicePickLabel="This is the problem" /> : <WorkbenchSkeleton />}
     </div>
   );
 }

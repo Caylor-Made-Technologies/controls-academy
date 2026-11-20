@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { TRACKS } from '../../src/content';
 import { FORMULAS } from '../../src/content/summaries';
-import { summaryMarkdown, trackSummary } from '../../src/features/learn/SummaryPage';
+import { summaryMarkdown, trackSummary } from '../../src/features/learn/SummaryTrack';
 import { ohm, power } from '../../src/lib/circuits';
 
 describe('study summaries', () => {
