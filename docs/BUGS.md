@@ -6,6 +6,7 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 
 | ID | Severity | Found | Status |
 |---|---|---|---|
+| B-014 | High | Phase 6.2 QA sweep | Fixed (unreleased) |
 | B-007 | High | Phase 2 (unit test) | Fixed before release |
 | B-006 | High | Phase 1 (exam screenshot) | Fixed in 0.6.0 |
 | B-005 | Medium | Phase 0 flake → Phase 1 | Fixed in 0.6.0 |
@@ -67,6 +68,12 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 - **Expected:** *Protection devices* (next in Track 1). **Actual:** *Reading ladder prints* (Track 2); *Protection devices* is skipped. 9 of 49 "Next" links pointed to the wrong lesson.
 - **Cause:** `LESSONS` kept source-file order; tracks have their own order.
 - **Fix:** `LESSONS` sorted by `COURSE_ORDER` (track by track). **Test:** `tests/unit/quality.test.ts` → "course order".
+
+## B-014 — A wrong-typed saved setting crashed Learn, lessons and the simulator
+- **Steps:** saved settings (`ca:prefs`) holding a value of the wrong type, e.g. `goal: "x"`, `skin: "nope"` or `theme: 5` (an old version, a hand-edited or imported file, a browser extension), then open Learn, a lesson or the Simulator.
+- **Expected:** the app uses the default for that one setting. **Actual:** the error screen ("n is not iterable", "reading 'brand'", "reading 'address'").
+- **Cause:** settings were spread over the defaults with no checks; progress was already validated, settings were not.
+- **Fix:** `validatePrefs()` checks every field against its allowed values (skin ids, themes, goals, quality, the four text sizes, name ≤ 30 characters) and falls back per field. **Tests:** `tests/unit/prefs.test.ts` (fails without the fix); e2e "Saved data: wrong-typed settings…".
 
 ## B-013 — A change followed by a quick reload could be lost
 - **Steps:** tick an item on Day one (or change any saved setting), reload at once (seen under load in the day-one e2e check).

@@ -23,6 +23,38 @@ export const DEFAULT_PREFS: Prefs = {
   theme: 'dark', skin: 'ab-logix', sound: false, onboarded: false, goal: null, quality: 'auto', textScale: 1, name: '', hwModel: '',
 };
 
+const THEMES: readonly ThemePref[] = ['dark', 'light', 'system'];
+const GOALS: readonly Goal[] = ['maintenance', 'new-tech', 'bas', 'curious'];
+const QUALITIES: readonly Quality[] = ['auto', 'low', 'medium', 'high', '2d'];
+/** The text sizes Profile offers. */
+export const TEXT_SCALES = [0.9, 1, 1.15, 1.3] as const;
+// Kept here (not imported from ../skins) so the main bundle stays small; tests/unit/prefs.test.ts checks it
+// against the skin list.
+const SKIN_IDS: readonly SkinId[] = ['iec', 'ab-logix', 'ab-slc', 'ab-micro800', 'siemens-tia', 'siemens-classic', 'modicon', 'mitsubishi', 'automationdirect', 'omron'];
+/** Same limit as the name field on Profile. */
+export const NAME_MAX = 30;
+
+/**
+ * Saved settings, field by field: anything missing or of the wrong type falls back to its default (B-014: a bad
+ * value from an old version, an import or an extension crashed Learn, lessons and the simulator).
+ */
+export function validatePrefs(d: unknown): Prefs {
+  const o = d && typeof d === 'object' && !Array.isArray(d) ? (d as Record<string, unknown>) : {};
+  const one = <T,>(v: unknown, list: readonly T[], dflt: T): T => (list.includes(v as T) ? (v as T) : dflt);
+  const D = DEFAULT_PREFS;
+  return {
+    theme: one(o.theme, THEMES, D.theme),
+    skin: one(o.skin, SKIN_IDS, D.skin),
+    sound: typeof o.sound === 'boolean' ? o.sound : D.sound,
+    onboarded: typeof o.onboarded === 'boolean' ? o.onboarded : D.onboarded,
+    goal: o.goal === null ? null : one(o.goal, GOALS, D.goal),
+    quality: one(o.quality, QUALITIES, D.quality),
+    textScale: one(o.textScale, TEXT_SCALES as readonly number[], D.textScale),
+    name: typeof o.name === 'string' ? o.name.slice(0, NAME_MAX) : D.name,
+    hwModel: typeof o.hwModel === 'string' ? o.hwModel : D.hwModel,
+  };
+}
+
 interface PrefsStore extends Prefs {
   hydrated: boolean;
   setPrefs(p: Partial<Prefs>): void;
@@ -44,8 +76,7 @@ export const usePrefs = create<PrefsStore>((setState, getState) => ({
     saver(pick(getState()));
   },
   async hydrate() {
-    const saved = await load<Partial<Prefs>>('prefs');
-    setState({ ...DEFAULT_PREFS, ...(saved ?? {}), hydrated: true });
+    setState({ ...validatePrefs(await load('prefs')), hydrated: true });
   },
 }));
 

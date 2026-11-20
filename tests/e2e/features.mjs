@@ -1022,6 +1022,28 @@ await check('States: search with no match offers words that work; an empty ladde
   await ctx.close();
 });
 
+await check('Saved data: wrong-typed settings and damaged progress fall back to defaults; no screen crashes (B-014)', async () => {
+  const { ctx, page } = await newPage({ w: 390, h: 844, prefs: { onboarded: true, theme: 5, skin: 'nope', quality: 7, textScale: 'huge', name: 42, goal: 'x', sound: 'yes' }, progress: { xp: 'lots', lessons: [1, 2], streak: null } });
+  for (const r of ['learn', 'lesson/three-wire', 'sim', 'profile', 'review']) {
+    await go(page, r);
+    expect(!(await page.getByText(/went wrong|Something broke/i).count()), `${r}: error screen with damaged saved data`);
+  }
+  await ctx.close();
+});
+
+await check('Narrow phones: no sideways scroll on any route at 320 px, with the longest allowed name', async () => {
+  const routes = Object.values(JSON.parse(readFileSync(new URL('../../src/routes.json', import.meta.url), 'utf8'))).flatMap((r) => r.samples);
+  const { ctx, page } = await newPage({ w: 320, h: 640, prefs: { onboarded: true, quality: '2d', name: 'W'.repeat(30) } });
+  const wide = [];
+  for (const r of routes) {
+    await page.goto('about:blank');
+    await go(page, r);
+    if (await page.evaluate(() => document.documentElement.scrollWidth > document.documentElement.clientWidth + 1)) wide.push(r);
+  }
+  expect(!wide.length, `sideways scroll at 320 px: ${wide.join(', ')}`);
+  await ctx.close();
+});
+
 await check('Motion: with reduced motion, nothing animates (no running CSS animations, transitions or view transitions)', async () => {
   const { ctx, page } = await newPage({ w: 390, h: 844, motion: 'reduce' });
   for (const route of ['learn', 'profile', 'sim', 'troubleshoot', 'reference']) {

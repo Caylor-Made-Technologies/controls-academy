@@ -1,6 +1,10 @@
 # Changelog
 
 ## Unreleased — Phase 6: finish
+### Fixed
+- B-014: a saved setting of the wrong type (from an old version, an edited file or an extension) crashed Learn, lessons and the simulator. Each setting is now checked and falls back to its default.
+### Added
+- QA checks: every route at 320 px with the longest allowed name, and every main screen with damaged saved data.
 ### Changed
 - 3D drive: the terminal cover shows which end is line (L1 L2 L3, ground) and which is motor (T1 T2 T3), with cover screws and cooling slots; air outlet slots on top.
 - 3D meter: a dark face in a yellow rubber holster, and four input jacks (V Ω, mA µA, A, COM) like most handheld meters. The red lead moves to the jack the dial setting needs, and the jacks in use are lit.
