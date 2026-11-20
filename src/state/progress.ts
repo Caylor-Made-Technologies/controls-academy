@@ -134,7 +134,8 @@ interface ProgressStore extends ProgressData {
   completeLesson(id: string, score: number, total: number, missed: string[]): number;
   completeTask(id: string): number;
   reviewAnswer(qid: string, correct: boolean): void;
-  recordHunt(faultId: string, ms: number, safe: boolean, points: number): void;
+  /** Save a solved hunt. Full points the first time, 10 for a new best time, else 0 (like exams). Returns XP gained. */
+  recordHunt(faultId: string, ms: number, safe: boolean, points: number): number;
   /** Save an exam sitting; missed questions are scheduled for review. Returns XP gained. */
   recordExam(examId: string, right: number, total: number, missed: string[]): number;
   sawSkin(s: SkinId): void;
@@ -168,11 +169,15 @@ function cleanExams(o: Record<string, unknown> | null): Record<string, ExamRecor
   return out;
 }
 
+/** Far more XP than every lesson, task, exam and hunt can award, even replayed for years. */
+export const MAX_XP = 10_000_000;
+
 /** Validate untrusted imported data (a file someone picked). */
 export function validateProgress(d: unknown): ProgressData | null {
   if (!d || typeof d !== 'object') return null;
   const o = d as Record<string, unknown>;
-  if (o.version !== 1 || typeof o.xp !== 'number' || !Number.isFinite(o.xp) || o.xp < 0) return null;
+  // XP far beyond what the course can award means a damaged or edited file (QA: 1e300 XP was accepted).
+  if (o.version !== 1 || typeof o.xp !== 'number' || !Number.isFinite(o.xp) || o.xp < 0 || o.xp > MAX_XP) return null;
   const obj = (v: unknown) => (v && typeof v === 'object' && !Array.isArray(v) ? (v as Record<string, unknown>) : null);
   const lessons = obj(o.lessons);
   const review = obj(o.review);
@@ -183,7 +188,8 @@ export function validateProgress(d: unknown): ProgressData | null {
   for (const [k, v] of Object.entries(lessons)) {
     const r = obj(v);
     if (!known.has(k) || !r) continue;
-    cleanLessons[k] = { score: Number(r.score) || 0, total: Number(r.total) || 0, taskDone: r.taskDone === true, at: String(r.at ?? '').slice(0, 30) };
+    const total = Math.min(50, Math.max(0, Math.floor(Number(r.total) || 0)));
+    cleanLessons[k] = { score: Math.min(total, Math.max(0, Math.floor(Number(r.score) || 0))), total, taskDone: r.taskDone === true, at: String(r.at ?? '').slice(0, 30) };
   }
   const cleanReview: Record<string, ReviewCard> = {};
   for (const [k, v] of Object.entries(review)) {
@@ -210,7 +216,7 @@ export function validateProgress(d: unknown): ProgressData | null {
     days: (o.days as unknown[]).filter((x): x is string => typeof x === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(x)).slice(-400),
     skinsSeen: Array.isArray(o.skinsSeen) ? (o.skinsSeen as unknown[]).filter((x): x is SkinId => typeof x === 'string').slice(0, 20) : [],
     stepped: o.stepped === true,
-    perfectQuizzes: Math.max(0, Number(o.perfectQuizzes) || 0),
+    perfectQuizzes: Math.min(LESSONS.length * 100, Math.max(0, Math.floor(Number(o.perfectQuizzes) || 0))),
     lastRoute: '',
     exams: cleanExams(obj(o.exams)),
   };
@@ -267,10 +273,12 @@ export const useProgress = create<ProgressStore>((set, get) => {
     },
     recordHunt(faultId, ms, safe, points) {
       const prev = get().hunts[faultId];
+      const gain = !prev ? points : ms < prev.bestMs ? 10 : 0;
       commit({
-        xp: get().xp + points,
+        xp: get().xp + gain,
         hunts: { ...get().hunts, [faultId]: { bestMs: prev ? Math.min(prev.bestMs, ms) : ms, safe: safe || Boolean(prev?.safe), at: new Date().toISOString() } },
       });
+      return gain;
     },
     recordExam(examId, right, total, missed) {
       const prev = get().exams[examId];

@@ -27,5 +27,6 @@ export const ROUTE_HEADS: Record<string, RouteHead> = {
 /** The heading for a route path, if it is one of the top-level screens (deeper pages build their own). */
 export function headFor(route: string[]): RouteHead | undefined {
   if (route.length > 1) return undefined;
-  return ROUTE_HEADS[route[0] ?? 'learn'];
+  const seg = route[0] ?? 'learn';
+  return Object.hasOwn(ROUTE_HEADS, seg) ? ROUTE_HEADS[seg] : undefined; // B-017: not inherited names
 }

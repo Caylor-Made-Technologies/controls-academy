@@ -836,7 +836,8 @@ export const HARDWARE: HwModel[] = [
   },
 ];
 
-export const HARDWARE_BY_ID: Record<string, HwModel> = Object.fromEntries(HARDWARE.map((m) => [m.id, m]));
+/** A Map, not a plain object: ids come from links, and "constructor" or "toString" must not match (B-017). */
+export const HARDWARE_BY_ID = new Map(HARDWARE.map((m) => [m.id, m]));
 
 /** The model the simulator's 3D panel shows by default for each platform dialect. */
 export const DEFAULT_HW: Record<SkinId, string> = {

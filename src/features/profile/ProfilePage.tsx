@@ -158,10 +158,10 @@ export default function ProfilePage() {
       </a>
 
       <Sheet open={confirmReset} onClose={() => setConfirmReset(false)} title="Erase all progress?">
-        <p className="mt-0">This deletes your XP, lessons, badges, fault-hunt times and saved program on this device. It can't be undone. Export a backup first if you might want it.</p>
+        <p className="mt-0">This deletes your XP, lessons, badges, exam and fault-hunt records, every saved program and your day-one checklist on this device. Your settings (name, theme, text size) stay. It can't be undone. Export a backup first if you might want it.</p>
         <div className="flex gap-2 justify-end">
           <Button variant="ghost" onClick={() => setConfirmReset(false)}>Cancel</Button>
-          <Button variant="danger" onClick={async () => { await p.reset(); const { remove } = await import('../../state/persist'); await remove('sim-program'); setConfirmReset(false); setMsg('Erased.'); }}>Erase</Button>
+          <Button variant="danger" onClick={async () => { await p.reset(); const [{ remove }, { erasableKeys }] = await Promise.all([import('../../state/persist'), import('../../state/stored')]); await Promise.all(erasableKeys().map(remove)); setConfirmReset(false); setMsg('Erased.'); }}>Erase</Button>
         </div>
       </Sheet>
     </div>

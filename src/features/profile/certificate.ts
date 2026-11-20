@@ -1,5 +1,11 @@
 import { PRACTICE_RECORD } from '../../lib/practice';
 
+/** Largest font size from `max` down to `min` at which `measure(px)` fits `width` (B-021: long names ran off the page). */
+export function fitSize(measure: (px: number) => number, max: number, min: number, width: number): number {
+  for (let px = max; px > min; px -= 2) if (measure(px) <= width) return px;
+  return min;
+}
+
 export type CertificateOpts =
   | { kind?: 'track'; name: string; track: string; trackN: number; date: string; lessons: number }
   | { kind: 'readiness'; name: string; date: string; pct: number };
@@ -72,19 +78,23 @@ export async function saveCertificate(opts: CertificateOpts) {
   g.font = '700 26px Montserrat, Inter, sans-serif';
   g.fillText('CONTROLS ACADEMY  ·  CAYLOR MADE TECHNOLOGIES', W / 2, 300);
   g.fillStyle = '#ffffff';
-  g.font = '800 72px Montserrat, Inter, sans-serif';
+  const fit = (weight: string, family: string, max: number, min: number, t: string) => {
+    const px = fitSize((n) => { g.font = `${weight} ${n}px ${family}`; return g.measureText(t).width; }, max, min, W - 300);
+    g.font = `${weight} ${px}px ${family}`;
+  };
+  fit('800', 'Montserrat, Inter, sans-serif', 72, 40, text.title);
   g.fillText(text.title, W / 2, 400);
   g.fillStyle = '#c9d3e0';
   g.font = '400 32px Inter, sans-serif';
   g.fillText('This records that', W / 2, 480);
   g.fillStyle = grad;
-  g.font = '800 84px Montserrat, Inter, sans-serif';
+  fit('800', 'Montserrat, Inter, sans-serif', 84, 36, text.who);
   g.fillText(text.who, W / 2, 580);
   g.fillStyle = '#c9d3e0';
   g.font = '400 32px Inter, sans-serif';
   g.fillText(text.line1, W / 2, 660);
   g.fillStyle = '#ffffff';
-  g.font = '700 48px Montserrat, Inter, sans-serif';
+  fit('700', 'Montserrat, Inter, sans-serif', 48, 28, text.line2);
   g.fillText(text.line2, W / 2, 740);
   g.fillStyle = '#3ddc97';
   g.font = '600 30px Inter, sans-serif';

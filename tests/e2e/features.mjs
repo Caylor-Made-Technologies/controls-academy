@@ -507,6 +507,10 @@ await check('Task capstone-build: write start/stop from a blank rung in the edit
     const p2 = await ctx.newPage();
     await p2.goto(shareUrl);
     await p2.getByText('Loaded a shared program from the link.').waitFor();
+    // A cut-off link says so instead of silently showing another program (QA 2026-11-20).
+    await p2.goto('about:blank');
+    await p2.goto(shareUrl.slice(0, -40));
+    await p2.getByText(/link's program couldn't be read/).waitFor();
     await p2.close();
   });
   await check2('Sim: program autosaves across reload', async () => {
@@ -556,7 +560,8 @@ const HUNTS = [
   await check('Fault Hunt: wrong pick costs points with a teaching moment; force costs points', async () => {
     await go(page, 'troubleshoot');
     await page.getByRole('button', { name: /Nothing works/ }).click();
-    await page.getByRole('button', { name: 'The program is wrong' }).click();
+    // A double-tap on a wrong answer is charged once (B-019): the total below stays at 2.
+    await page.getByRole('button', { name: 'The program is wrong' }).dblclick();
     await page.getByRole('alert').getByText('Teaching moment').waitFor();
     await page.getByRole('alert').getByRole('button', { name: 'OK', exact: true }).click();
     await page.getByRole('button', { name: /^Input 4, Reset/ }).click();
@@ -847,6 +852,12 @@ await check('Wiring trainer: wire a 3-wire start/stop with the terminal buttons;
   await wire('Start 4', 'M coil A1');
   await wire('M coil A2', 'OL 95');
   await wire('OL 96', 'X2 (common)');
+  // B-018: double-tapping a wire's remove button removes that one wire, not the next one too.
+  const removes = page.getByRole('button', { name: /^Remove wire/ });
+  expect((await removes.count()) === 5, 'five wires placed');
+  await removes.first().dblclick();
+  expect((await removes.count()) === 4, `double-tap removed ${5 - (await removes.count())} wires`);
+  await wire('X1 (hot)', 'Stop 1');
   await page.getByRole('button', { name: /Check wiring/ }).click();
   const res = page.getByRole('status', { name: 'Check result' });
   expect((await res.textContent()).includes('No seal-in'), 'missing seal-in explained');
@@ -989,7 +1000,7 @@ await check('Offline notice: when a screen\'s code can\'t download, a friendly m
 
 await check('States: old or mistyped links and empty filters show a designed message with a way back', async () => {
   const { ctx, page } = await newPage({ w: 390, h: 844 });
-  for (const [route, title, back] of [['lesson/no-such-lesson', 'Lesson not found', 'Back to Learn'], ['exam/no-such-exam', 'Exam not found', 'All practice exams'], ['reference/hw/no-such-model', 'Model not found', 'Hardware library'], ['reference/inside/no-such-device', 'Device not found', "What's inside"], ['reference/brand/no-such-brand', 'Guide not found', 'Brand guides']]) {
+  for (const [route, title, back] of [['lesson/no-such-lesson', 'Lesson not found', 'Back to Learn'], ['exam/no-such-exam', 'Exam not found', 'All practice exams'], ['reference/hw/no-such-model', 'Model not found', 'Hardware library'], ['reference/inside/no-such-device', 'Device not found', "What's inside"], ['reference/brand/no-such-brand', 'Guide not found', 'Brand guides'], ['wiring/no-such-exercise', 'Wiring exercise not found', 'All exercises'], ['troubleshoot/no-such-hunt', 'Fault hunt not found', 'All hunts'], ['summary/no-such-track', 'Summary not found', 'All summaries'], ['lesson/%E0%A4%A', 'Lesson not found', 'Back to Learn'], ['reference/hw/constructor', 'Model not found', 'Hardware library']]) {
     await go(page, route);
     expect((await page.locator('main#main h1').textContent()) === title, `${route}: heading "${title}"`);
     expect(await page.getByRole('link', { name: back }).isVisible(), `${route}: link "${back}"`);

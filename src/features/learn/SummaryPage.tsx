@@ -2,7 +2,7 @@ import { lazy, Suspense, use } from 'react';
 import { PageHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { SkeletonPage } from '../../components/Skeleton';
-import { Button } from '../../components/ui';
+import { Button, NotFound } from '../../components/ui';
 import { TRACK_BY_ID, TRACKS } from '../../content/catalog';
 import { loadLessons } from '../../content/lesson-load';
 import type { Track } from '../../content/types';
@@ -18,6 +18,7 @@ function LoadedTrack({ t }: { t: Track }) {
 /** Study summaries: the list of tracks, or one track's summary (its code and lessons load when opened). */
 export default function SummaryPage({ track }: { track?: string }) {
   const t = TRACK_BY_ID.get(track as TrackId);
+  if (track && !t) return <NotFound what="Summary" backHref={href('summary')} backLabel="All summaries" />;
   if (t) return <Suspense fallback={<SkeletonPage />}><LoadedTrack t={t} /></Suspense>;
   return (
     <div>

@@ -15,7 +15,7 @@ import { POSTERS } from '../../three/poster/meter.gen';
 import { usePrefs } from '../../state/prefs';
 import { MODE_LABEL, huntScore, meterResult, type MeterMode, type Penalty } from './scoring';
 import { MeterFace } from '../../components/MeterFace';
-import { Button, Segmented, Chip } from '../../components/ui';
+import { Button, NotFound, Segmented, Chip } from '../../components/ui';
 
 
 function fmtTime(ms: number) {
@@ -46,6 +46,7 @@ export default function HuntScreens({ huntId }: { huntId?: string }) {
     start(pool[Math.floor(Math.random() * pool.length)]);
   };
 
+  if (huntId && !fault) return <NotFound what="Fault hunt" backHref={href('troubleshoot')} backLabel="All hunts" />;
   if (fault) return <Hunt key={`${fault.id}-${round}`} fault={fault} onExit={() => navigate('troubleshoot')} onNext={surprise} />;
 
   return (
@@ -149,7 +150,8 @@ function Hunt({ fault, onExit, onNext }: { fault: HuntFault; onExit: () => void;
     } else {
       const label = rt?.scene.devices.find((d) => d.id === id)?.label ?? rt?.scene.huntChoices?.find((c) => c.id === id)?.label.toLowerCase() ?? id;
       setWrong(label);
-      penalize(`Replaced or blamed ${label}, but that wasn't it. On the job that's a part, an hour and a callback. Measure before you swap.`, 15);
+      // Once per part (B-019: a double-tap on a wrong answer charged twice).
+      once(`pick:${id}`, `Replaced or blamed ${label}, but that wasn't it. On the job that's a part, an hour and a callback. Measure before you swap.`, 15);
     }
   };
 

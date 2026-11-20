@@ -107,7 +107,7 @@ export function HardwareLibrary() {
 }
 
 export function HardwareDetail({ id }: { id: string }) {
-  const m = HARDWARE_BY_ID[id];
+  const m = HARDWARE_BY_ID.get(id);
   const quality = usePrefs((s) => s.quality);
   const skin = usePrefs((s) => s.skin);
   const hwModel = usePrefs((s) => s.hwModel);

@@ -1,3 +1,4 @@
+import { programKey } from '../../state/stored';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { RouteHead } from '../../components/Brand';
 import { href } from '../../lib/router';
@@ -15,7 +16,7 @@ import { Workbench } from './LazyWorkbench';
 import { Button } from '../../components/ui';
 
 /** Each machine keeps its own saved program. The motor keeps the original key so old saves still load. */
-const storeKey = (m: string) => (m === 'motor' ? 'sim-program' : `sim-program:${m}`);
+const storeKey = programKey;
 const savers = new Map<string, (p: Program) => void>();
 const saveProgram = (m: string, p: Program) => {
   if (!savers.has(m)) savers.set(m, debouncedSaver<Program>(storeKey(m), 400));
@@ -45,6 +46,7 @@ function MachineSim({ machine }: { machine: string }) {
       const p = fromLink ?? saved ?? (await import('../../plant')).createMachine(machine).program();
       if (!alive) return;
       if (fromLink) setMsg('Loaded a shared program from the link.');
+      else if (shared) setMsg("That link's program couldn't be read (it may be cut off). Showing your saved or starter program instead.");
       current.current = p;
       setInitial(p);
     })();

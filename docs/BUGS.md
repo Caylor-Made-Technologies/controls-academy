@@ -6,6 +6,13 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 
 | ID | Severity | Found | Status |
 |---|---|---|---|
+| B-021 | Low | Phase 6.2 QA agent | Fixed (unreleased) |
+| B-020 | Medium | Phase 6.2 QA agent | Fixed (unreleased) |
+| B-019 | Low | Phase 6.2 QA agent | Fixed (unreleased) |
+| B-018 | Medium | Phase 6.2 QA agent | Fixed (unreleased) |
+| B-017 | Medium | Phase 6.2 QA agent | Fixed (unreleased) |
+| B-016 | High | Phase 6.2 QA agent | Fixed (unreleased) |
+| B-015 | High | Phase 6.2 QA agent | Fixed (unreleased) |
 | B-014 | High | Phase 6.2 QA sweep | Fixed (unreleased) |
 | B-007 | High | Phase 2 (unit test) | Fixed before release |
 | B-006 | High | Phase 1 (exam screenshot) | Fixed in 0.6.0 |
@@ -68,6 +75,30 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 - **Expected:** *Protection devices* (next in Track 1). **Actual:** *Reading ladder prints* (Track 2); *Protection devices* is skipped. 9 of 49 "Next" links pointed to the wrong lesson.
 - **Cause:** `LESSONS` kept source-file order; tracks have their own order.
 - **Fix:** `LESSONS` sorted by `COURSE_ORDER` (track by track). **Test:** `tests/unit/quality.test.ts` → "course order".
+
+## B-021 — A long name ran off the certificate
+- **Steps:** a 30-character name with no spaces (the field's maximum), then save a certificate. **Actual:** the name, drawn at a fixed 84 px, ran past both edges.
+- **Fix:** title, name and track lines shrink to fit the page (`fitSize`). **Test:** `tests/unit/certificate.test.ts`.
+
+## B-020 — "Erase all progress" left other machines' programs behind
+- **Steps:** edit the programs on two machines, Profile → Erase → reload. **Actual:** only the motor program was erased; the dialog didn't say settings stay.
+- **Fix:** erase removes every machine's program and the day-one ticks (`src/state/stored.ts`); the dialog lists what goes and says settings stay. **Test:** `tests/unit/stored.test.ts`.
+
+## B-019 — A double-tap on a wrong Fault Hunt answer was charged twice
+- **Fix:** wrong picks go through the same charge-once rule as meter mistakes. **Test:** e2e "Fault Hunt: wrong pick costs points…" double-taps and expects 2 charges in total. Also: replaying a solved hunt paid full XP every time; now full XP on the first solve and 10 for a faster time (like exams). **Test:** `tests/unit/progress.test.ts`.
+
+## B-018 — Double-tapping a wire's remove button removed two wires
+- **Cause:** the list closes up after the first removal, so the second click landed on the next wire's button. **Fix:** the button ignores repeat clicks of a double-click (keyboard unaffected). **Test:** e2e wiring check double-taps and expects one wire gone.
+
+## B-017 — "constructor" or "toString" as a hardware id crashed the page
+- **Steps:** `#/reference/hw/constructor`. **Cause:** a plain-object lookup matched inherited names; the startup script's route tables had the same weakness. **Fix:** a `Map` for hardware, own-property checks for route headings and in the startup script. **Tests:** `tests/unit/router.test.ts`, e2e not-found check.
+
+## B-016 — A malformed % escape in a link gave a blank page
+- **Steps:** `#/lesson/%E0%A4%A` or `#/lesson/%`. **Cause:** `decodeURIComponent` threw outside the error boundary. **Fix:** `parsePath` keeps an undecodable segment as typed, so the page shows "not found". **Tests:** `tests/unit/router.test.ts`, e2e not-found check.
+
+## B-015 — An imported program with missing operands crashed the simulator, even after reload
+- **Steps:** import (or open a share link with) a rung holding `TON` with no operands. **Actual:** the error screen, and again after every reload because the program had been saved; a `MOV` with one operand threw ~60 errors a second.
+- **Fix:** `validateProgram` requires exactly the operands each instruction takes; saved programs pass the same check on load, so a stuck simulator recovers. **Test:** `tests/unit/edit.test.ts` (plus every built-in machine program validates).
 
 ## B-014 — A wrong-typed saved setting crashed Learn, lessons and the simulator
 - **Steps:** saved settings (`ca:prefs`) holding a value of the wrong type, e.g. `goal: "x"`, `skin: "nope"` or `theme: 5` (an old version, a hand-edited or imported file, a browser extension), then open Learn, a lesson or the Simulator.

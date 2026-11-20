@@ -3,6 +3,15 @@
 ## Unreleased — Phase 6: finish
 ### Fixed
 - B-014: a saved setting of the wrong type (from an old version, an edited file or an extension) crashed Learn, lessons and the simulator. Each setting is now checked and falls back to its default.
+- B-015: an imported or shared program with missing operands crashed the simulator, even after reload.
+- B-016: a link with a broken % escape showed a blank page; it now shows "not found".
+- B-017: hardware links named like built-in object properties ("constructor") crashed the page.
+- B-018: double-tapping a wire's remove button removed two wires.
+- B-019: a double-tap on a wrong Fault Hunt answer was charged twice; replaying a solved hunt paid full XP every time (now full XP once, 10 for a faster time).
+- B-020: "Erase all progress" left other machines' programs and the day-one ticks behind.
+- B-021: a long name ran off the certificate; lines now shrink to fit.
+- Imported backups with impossible numbers (XP beyond what the course can award, scores outside 0–total) are rejected or clamped.
+- Unknown wiring, Fault Hunt and summary links show "not found" like every other page; a cut-off share link says so.
 ### Added
 - QA checks: every route at 320 px with the longest allowed name, and every main screen with damaged saved data.
 ### Changed

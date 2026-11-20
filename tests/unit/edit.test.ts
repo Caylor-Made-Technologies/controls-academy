@@ -80,4 +80,15 @@ describe('ladder edits', () => {
     bad.routines[0].rungs[0].elems.push({ kind: 'instr', op: 'EVAL', args: [] });
     expect(validateProgram(bad)).toBeNull();
   });
+  it('B-015: an instruction with the wrong number of operands is rejected (it crashed the simulator, even after reload)', () => {
+    for (const [op, args] of [['TON', []], ['MOV', ['5']], ['XIC', []], ['XIC', ['a', 'b']]] as const) {
+      const bad = structuredClone(base()) as unknown as { routines: { rungs: { elems: unknown[] }[] }[] };
+      bad.routines[0].rungs[0].elems.push({ kind: 'instr', op, args });
+      expect(validateProgram(bad), `${op}(${args.length})`).toBeNull();
+    }
+  });
+  it('every built-in machine program passes validation', async () => {
+    const { MACHINES, createMachine } = await import('../../src/plant');
+    for (const m of MACHINES) expect(validateProgram(JSON.parse(JSON.stringify(createMachine(m.id).program()))), m.id).not.toBeNull();
+  });
 });

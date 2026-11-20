@@ -1,3 +1,4 @@
+import { DAY_ONE_KEY } from '../../state/stored';
 import { useEffect, useState } from 'react';
 import { PageHead } from '../../components/Brand';
 import { Button, Callout } from '../../components/ui';
@@ -5,7 +6,7 @@ import { DAY_ONE, DAY_ONE_COUNT, dayOneText } from '../../content/dayone';
 import { href } from '../../lib/router';
 import { load, save } from '../../state/persist';
 
-const KEY = 'day-one';
+const KEY = DAY_ONE_KEY;
 
 /** Day one at a new plant: tick items as you go (saved on this device), export or print the list. */
 export default function DayOnePage() {

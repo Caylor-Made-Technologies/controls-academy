@@ -29,9 +29,16 @@ function subscribePath(fn: () => void) {
   return () => window.removeEventListener('hashchange', on);
 }
 
+const decode = (seg: string) => { try { return decodeURIComponent(seg); } catch { return seg; } };
+
+/** Path → segments. A malformed escape (a hand-typed or cut-off link) stays as typed and ends up "not found" (B-016). */
+export function parsePath(path: string): string[] {
+  return path.split('/').filter(Boolean).map(decode);
+}
+
 export function useRoute(): string[] {
   const path = useSyncExternalStore(subscribePath, current, () => '');
-  return path.split('/').filter(Boolean).map(decodeURIComponent);
+  return parsePath(path);
 }
 
 export function navigate(path: string) {

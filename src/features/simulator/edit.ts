@@ -262,7 +262,8 @@ export function validateProgram(d: unknown): Program | null {
         const legs = (Array.isArray(e.legs) ? e.legs : []).map((l: unknown) => elems(l, depth + 1));
         if (legs.some((l) => l === null)) return null;
         out.push({ kind: 'branch', id, legs: legs as Elem[][] });
-      } else if (e.kind === 'instr' && typeof e.op === 'string' && e.op in OPS && Array.isArray(e.args)) {
+      } else if (e.kind === 'instr' && typeof e.op === 'string' && Object.hasOwn(OPS, e.op) && Array.isArray(e.args) && e.args.length === OPS[e.op as OpCode].args.length) {
+        // Exactly the operands the instruction takes (B-015: a TON with none crashed the simulator after every reload).
         out.push({ kind: 'instr', id, op: e.op as OpCode, args: (e.args as unknown[]).map((a) => String(a).slice(0, 120)) });
       } else return null;
     }

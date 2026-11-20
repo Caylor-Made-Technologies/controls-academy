@@ -8,7 +8,7 @@ import { href } from '../../lib/router';
 import { EXERCISES, EXERCISE_BY_ID, WIRE_COLORS, checkWiring, type CheckResult, type Exercise, type Wire } from '../../lib/wiring';
 import { usePrefs } from '../../state/prefs';
 import { hasWebGL, prefer3D } from '../../three/support';
-import { Callout, Segmented, Chip } from '../../components/ui';
+import { Callout, NotFound, Segmented, Chip } from '../../components/ui';
 import { Button } from '../../components/ui';
 import { WiringDiagram } from './WiringDiagram';
 
@@ -41,6 +41,8 @@ function Trainer({ ex }: { ex: Exercise }) {
     }
     setArmed(null);
   };
+  // The list closes up after a removal, so a double-tap's second click would land on the next wire (B-018):
+  // the button ignores repeat clicks (e.detail > 1); keyboard presses have detail 0.
   const remove = (i: number) => { setWires(wires.filter((_, k) => k !== i)); setColors(colors.filter((_, k) => k !== i)); setResult(null); setShown(false); };
   const check = () => setResult(checkWiring(ex.id, wires));
 
@@ -92,7 +94,7 @@ function Trainer({ ex }: { ex: Exercise }) {
               <li key={`${a}-${b}`} className="flex items-center gap-2 text-sm">
                 <span className="inline-block w-3 h-3 rounded-full flex-none" style={{ background: colors[i] }} aria-hidden="true" />
                 <span className="flex-1">{label.get(a)} → {label.get(b)}</span>
-                <Button variant="ghost" size="sm" className="!min-h-11" onClick={() => remove(i)} aria-label={`Remove wire ${label.get(a)} to ${label.get(b)}`}><Icon name="x" size={16} /></Button>
+                <Button variant="ghost" size="sm" className="!min-h-11" onClick={(e) => { if (e.detail > 1) return; remove(i); }} aria-label={`Remove wire ${label.get(a)} to ${label.get(b)}`}><Icon name="x" size={16} /></Button>
               </li>
             ))}
           </ul>
@@ -127,6 +129,7 @@ function Trainer({ ex }: { ex: Exercise }) {
 export default function WiringPage({ id }: { id?: string }) {
   const ex = id ? EXERCISE_BY_ID.get(id as Exercise['id']) : undefined;
   if (ex) return <Trainer key={ex.id} ex={ex} />;
+  if (id) return <NotFound what="Wiring exercise" backHref={href('wiring')} backLabel="All exercises" />;
   return (
     <div>
       <RouteHead seg="wiring" />

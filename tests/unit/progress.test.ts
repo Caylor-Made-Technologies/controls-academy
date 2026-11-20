@@ -53,3 +53,28 @@ describe('exam records', () => {
     expect(validateProgress(old)?.exams).toEqual({});
   });
 });
+
+describe('hunt records', () => {
+  // A replayed hunt paid full XP every time (QA 2026-11-20); now like exams: full on the first solve, a little for a faster time.
+  it('a hunt pays full XP once, then only for a faster time', async () => {
+    const { useProgress } = await import('../../src/state/progress');
+    const s = () => useProgress.getState();
+    const x0 = s().xp;
+    expect(s().recordHunt('qa-test', 60000, true, 60)).toBe(60);
+    expect(s().recordHunt('qa-test', 70000, true, 60)).toBe(0);
+    expect(s().recordHunt('qa-test', 50000, true, 60)).toBe(10);
+    expect(s().xp - x0).toBe(70);
+    expect(s().hunts['qa-test'].bestMs).toBe(50000);
+  });
+});
+
+describe('import bounds', () => {
+  it('rejects absurd XP and clamps lesson scores into 0..total', async () => {
+    const { validateProgress } = await import('../../src/state/progress');
+    const base = { version: 1, xp: 10, lessons: {}, review: {}, hunts: {}, days: [] };
+    expect(validateProgress({ ...base, xp: 1e300 })).toBeNull();
+    const r = validateProgress({ ...base, lessons: { 'three-wire': { score: -5, total: 4 }, 'z-electricity': { score: 9, total: 4 } } })!;
+    expect(r.lessons['three-wire'].score).toBe(0);
+    expect(r.lessons['z-electricity'].score).toBe(4);
+  });
+});

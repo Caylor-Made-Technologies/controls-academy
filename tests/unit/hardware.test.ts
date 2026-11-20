@@ -40,7 +40,7 @@ describe('hardware library', () => {
   it('every simulator dialect maps to a real model (or the generic rack)', () => {
     for (const id of Object.keys(SKINS)) {
       const hw = DEFAULT_HW[id as keyof typeof DEFAULT_HW];
-      expect(hw === 'generic' || Boolean(HARDWARE_BY_ID[hw]), id).toBe(true);
+      expect(hw === 'generic' || Boolean(HARDWARE_BY_ID.get(hw)), id).toBe(true);
     }
   });
 
@@ -58,11 +58,11 @@ describe('hardware categories', () => {
   it('covers PLCs, remote I/O, drives, HMIs, safety relays, building automation and logic modules', () => {
     const cats = new Set(HARDWARE.map(categoryOf));
     for (const c of Object.keys(CATEGORY_TEXT)) expect(cats.has(c as never), c).toBe(true);
-    expect(categoryOf(HARDWARE_BY_ID.unitronics)).toBe('plc');
-    expect(categoryOf(HARDWARE_BY_ID['powerflex-525'])).toBe('drive');
-    expect(categoryOf(HARDWARE_BY_ID['point-io'])).toBe('io');
+    expect(categoryOf(HARDWARE_BY_ID.get('unitronics')!)).toBe('plc');
+    expect(categoryOf(HARDWARE_BY_ID.get('powerflex-525')!)).toBe('drive');
+    expect(categoryOf(HARDWARE_BY_ID.get('point-io')!)).toBe('io');
   });
   it('the simulator default for every dialect is a PLC', () => {
-    for (const id of Object.values(DEFAULT_HW)) if (id !== 'generic') expect(categoryOf(HARDWARE_BY_ID[id])).toBe('plc');
+    for (const id of Object.values(DEFAULT_HW)) if (id !== 'generic') expect(categoryOf(HARDWARE_BY_ID.get(id)!)).toBe('plc');
   });
 });
