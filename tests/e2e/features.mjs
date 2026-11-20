@@ -775,6 +775,7 @@ await check('Review: due questions appear, answer, finish', async () => {
   await check('About: privacy, trademarks, font licenses reachable, sister-app link', async () => {
     await go(page, 'about');
     await page.getByText('Not affiliated with or endorsed by', { exact: false }).first().waitFor();
+    await page.locator('main#main').getByText('Practice record — not a qualification or license.', { exact: false }).first().waitFor();
     for (const f of ['fonts/Inter-OFL.txt', 'fonts/Montserrat-OFL.txt']) {
       const r = await page.request.get(URL0 + f);
       expect(r.ok(), `${f} ${r.status()}`);

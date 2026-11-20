@@ -1,3 +1,4 @@
+import { PRACTICE_RECORD } from '../../lib/practice';
 import { RouteHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { BUSINESS } from '../../lib/business';
@@ -40,6 +41,7 @@ export default function AboutPage() {
 
       <h2 className="text-lg font-bold mt-6 mb-2">Training only</h2>
       <p>This is educational software. It is not a substitute for qualified training, manufacturer documentation, or your site's procedures. Never apply anything here to live equipment without authorization. Example values (motor current, overload timing, raw analog ranges) are illustrative. Items marked <Chip tone="warn" className="!min-h-5.5 !text-2xs">check your manual</Chip> vary by platform, model or version.</p>
+      <p>Certificates, exam scores and the readiness assessment are records of your own practice. {PRACTICE_RECORD}</p>
       <p className="text-sm text-muted">Terms and policy text here are templates until reviewed by an attorney.</p>
 
       <h2 className="text-lg font-bold mt-6 mb-2">Trademarks</h2>

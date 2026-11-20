@@ -55,6 +55,7 @@ export default defineConfig({
   test: {
     include: ['tests/unit/**/*.test.ts'],
     environment: 'node',
-    coverage: { include: ['src/engine/**'], reporter: ['text-summary'] },
+    // The PLC engine is the part every lesson and machine depends on: keep it at least this well tested.
+    coverage: { include: ['src/engine/**'], exclude: ['src/engine/types.ts'], reporter: ['text-summary'], thresholds: { lines: 95, statements: 95, functions: 100, branches: 90 } },
   },
 } as never);

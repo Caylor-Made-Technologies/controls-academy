@@ -43,7 +43,7 @@ if (LIVE) {
   console.log(`verify:live → ${SITE}`);
   for (const [n, c] of E2E) await step(n, c, { SITE_URL: SITE });
 } else {
-  await step('unit', 'npx vitest run');
+  await step('unit', 'npx vitest run --coverage'); // fails under the engine coverage thresholds in vite.config.ts
   await step('lint', 'npx eslint .');
   await step('typecheck', 'npx tsc --noEmit');
   const built = await step('build', 'npm run build');

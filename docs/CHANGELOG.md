@@ -13,6 +13,9 @@
 - Imported backups with impossible numbers (XP beyond what the course can award, scores outside 0–total) are rejected or clamped.
 - Unknown wiring, Fault Hunt and summary links show "not found" like every other page; a cut-off share link says so.
 ### Added
+- README rewritten with current numbers, new phone and desktop screenshots and a short demo animation (`node scripts/readme-media.mjs` regenerates them).
+- Engine test coverage is part of the gate (`npm run verify` fails under 95 % lines / 90 % branches; now 97.7 % / 91.8 %).
+- About states that certificates and scores are practice records, not a qualification.
 - Practice exams: leaving mid-sitting (back button, another screen) and coming back offers Resume with your answers kept; the timer keeps counting while you're away, and a finished timer marks the sitting.
 - QA checks: every route at 320 px with the longest allowed name, and every main screen with damaged saved data.
 ### Changed
