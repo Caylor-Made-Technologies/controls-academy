@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { TRACKS } from '../../src/content';
+import { LESSON_BY_ID, TRACKS } from '../../src/content';
 import { FORMULAS } from '../../src/content/summaries';
 import { summaryMarkdown, trackSummary } from '../../src/features/learn/SummaryTrack';
 import { ohm, power } from '../../src/lib/circuits';
@@ -7,7 +7,7 @@ import { ohm, power } from '../../src/lib/circuits';
 describe('study summaries', () => {
   it('every track has terms, safety points and common mistakes', () => {
     for (const t of TRACKS) {
-      const s = trackSummary(t);
+      const s = trackSummary(t, t.lessons.map((id) => LESSON_BY_ID.get(id)!));
       expect(s.terms.length, t.id).toBeGreaterThan(2);
       expect(s.mistakes.length, t.id).toBeGreaterThanOrEqual(t.lessons.length * 2);
       expect(s.safety.length + 1, t.id).toBeGreaterThan(0);
@@ -15,7 +15,7 @@ describe('study summaries', () => {
   });
   it('markdown export has no leftover markup or VERIFY tags', () => {
     for (const t of TRACKS) {
-      const md = summaryMarkdown(t);
+      const md = summaryMarkdown(t, t.lessons.map((id) => LESSON_BY_ID.get(id)!));
       expect(md).not.toMatch(/\[\[|\/\/ VERIFY/);
       expect(md).toContain(`# Track ${t.n}`);
     }

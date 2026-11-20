@@ -55,7 +55,6 @@ export function routePreload(): Plugin {
         // Deep links into lazily loaded sub-pages (e.g. #/reference/compare) fetch the sub-page's code at full
         // priority alongside the route's, instead of one after the other (0.10.0 Lighthouse: LCP 2.8 s).
         const SUB: Record<string, string> = { 'reference/compare': 'ComparePage', 'reference/cheats': 'CheatPage', 'reference/day-one': 'DayOnePage', 'reference/devices': 'DevicePages', 'reference/device': 'DevicePages', 'reference/flow': 'FlowPage', 'reference/brands': 'ReferenceViews', 'reference/brand': 'ReferenceViews', 'reference/instructions': 'ReferenceViews', 'reference/glossary': 'ReferenceViews', 'reference/safety': 'ReferenceViews', 'reference/practice': 'ReferenceViews', 'reference/hardware': 'HardwarePages', 'reference/hw': 'HardwarePages', 'reference/inside': 'InsidePages' };
-        for (const t of TRACKS) SUB[`summary/${t.id}`] = 'SummaryTrack';
         for (const [k, page] of Object.entries(SUB)) map[k] = [filesFor(page)[0], []];
         // The Reference index links to a dozen views; prefetching them all (even at low priority) competes with its first paint on a slow phone.
         if (map.reference) map.reference[1] = [];
@@ -66,6 +65,12 @@ export function routePreload(): Plugin {
         for (const l of LESSON_META) alias[`lesson/${l.id}`] = `@${l.file}`;
         if (map.lesson) map.lesson[1] = [];
         if (map.summary) map.summary[1] = [];
+        // A track summary link fetches its code plus only the lesson files that hold that track's lessons.
+        const fileOf = new Map(LESSON_META.map((l) => [l.id, l.file]));
+        for (const t of TRACKS) {
+          const files = new Set([...closure(pageChunk('SummaryTrack').fileName), ...[...new Set(t.lessons.map((id) => fileOf.get(id)!))].flatMap((f) => closure(pageChunk(f).fileName))]);
+          map[`summary/${t.id}`] = [[...files], []];
+        }
         // Any deeper Fault Hunt link (#/troubleshoot/<hunt>) needs the hunt screens at full priority, not later.
         if (map.troubleshoot) { map['troubleshoot/*'] = [map.troubleshoot[1], []]; map.troubleshoot[1] = []; }
         const first = filesFor('Onboarding')[0];

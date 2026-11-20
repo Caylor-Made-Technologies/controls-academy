@@ -1,11 +1,10 @@
 import { useMemo } from 'react';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
-import { LESSON_BY_ID } from '../../content';
 import { GLOSSARY_BY_ID } from '../../content/glossary';
 import { FORMULAS } from '../../content/summaries';
 import { lessonText } from '../../content/quality';
-import type { Track } from '../../content/types';
+import type { Lesson, Track } from '../../content/types';
 import { BUSINESS } from '../../lib/business';
 import { href } from '../../lib/router';
 import { Button } from '../../components/ui';
@@ -13,8 +12,8 @@ import { Button } from '../../components/ui';
 /** Plain text from inline markup: [[id|label]] → label, **x** → x. */
 export const plain = (t: string) => t.replace(/\[\[([^\]|]+)\|([^\]]+)\]\]/g, '$2').replace(/\[\[([^\]]+)\]\]/g, (_, id) => GLOSSARY_BY_ID.get(id)?.term ?? id).replace(/\*\*/g, '').replace(/\s*\/\/ VERIFY.*$/, '');
 
-export function trackSummary(t: Track) {
-  const lessons = t.lessons.map((id) => LESSON_BY_ID.get(id)!);
+/** `lessons`: the track's lessons in order (the page loads only the files that hold them). */
+export function trackSummary(t: Track, lessons: Lesson[]) {
   const termIds: string[] = [];
   for (const l of lessons) for (const m of lessonText(l).matchAll(/\[\[([^\]|]+)/g)) if (!termIds.includes(m[1]) && GLOSSARY_BY_ID.has(m[1])) termIds.push(m[1]);
   const terms = termIds.map((id) => GLOSSARY_BY_ID.get(id)!).sort((a, b) => a.term.localeCompare(b.term));
@@ -23,8 +22,8 @@ export function trackSummary(t: Track) {
   return { lessons, terms, safety, mistakes, formulas: FORMULAS[t.id] ?? [] };
 }
 
-export function summaryMarkdown(t: Track): string {
-  const s = trackSummary(t);
+export function summaryMarkdown(t: Track, lessons: Lesson[]): string {
+  const s = trackSummary(t, lessons);
   const out = [`# Track ${t.n}: ${t.title} — study summary`, '', `Controls Academy by ${BUSINESS.name}. Training material, not site procedure.`, ''];
   out.push('## Why each lesson matters', ...s.lessons.map((l) => `- **${l.title}:** ${plain(l.why)}`), '');
   if (s.formulas.length) out.push('## Formulas', ...s.formulas.map((f) => `- **${f.name}:** ${f.formula}${f.example ? ` (e.g. ${f.example})` : ''}`), '');
@@ -34,8 +33,8 @@ export function summaryMarkdown(t: Track): string {
   return out.join('\n');
 }
 
-function download(t: Track) {
-  const blob = new Blob([summaryMarkdown(t)], { type: 'text/markdown' });
+function download(t: Track, lessons: Lesson[]) {
+  const blob = new Blob([summaryMarkdown(t, lessons)], { type: 'text/markdown' });
   const a = document.createElement('a');
   a.href = URL.createObjectURL(blob);
   a.download = `controls-academy-track-${t.n}-summary.md`;
@@ -44,14 +43,14 @@ function download(t: Track) {
 }
 
 /** One track's printable summary (loaded on demand: it needs every lesson in the track). */
-export default function SummaryTrack({ t }: { t: Track }) {
-  const s = useMemo(() => trackSummary(t), [t]);
+export default function SummaryTrack({ t, lessons }: { t: Track; lessons: Lesson[] }) {
+  const s = useMemo(() => trackSummary(t, lessons), [t, lessons]);
   return (
     <article className="summary max-w-[78ch]">
       <div className="no-print flex flex-wrap gap-2 mb-3">
         <Button href={href('summary')} variant="ghost" size="sm" className="-ml-2"><Icon name="back" size={16} /> All summaries</Button>
         <Button variant="primary" size="sm" onClick={() => window.print()}><Icon name="download" size={16} /> Print / save as PDF</Button>
-        <Button size="sm" onClick={() => download(t)}><Icon name="download" size={16} /> Download (.md)</Button>
+        <Button size="sm" onClick={() => download(t, lessons)}><Icon name="download" size={16} /> Download (.md)</Button>
       </div>
       <header className="mb-4">
         <p className="eyebrow m-0">Study summary · Track {t.n} · {t.level}</p>

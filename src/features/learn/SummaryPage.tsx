@@ -1,18 +1,24 @@
-import { lazy, Suspense } from 'react';
+import { lazy, Suspense, use } from 'react';
 import { PageHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { SkeletonPage } from '../../components/Skeleton';
 import { Button } from '../../components/ui';
 import { TRACK_BY_ID, TRACKS } from '../../content/catalog';
+import { loadLessons } from '../../content/lesson-load';
+import type { Track } from '../../content/types';
 import type { TrackId } from '../../content/types';
 import { href } from '../../lib/router';
 
 const SummaryTrack = lazy(() => import('./SummaryTrack'));
 
+function LoadedTrack({ t }: { t: Track }) {
+  return <SummaryTrack t={t} lessons={use(loadLessons(t.lessons))} />;
+}
+
 /** Study summaries: the list of tracks, or one track's summary (its code and lessons load when opened). */
 export default function SummaryPage({ track }: { track?: string }) {
   const t = TRACK_BY_ID.get(track as TrackId);
-  if (t) return <Suspense fallback={<SkeletonPage />}><SummaryTrack t={t} /></Suspense>;
+  if (t) return <Suspense fallback={<SkeletonPage />}><LoadedTrack t={t} /></Suspense>;
   return (
     <div>
       <Button href={href('learn')} variant="ghost" size="sm" className="-ml-2 mb-2"><Icon name="back" size={16} /> Learn</Button>

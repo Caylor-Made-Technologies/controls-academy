@@ -30,3 +30,17 @@ export function loadLesson(id: string): Promise<Lesson | undefined> {
   }
   return p;
 }
+
+const trackCache = new Map<string, Promise<Lesson[]>>();
+
+/** Every lesson in a track, in track order, loading only the files that hold them. */
+export function loadLessons(ids: string[]): Promise<Lesson[]> {
+  const key = ids.join(',');
+  let p = trackCache.get(key);
+  if (!p) {
+    p = Promise.all(ids.map(loadLesson)).then((ls) => ls.filter((l): l is Lesson => Boolean(l)));
+    p.catch(() => trackCache.delete(key));
+    trackCache.set(key, p);
+  }
+  return p;
+}

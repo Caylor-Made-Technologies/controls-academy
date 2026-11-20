@@ -9,7 +9,7 @@
 - Faster first load (Lighthouse on live, every route measured; 36 of 41 already passed):
   - A lesson downloads only the file that holds it (6–24 KB) instead of all 60 lessons (80 KB), and a direct link fetches that file straight away.
   - Lessons with a hands-on task, and Fault Hunt, start loading the workbench after the page text has painted, not before.
-  - Study summaries: the track list no longer downloads every lesson; a track's summary loads when opened.
+  - Study summaries: the track list no longer downloads every lesson; a track's summary loads only that track's lessons when opened.
   - A direct link to a Fault Hunt fetches the hunt screen's code at full priority.
 
 ## 0.10.0 — 2026-11-19 — Phase 5: Reference
