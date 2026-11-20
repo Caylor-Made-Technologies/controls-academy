@@ -47,6 +47,18 @@ function ExamHome() {
   );
 }
 
+/** A sitting in progress, kept for this browser tab so leaving the page and coming back doesn't lose it. */
+interface Saved { ids: string[]; answers: Record<string, number>; i: number; timed: boolean; deadline: number }
+const savedKey = (id: string) => `ca:exam:${id}`;
+function readSaved(id: string): Saved | null {
+  try {
+    const o = JSON.parse(sessionStorage.getItem(savedKey(id)) ?? 'null') as Partial<Saved> | null;
+    if (!o || !Array.isArray(o.ids) || !o.ids.length || typeof o.answers !== 'object' || !o.answers || typeof o.i !== 'number' || typeof o.deadline !== 'number') return null;
+    return { ids: o.ids.map(String), answers: o.answers as Record<string, number>, i: o.i, timed: o.timed === true, deadline: o.deadline };
+  } catch { return null; }
+}
+const writeSaved = (id: string, v: Saved | null) => { try { if (v) sessionStorage.setItem(savedKey(id), JSON.stringify(v)); else sessionStorage.removeItem(savedKey(id)); } catch { /* storage blocked */ } };
+
 function Sitting({ exam }: { exam: ExamDef }) {
   const lessons = useProgress((s) => s.lessons);
   const recordExam = useProgress((s) => s.recordExam);
@@ -57,6 +69,8 @@ function Sitting({ exam }: { exam: ExamDef }) {
   const [answers, setAnswers] = useState<Record<string, number>>({});
   const [left, setLeft] = useState(0);
   const [gain, setGain] = useState(0);
+  const [deadline, setDeadline] = useState(0);
+  const [saved, setSaved] = useState(() => readSaved(exam.id));
   const limit = exam.size * exam.secsPerQ;
   const bank = useRef<BankModule | null>(null);
   const painted = useAfterPaint();
@@ -76,11 +90,33 @@ function Sitting({ exam }: { exam: ExamDef }) {
     setAnswers({});
     setI(0);
     setLeft(limit);
+    setDeadline(timed ? Date.now() + limit * 1000 : 0);
+    setSaved(null);
     setPhase('run');
     window.scrollTo(0, 0);
   };
 
+  // Leaving mid-exam (back button, another tab) used to lose every answer (QA 2026-11-20): resume where you were.
+  const resume = async () => {
+    if (!saved) return;
+    const b = bank.current ?? (bank.current = await loadBank());
+    const its = saved.ids.map((id) => b.BANK_BY_ID.get(id));
+    if (its.some((x) => !x)) { writeSaved(exam.id, null); setSaved(null); return; }
+    setItems(its as BankItem[]);
+    setAnswers(saved.answers);
+    setI(Math.min(Math.max(0, saved.i), its.length - 1));
+    setTimed(saved.timed);
+    setDeadline(saved.deadline);
+    setLeft(saved.timed ? Math.ceil((saved.deadline - Date.now()) / 1000) : limit);
+    setPhase('run');
+    window.scrollTo(0, 0);
+  };
+  useEffect(() => {
+    if (phase === 'run' && items.length) writeSaved(exam.id, { ids: items.map((q) => q.id), answers, i, timed, deadline });
+  }, [phase, items, answers, i, timed, deadline, exam.id]);
+
   const finish = () => {
+    writeSaved(exam.id, null);
     const s = bank.current!.scoreExam(items, answers);
     setGain(recordExam(exam.id, s.right, s.total, s.missedIds));
     setPhase('done');
@@ -89,9 +125,10 @@ function Sitting({ exam }: { exam: ExamDef }) {
 
   useEffect(() => {
     if (phase !== 'run' || !timed) return;
-    const t = setInterval(() => setLeft((x) => x - 1), 1000);
+    // From the deadline, so time spent away from the page still counts.
+    const t = setInterval(() => setLeft(Math.ceil((deadline - Date.now()) / 1000)), 1000);
     return () => clearInterval(t);
-  }, [phase, timed]);
+  }, [phase, timed, deadline]);
   useEffect(() => { if (phase === 'run' && timed && left <= 0) finish(); });
 
   const result = useMemo(() => (phase === 'done' && bank.current ? bank.current.scoreExam(items, answers) : null), [phase, items, answers]);
@@ -101,6 +138,16 @@ function Sitting({ exam }: { exam: ExamDef }) {
       <div className="max-w-[68ch]">
         <Button href={href('exam')} variant="ghost" size="sm" className="-ml-2 mb-2"><Icon name="back" size={16} /> Exams</Button>
         <PageHead eyebrow={exam.id === 'readiness' ? 'Final assessment' : 'Practice exam'} title={exam.title}>{exam.blurb}</PageHead>
+        {saved && (
+          <div className="card card-pad space-y-2 mb-3" role="region" aria-label="Unfinished sitting">
+            <p className="m-0 font-bold text-heading">You have an unfinished sitting</p>
+            <p className="m-0 text-sm text-muted">
+              {Object.keys(saved.answers).length} of {saved.ids.length} answered
+              {saved.timed && (saved.deadline > Date.now() ? ` · about ${Math.ceil((saved.deadline - Date.now()) / 60000)} min left on the timer` : ' · the timer has run out, so it will be marked now')}.
+            </p>
+            <Button variant="primary" onClick={resume}><Icon name="play" size={16} /> Resume</Button>
+          </div>
+        )}
         <div className="card card-pad space-y-3">
           <ul className="pl-5 list-disc m-0 space-y-1 text-sm">
             <li>{exam.size} questions, drawn at random from {EXAM_BANK_SIZE[exam.id]}. A new set every time.</li>
@@ -113,7 +160,7 @@ function Sitting({ exam }: { exam: ExamDef }) {
             <span className="text-sm"><strong className="text-heading">Timed: {Math.round(limit / 60)} minutes</strong><br /><span className="text-muted">It finishes by itself when time runs out.</span></span>
           </label>
           <p className="text-xs text-muted m-0">{PRACTICE_RECORD} Training only.</p>
-          <Button variant="primary" onClick={start}><Icon name="play" size={16} /> Start</Button>
+          <Button variant={saved ? 'default' : 'primary'} onClick={start}><Icon name="play" size={16} /> {saved ? 'Start a new sitting' : 'Start'}</Button>
         </div>
       </div>
     );

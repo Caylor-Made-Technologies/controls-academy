@@ -13,6 +13,7 @@
 - Imported backups with impossible numbers (XP beyond what the course can award, scores outside 0–total) are rejected or clamped.
 - Unknown wiring, Fault Hunt and summary links show "not found" like every other page; a cut-off share link says so.
 ### Added
+- Practice exams: leaving mid-sitting (back button, another screen) and coming back offers Resume with your answers kept; the timer keeps counting while you're away, and a finished timer marks the sitting.
 - QA checks: every route at 320 px with the longest allowed name, and every main screen with damaged saved data.
 ### Changed
 - 3D drive: the terminal cover shows which end is line (L1 L2 L3, ground) and which is motor (T1 T2 T3), with cover screws and cooling slots; air outlet slots on top.

@@ -133,6 +133,31 @@ const LESSON_IDS = ['z-electricity', 'z-ohms-power', 'z-ac-dc', 'z-series-parall
     await go(page, 'exam');
     await page.getByText(/Best \d+ %/).first().waitFor();
   });
+  await check('Exams: leaving mid-sitting and coming back offers Resume, with answers kept', async () => {
+    await go(page, 'exam/expert');
+    await page.getByRole('button', { name: 'Start', exact: true }).click();
+    await page.locator('[role=radiogroup] [role=radio]').nth(1).click();
+    await page.getByRole('button', { name: /^Next/ }).click();
+    await go(page, 'learn');
+    await go(page, 'exam/expert');
+    const card = page.getByRole('region', { name: 'Unfinished sitting' });
+    await card.getByText('1 of 10 answered').waitFor();
+    await card.getByRole('button', { name: 'Resume' }).click();
+    // It resumes on question 2; question 1 still has the answer picked before leaving.
+    await page.locator('main#main').getByRole('button', { name: 'Back', exact: true }).click();
+    expect((await page.locator('[role=radiogroup] [role=radio]').nth(1).getAttribute('aria-checked')) === 'true', 'answer kept after leaving');
+    // Finishing clears it.
+    for (let i = 0; i < 12; i++) {
+      const fin = page.getByRole('button', { name: /^Finish/ });
+      if (await fin.count()) { await fin.click(); break; }
+      await page.locator('[role=radiogroup] [role=radio]').first().click();
+      await page.getByRole('button', { name: /^Next/ }).click();
+    }
+    await page.getByText('By topic').waitFor();
+    await go(page, 'learn');
+    await go(page, 'exam/expert');
+    expect(!(await page.getByRole('region', { name: 'Unfinished sitting' }).count()), 'no resume offer after finishing');
+  });
   await check('Study summary: terms, formulas, safety, mistakes; Markdown download', async () => {
     await go(page, 'summary/t4');
     for (const h of ['Why each lesson matters', 'Formulas', 'Safety points', 'Common mistakes']) await page.getByRole('heading', { name: h }).waitFor();
