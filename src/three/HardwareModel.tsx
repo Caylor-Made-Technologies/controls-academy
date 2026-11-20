@@ -9,6 +9,7 @@ import { useMemo, useRef, useState } from 'react';
 import { MathUtils, type Group } from 'three';
 import { BODY_COLORS, UNIT_INFO, type HwShape, type HwUnit } from '../content/hardware';
 import { Box, Led } from './kit';
+import { lowDetail } from './materials';
 import { doorLabelTexture, hmiTexture, labelTexture } from './textures';
 
 export interface HwLive {
@@ -370,6 +371,26 @@ function DriveFace({ x, w, h, d, z, live }: { x: number; w: number; h: number; d
       {/* warning label + terminal cover */}
       <HLabel text="WAIT 5 MIN — DC BUS" pos={[x, -h * 0.02, z + 0.0006]} w={Math.min(w * 0.7, 0.07)} h={0.007} fg="#1a1a1a" bg="#f5c400" />
       <Box size={[w * 0.9, h * 0.34, 0.003]} pos={[x, -h * 0.29, z + 0.0012]} color="#2a2f37" round={0.001} />
+      {/* terminal cover: which end is line and which is motor (the most common wiring mistake), two captive screws,
+          cooling slots; the top carries the matching air outlet */}
+      <HLabel text="L1  L2  L3  ⏚      T1  T2  T3" pos={[x, -h * 0.155, z + 0.0029]} w={w * 0.82} h={Math.min(0.0075, h * 0.05)} fg="#e5e7eb" bg="#2a2f37" />
+      {[-1, 1].map((sg) => (
+        <mesh key={sg} position={[x + sg * w * 0.38, -h * 0.43, z + 0.003]} rotation={[Math.PI / 2, 0, 0]} raycast={() => null}><cylinderGeometry args={[0.0022, 0.0022, 0.0012, 14]} /><meshStandardMaterial color={C.screw} metalness={0.8} roughness={0.35} /></mesh>
+      ))}
+      {!lowDetail() && (
+        <Instances limit={14} raycast={() => null}>
+          <boxGeometry args={[w * 0.09, 0.0022, 0.0006]} />
+          <meshStandardMaterial color="#0d1014" roughness={0.9} />
+          {Array.from({ length: 7 }, (_, k) => k).flatMap((k) => [0, 1].map((r) => <Instance key={`v${k}${r}`} position={[x + (k - 3) * w * 0.11, -h * 0.31 - r * 0.0055, z + 0.0029]} />))}
+        </Instances>
+      )}
+      {!lowDetail() && (
+        <Instances limit={9} raycast={() => null}>
+          <boxGeometry args={[w * 0.07, 0.0006, d * 0.22]} />
+          <meshStandardMaterial color="#0d1014" roughness={0.9} />
+          {Array.from({ length: 9 }, (_, k) => <Instance key={`t${k}`} position={[x + (k - 4) * w * 0.095, h / 2 + 0.0002, z - d * 0.2]} />)}
+        </Instances>
+      )}
       {[-0.3, 0, 0.3].map((k) => (
         <mesh key={k} position={[x + k * w, -h / 2 - 0.0004, d * 0.55]} raycast={() => null}><cylinderGeometry args={[Math.min(0.009, w * 0.09), Math.min(0.009, w * 0.09), 0.001, 20]} /><meshStandardMaterial color="#0d1014" /></mesh>
       ))}

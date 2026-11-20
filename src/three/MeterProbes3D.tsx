@@ -29,6 +29,11 @@ const MODES: MeterMode[] = ['OHM', 'VDC', 'VAC', 'mA', 'A'];
 // Spaced so neighboring labels on the dial don't touch.
 const MODE_ANGLE: Record<MeterMode, number> = { OHM: 1.2, VDC: 0.6, VAC: 0, mA: -0.6, A: -1.2 };
 const MODE_TEXT: Record<MeterMode, string> = { OHM: 'Ω', VDC: 'V⎓', VAC: 'V~', mA: 'mA', A: 'A' };
+/** Input jacks along the meter's bottom edge (meter-local x). Like most handheld meters, amps and milliamps have
+ *  their own jacks, so the red lead moves with the dial; the black lead stays on COM. */
+const JACK_X = { V: -0.114, mA: -0.038, A: 0.038, COM: 0.114 } as const;
+const JACK_Y = -0.106;
+const jackFor = (m: MeterMode): keyof typeof JACK_X => (m === 'A' ? 'A' : m === 'mA' ? 'mA' : 'V');
 
 /** Terminals in a grid (2 columns on a portrait phone, 3 otherwise), the meter centered underneath. */
 export function benchLayout(n: number, aspect: number) {
@@ -111,7 +116,7 @@ function Bench({ points, mode, at, reading, onMode, onLand, onLift }: BenchProps
     camera.position.set(0, cy, d);
     camera.lookAt(0, cy, 0);
   }, [camera, aspect, L]);
-  const jack = useMemo(() => new Vector3(L.meterAt.x - 0.154, L.meterAt.y - 0.135, 0.04), [L]);
+  const jack = useMemo(() => new Vector3(L.meterAt.x + JACK_X[jackFor(mode)] * 1.35, L.meterAt.y + JACK_Y * 1.35, 0.04), [L, mode]);
   const com = useMemo(() => new Vector3(L.meterAt.x + 0.34, L.meterAt.y + 0.03, 0), [L]);
   return (
     <group>
@@ -133,7 +138,9 @@ function Bench({ points, mode, at, reading, onMode, onLand, onLift }: BenchProps
       })}
       {/* meter: body, live display, rotary dial (tap a mode), black lead on common */}
       <group position={L.meterAt} scale={1.35}>
-        <Box size={[0.26, 0.24, 0.05]} pos={[0, 0, 0]} color="#f59e0b" rough={0.55} round={0.012} />
+        {/* a handheld meter: dark molded face inside a yellow rubber holster with thick corners */}
+        <Box size={[0.29, 0.275, 0.048]} pos={[0, -0.002, -0.006]} color="#f2a516" s="rubber" round={0.022} />
+        <Box size={[0.26, 0.24, 0.05]} pos={[0, 0, 0]} color="#2b3038" s="plasticMatte" round={0.01} />
         <Display pos={[0, 0.065, 0.027]} w={0.21} h={0.065} text={() => reading} />
         <group position={[0, -0.035, 0.027]}>
           <mesh rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.04, 0.04, 0.012, 24]} /><meshStandardMaterial color="#1f2937" roughness={0.4} /></mesh>
@@ -147,9 +154,19 @@ function Bench({ points, mode, at, reading, onMode, onLand, onLift }: BenchProps
             );
           })}
         </group>
-        {/* input jacks: red for volts/ohms, black for common */}
-        <mesh position={[-0.114, -0.1, 0.028]} rotation={[Math.PI / 2, 0, 0]} material={surface('plasticGloss', '#dc2626')}><cylinderGeometry args={[0.01, 0.01, 0.008, 14]} /></mesh>
-        <mesh position={[0.114, -0.1, 0.028]} rotation={[Math.PI / 2, 0, 0]} material={surface('plasticGloss', '#0f1318')}><cylinderGeometry args={[0.01, 0.01, 0.008, 14]} /></mesh>
+        {/* input jacks: A and mA µA for current, V Ω for volts and ohms, COM for the black lead; the jack in use is lit */}
+        {(['V', 'mA', 'A', 'COM'] as const).map((j) => {
+          const used = j === 'COM' || j === jackFor(mode);
+          return (
+            <group key={j} position={[JACK_X[j], JACK_Y, 0]}>
+              <mesh position={[0, 0, 0.0255]} rotation={[Math.PI / 2, 0, 0]} material={surface('plasticMatte', j === 'COM' ? '#14181d' : used ? '#7f1d1d' : '#3a1515')}><cylinderGeometry args={[0.013, 0.013, 0.002, 18]} /></mesh>
+              <mesh position={[0, 0, 0.028]} rotation={[Math.PI / 2, 0, 0]} material={surface('plasticGloss', j === 'COM' ? '#0f1318' : '#dc2626')}><cylinderGeometry args={[0.009, 0.009, 0.006, 14]} /></mesh>
+              <mesh position={[0, 0, 0.0312]} rotation={[Math.PI / 2, 0, 0]}><cylinderGeometry args={[0.0042, 0.0042, 0.001, 12]} /><meshStandardMaterial color="#05070a" /></mesh>
+              <Label text={j === 'A' ? 'A' : j === 'mA' ? 'mA µA' : j === 'V' ? 'V Ω' : 'COM'} pos={[0, 0.022, 0.0262]} w={0.05} h={0.016} fg={used ? (j === 'COM' ? '#f8fafc' : '#fecaca') : '#9ca3af'} bg="#2b3038" />
+            </group>
+          );
+        })}
+        <mesh position={[0, -0.035, 0.0255]} rotation={[Math.PI / 2, 0, 0]} material={surface('brushedSteel', '#9aa3ad')}><cylinderGeometry args={[0.045, 0.045, 0.002, 32]} /></mesh>
       </group>
       {/* The black lead stays on common (0 V) for voltage readings, so it is parked on its own post. */}
       <group>
@@ -157,7 +174,7 @@ function Bench({ points, mode, at, reading, onMode, onLand, onLift }: BenchProps
         <mesh position={[com.x, com.y, 0.017]} rotation={[Math.PI / 2, 0, 0]} material={surface('tinned')}><cylinderGeometry args={[0.014, 0.014, 0.004, 16]} /></mesh>
         <mesh position={[com.x, com.y, 0.055]} rotation={[Math.PI / 2, 0, 0]} material={surface('rubber', '#14181d')}><cylinderGeometry args={[0.013, 0.008, 0.075, 12]} /></mesh>
         <Label text="COM / 0 V" pos={[com.x, com.y + 0.052, 0.002]} w={0.17} h={0.03} fg="#e5e7eb" bg="#111827" />
-        <QuadraticBezierLine start={[L.meterAt.x + 0.154, L.meterAt.y - 0.135, 0.045]} end={[com.x, com.y, 0.09]} mid={[com.x - 0.02, com.y - 0.16, 0.12]} color="#4b5563" lineWidth={4} />
+        <QuadraticBezierLine start={[L.meterAt.x + JACK_X.COM * 1.35, L.meterAt.y + JACK_Y * 1.35, 0.045]} end={[com.x, com.y, 0.09]} mid={[com.x - 0.02, com.y - 0.16, 0.12]} color="#4b5563" lineWidth={4} />
       </group>
       {/* Where the red probe rests until you drag it onto a test point. */}
       <group>

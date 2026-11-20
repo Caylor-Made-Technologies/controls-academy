@@ -95,7 +95,7 @@ function Scene(p: MachineSceneProps) {
           <planeGeometry args={[W + 0.2, WELL_DEPTH]} />
           <meshStandardMaterial color="#cbd5e1" transparent opacity={0.12} side={DoubleSide} depthWrite={false} />
         </mesh>
-        {[1, 2, 3, 4].map((m) => <Label key={m} text={`${m} m`} pos={[-W / 2 + 0.12, m, -W / 2 + 0.002]} w={0.16} h={0.06} />)}
+        {[1, 2, 3].map((m) => <Label key={m} text={`${m} m`} pos={[-W / 2 + 0.17, m, -W / 2 + 0.002]} w={0.3} h={0.13} fg="#111" bg="#f8fafc" />)}
         {/* poured-concrete coping around the top, an access ladder and a staff gauge on the back wall */}
         {fine && [[0, -W / 2 - 0.05, W + 0.4, 0.2], [-W / 2 - 0.05, 0, 0.2, W], [W / 2 + 0.05, 0, 0.2, W]].map(([x, z, sx, sz], i) => (
           <Box key={i} size={[sx, 0.08, sz]} pos={[x, WELL_DEPTH + 0.04, z]} color="#b4bac2" s="plasticMatte" />

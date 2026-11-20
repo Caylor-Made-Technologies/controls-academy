@@ -1,5 +1,12 @@
 # Changelog
 
+## Unreleased — Phase 6: finish
+### Changed
+- 3D drive: the terminal cover shows which end is line (L1 L2 L3, ground) and which is motor (T1 T2 T3), with cover screws and cooling slots; air outlet slots on top.
+- 3D meter: a dark face in a yellow rubber holster, and four input jacks (V Ω, mA µA, A, COM) like most handheld meters. The red lead moves to the jack the dial setting needs, and the jacks in use are lit.
+- 3D standby generator: roof cap, lifting eyes, a muffler on brackets feeding the exhaust stack with a rain cap, door handles, a radiator core behind the fan, and larger GENERATOR / MAY START AUTOMATICALLY labels.
+- 3D lift station: the 1–3 m level marks are large enough to read on a phone and clear of the float tag.
+
 ## 0.10.0 — 2026-11-19 — Phase 5: Reference
 ### Added
 - Brands side by side: compare up to three PLC platforms on addressing, timers, counters, going online, forcing, upload/download, backups, firmware and gotchas.

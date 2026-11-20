@@ -56,11 +56,26 @@ function Scene(p: MachineSceneProps) {
         {fine && <Box size={[1.4, 0.06, 0.8]} pos={[-2.4, 0.03, 1.2]} color="#2a313b" s="castIron" />}
         {fine && [-2.75, -2.3].map((x) => <Box key={x} size={[0.008, 0.66, 0.004]} pos={[x, 0.44, 1.552]} color="#1b1e22" s="rubber" round={0} />)}
         {fine && [0.2, 0.32, 0.44, 0.56, 0.68].map((y) => <Box key={y} size={[0.3, 0.035, 0.012]} pos={[-1.95, y, 1.556]} color="#a8820f" s="enamel" round={0} />)}
-        <Label text="GENERATOR" pos={[-2.4, 0.65, 1.552]} w={0.36} h={0.07} fg="#111" bg="#fde68a" />
-        <Label text="MAY START AUTOMATICALLY" pos={[-2.4, 0.3, 1.552]} w={0.5} h={0.06} fg="#fff" bg="#b91c1c" />
-        <group position={[-1.74, 0.42, 1.2]}><FanWheel rps={() => (genRunning() ? 30 : 0)} r={0.26} /></group>
+        <Label text="GENERATOR" pos={[-2.4, 0.66, 1.557]} w={0.5} h={0.1} fg="#111" bg="#fde68a" />
+        <Label text="MAY START AUTOMATICALLY" pos={[-2.42, 0.3, 1.557]} w={0.6} h={0.085} fg="#fff" bg="#b91c1c" />
+        {/* radiator at the fan end: a dark finned core in a frame, the fan blows through it */}
+        <Box size={[0.03, 0.66, 0.6]} pos={[-1.765, 0.44, 1.2]} color="#1c1f24" s="castIron" round={0} />
+        {fine && [-0.24, -0.12, 0, 0.12, 0.24].map((dz) => <Box key={`r${dz}`} size={[0.012, 0.62, 0.012]} pos={[-1.748, 0.44, 1.2 + dz]} color="#4b5563" s="castIron" round={0} />)}
+        <group position={[-1.72, 0.42, 1.2]}><FanWheel rps={() => (genRunning() ? 30 : 0)} r={0.26} /></group>
         <Lamp pos={[-2.7, 0.5, 1.56]} color="#3ddc97" on={() => s().genReady} r={0.03} />
-        <Pipe from={[-2.8, 0.8, 1.2]} to={[-2.8, 1.25, 1.2]} r={0.04} color="#374151" />
+        {/* roof: a darker cap with a drip lip, lifting eyes at the corners, and the exhaust: a muffler on the roof
+            feeding a stack with a hinged rain cap (closes when the engine stops so rain can't get in) */}
+        <Box size={[1.34, 0.035, 0.74]} pos={[-2.4, 0.857, 1.2]} color="#b8890f" s="enamel" />
+        {fine && [[-2.98, 0.94], [-1.82, 0.94], [-2.98, 1.46], [-1.82, 1.46]].map(([x, z]) => (
+          <mesh key={`${x}${z}`} position={[x, 0.9, z]} rotation={[0, Math.PI / 4, 0]}><torusGeometry args={[0.03, 0.009, 8, 16]} /><meshStandardMaterial color="#9aa3ad" metalness={0.8} roughness={0.35} /></mesh>
+        ))}
+        <mesh position={[-2.55, 0.94, 1.1]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.075, 0.075, 0.5, 20]} /><meshStandardMaterial color="#3b4048" metalness={0.6} roughness={0.55} /></mesh>
+        {fine && [-2.79, -2.31].map((x) => <mesh key={x} position={[x, 0.94, 1.1]} rotation={[0, 0, Math.PI / 2]}><cylinderGeometry args={[0.079, 0.079, 0.012, 20]} /><meshStandardMaterial color="#2a2e34" metalness={0.6} roughness={0.5} /></mesh>)}
+        {[-2.7, -2.4].map((x) => <Box key={x} size={[0.06, 0.07, 0.17]} pos={[x, 0.905, 1.1]} color="#2a2e34" s="castIron" round={0} />)}
+        <Pipe from={[-2.8, 0.94, 1.1]} to={[-2.8, 1.25, 1.1]} r={0.04} color="#374151" />
+        <mesh position={[-2.8, 1.262, 1.115]} rotation={[0.35, 0, 0]}><cylinderGeometry args={[0.046, 0.046, 0.008, 18]} /><meshStandardMaterial color="#2a2e34" metalness={0.6} roughness={0.5} /></mesh>
+        {/* door handles beside the access-door seams */}
+        {fine && [-2.8, -2.35].map((x) => <Box key={`h${x}`} size={[0.018, 0.09, 0.02]} pos={[x, 0.44, 1.56]} color="#c7ccd2" s="brushedSteel" round={0.004} />)}
       </Pick>
       <Pick id="genstart" label="Gen start signal" size={[0.12, 0.12, 0.1]} pos={[-2.1, 0.55, 1.57]} selected={sel('genstart')} onPick={p.onPick}>
         <Lamp pos={[-2.1, 0.55, 1.56]} color="#22d3ee" on={() => p.rt.io.DO[0]} r={0.02} />
