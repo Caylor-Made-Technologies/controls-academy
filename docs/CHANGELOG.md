@@ -1,6 +1,7 @@
 # Changelog
 
-## Unreleased — Phase 6: finish
+## 1.0.0 — 2026-11-20 — Phase 6: finish
+The first full release: a 60-lesson course from zero to expert, a real PLC engine and ladder editor, eight machines in 3D, Fault Hunt, a wiring trainer and a full field reference. Every page meets Lighthouse 95+ on a phone, 659 automated tests, and the browser suites run against the live site after each deploy.
 ### Fixed
 - B-014: a saved setting of the wrong type (from an old version, an edited file or an extension) crashed Learn, lessons and the simulator. Each setting is now checked and falls back to its default.
 - B-015: an imported or shared program with missing operands crashed the simulator, even after reload.
@@ -29,6 +30,12 @@
   - Study summaries: the track list no longer downloads every lesson; a track's summary loads only that track's lessons when opened.
   - A direct link to a Fault Hunt fetches the hunt screen's code at full priority.
   - Practice exams: the start screen no longer downloads the question bank (every lesson); it loads in the background after the page paints, ready for Start.
+
+### Known issues
+- 172 details are still marked "check your manual" (docs/VERIFY.md), and all safety text is training material: both need a qualified controls person's review.
+- Policy and privacy text are templates until a lawyer reviews them.
+- Whether a counter reset (RES) also clears its count-up/down bits is unconfirmed; the simulator keeps them.
+- On very slow 3G, a lesson opened from a direct link shows the header bar for a few seconds before the lesson.
 
 ## 0.10.0 — 2026-11-19 — Phase 5: Reference
 ### Added
