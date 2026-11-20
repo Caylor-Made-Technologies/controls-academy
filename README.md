@@ -31,7 +31,7 @@ A phone-first, installable training app that takes someone who has never touched
 New maintenance and controls techs, building-automation and data-center techs, apprentices, and anyone curious how machines think.
 
 ## Quality
-- **Speed and accessibility:** Lighthouse mobile on the live site, all 41 sample pages: performance 97–100, accessibility, best practices and SEO 100, largest paint 1.2–2.33 s, no layout shift.
+- **Speed and accessibility:** Lighthouse mobile on the live site, all 41 sample pages (v1.0.0): performance 97–99, accessibility, best practices and SEO 100, largest paint 1.2–2.4 s, no layout shift.
 - **Tests:** 519 unit tests (engine, skins, content, editor, progress, 3D framing) and 140 browser checks that use every feature, plus every page at phone and desktop size in both themes (axe accessibility, console errors, sideways scroll at 320 px and up), 3D budgets, offline and damaged saved data. The same browser suites run against the live site after each deploy.
 - Bugs found and how each is guarded: [docs/BUGS.md](docs/BUGS.md). Release notes: [docs/CHANGELOG.md](docs/CHANGELOG.md).
 

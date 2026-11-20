@@ -31,6 +31,10 @@ The first full release: a 60-lesson course from zero to expert, a real PLC engin
   - A direct link to a Fault Hunt fetches the hunt screen's code at full priority.
   - Practice exams: the start screen no longer downloads the question bank (every lesson); it loads in the background after the page paints, ready for Start.
 
+### Release gate (live, 2026-11-20)
+- Live e2e: all suites green, 140/140 feature checks; every route axe 0, no console errors, no sideways scroll.
+- Lighthouse mobile on live, all 41 route samples: performance 97–99, accessibility, best practices and SEO 100, LCP 1.23–2.35 s, CLS 0.
+- 519 unit tests; engine coverage 97.7 % lines, 91.8 % branches (gated).
 ### Known issues
 - 172 details are still marked "check your manual" (docs/VERIFY.md), and all safety text is training material: both need a qualified controls person's review.
 - Policy and privacy text are templates until a lawyer reviews them.
