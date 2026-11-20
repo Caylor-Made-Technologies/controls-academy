@@ -1,6 +1,9 @@
 # Changelog
 
 ## Unreleased — Phase 6: finish
+### Fixed (2026-11-20, from Jonathon's testing)
+- B-022: switching machines could freeze the page for seconds on a low-power laptop, leaving the hover highlight stuck. Shaders now compile before the first frame (in parallel where supported) and the old 3D view is released when the browser is idle.
+- B-023: the app installed on an iPhone home screen could stay on an old version for weeks. It now checks for updates whenever it comes back to the screen and switches to the new version at the next screen change.
 ### Fixed
 - B-014: a saved setting of the wrong type (from an old version, an edited file or an extension) crashed Learn, lessons and the simulator. Each setting is now checked and falls back to its default.
 - B-015: an imported or shared program with missing operands crashed the simulator, even after reload.

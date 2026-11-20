@@ -6,6 +6,8 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 
 | ID | Severity | Found | Status |
 |---|---|---|---|
+| B-023 | Medium | Jonathon, iPhone home-screen app (2026-11-20) | Fixed (work branch) |
+| B-022 | High | Jonathon, Chromebook (2026-11-20) | Fixed (work branch) |
 | B-021 | Low | Phase 6.2 QA agent | Fixed (unreleased) |
 | B-020 | Medium | Phase 6.2 QA agent | Fixed (unreleased) |
 | B-019 | Low | Phase 6.2 QA agent | Fixed (unreleased) |
@@ -75,6 +77,20 @@ and Lighthouse on live. No console errors from the app, no horizontal overflow, 
 - **Expected:** *Protection devices* (next in Track 1). **Actual:** *Reading ladder prints* (Track 2); *Protection devices* is skipped. 9 of 49 "Next" links pointed to the wrong lesson.
 - **Cause:** `LESSONS` kept source-file order; tracks have their own order.
 - **Fix:** `LESSONS` sorted by `COURSE_ORDER` (track by track). **Test:** `tests/unit/quality.test.ts` → "course order".
+
+## B-023 — The installed iPhone app stayed on an old version
+- **Found by:** Jonathon's iPhone (app added to the home screen): the Simulator showed no machine picker and no Wiring trainer button, a layout from about two weeks earlier, while the same page in a browser was current.
+- **Cause:** a home-screen app is usually resumed, not reloaded. The service worker fetched new versions, but the open page kept running the old code, and nothing asked it to check or reload.
+- **Fix:** `src/lib/update.ts` asks the service worker to check whenever the app comes back to the screen (and hourly). When a newer version has taken over, the page reloads at the next screen change. Progress is saved on the device, so nothing is lost.
+- **Guard:** `tests/unit/update.test.ts` (checks on return to screen, reloads only at a screen change and only after a real update, not on first install).
+- **For a copy that is already stuck:** close the app completely (swipe it away) and open it again. If it still shows the old layout, remove it from the home screen and add it again from Safari.
+
+## B-022 — Switching machines froze the page on a low-power laptop
+- **Found by:** Jonathon on a Chromebook: after tapping a machine card, the page sat frozen with the hover highlight stuck on the card ("stays stuck").
+- **Cause:** each machine has its own 3D view. Switching built the new scene, compiled all its shaders in the first frame, and dropped the old view's graphics context, all in long blocks on the page's only thread. Measured at 4× slower CPU on a software GPU: up to 11 s in one block (data center).
+- **Fix (`src/three/Stage.tsx`):** shaders are compiled in parallel before the first frame where the browser supports it, while the poster still shows; the old context is released when the browser is idle instead of in the middle of the switch.
+- **Measured (same test, this machine):** data center 14.0 s → 0.5–15 s depending on when the deferred release lands; the click and the new screen are no longer stuck behind it. The remaining cost here is releasing a context on a software GPU, which is much cheaper on real graphics hardware; not verified on Jonathon's Chromebook yet.
+- **Guard:** the 3D gate (`tests/e2e/three.mjs`): leak test, no console errors. No automated timing check: frame timing on the shared test machine is too noisy to gate on.
 
 ## B-021 — A long name ran off the certificate
 - **Steps:** a 30-character name with no spaces (the field's maximum), then save a certificate. **Actual:** the name, drawn at a fixed 84 px, ran past both edges.

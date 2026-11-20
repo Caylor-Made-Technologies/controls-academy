@@ -7,7 +7,7 @@
  * - a small registry the leak test reads (window.__ca3d).
  */
 import { Canvas, useFrame, useThree, type CanvasProps, type RootState } from '@react-three/fiber';
-import { useEffect, useRef, useState, type ReactNode } from 'react';
+import { useCallback, useEffect, useRef, useState, type ReactNode } from 'react';
 import { Box3, Quaternion, Vector3, type Mesh, type PerspectiveCamera, type WebGLRenderer } from 'three';
 import { capped, probeDevice, pickTier, tierSettings, type Tier, type TierSettings } from './support';
 import { textureCacheSize } from './textures';
@@ -115,6 +115,57 @@ function FirstFrame({ onDone }: { onDone: () => void }) {
   return null;
 }
 
+/**
+ * Compiles the scene's shaders before the first frame, in parallel where the browser supports it
+ * (KHR_parallel_shader_compile). Compiling them inside the first render froze the page for seconds on low-power
+ * laptops and phones every time a machine was switched (B-022); the poster still shows meanwhile.
+ */
+function Warmup({ onReady }: { onReady: () => void }) {
+  const gl = useThree((st) => st.gl);
+  const scene = useThree((st) => st.scene);
+  const camera = useThree((st) => st.camera);
+  useEffect(() => {
+    let alive = true;
+    const done = () => { if (alive) onReady(); };
+    // Let this commit's effects (lights, reflections, labels) attach first, then start every compile at once and
+    // poll until the driver reports them done. Without parallel compiling there is nothing to gain: draw at once
+    // (the first frame compiles, as before). Our own loop, not three's compileAsync: theirs keeps polling after a
+    // quick close and throws, and warns when the extension is missing.
+    type Prog = { isReady?: () => boolean };
+    const r = gl;
+    const programs = () => ((r.info as unknown as { programs?: Prog[] | null }).programs ?? []);
+    let raf = requestAnimationFrame(() => {
+      try {
+        if (!r.extensions.has('KHR_parallel_shader_compile')) { done(); return; }
+        r.compile(scene, camera);
+        const poll = () => {
+          if (!alive) return;
+          const progs = programs();
+          if (progs.every((p) => !p.isReady || p.isReady())) done(); else raf = requestAnimationFrame(poll);
+        };
+        poll();
+      } catch { done(); }
+    });
+    // Never wait forever: if compiling stalls, draw anyway.
+    const guard = setTimeout(done, 6000);
+    return () => { alive = false; cancelAnimationFrame(raf); clearTimeout(guard); };
+  }, [gl, scene, camera, onReady]);
+  return null;
+}
+
+/** Draws one frame when the stage becomes ready (frameloop "demand" only draws on request). */
+function Kick({ when }: { when: boolean }) {
+  const invalidate = useThree((st) => st.invalidate);
+  useEffect(() => { if (when) invalidate(); }, [when, invalidate]);
+  return null;
+}
+
+/** Release a closed view's graphics context when the browser is idle, not in the middle of opening the next one. */
+function releaseLater(fn: () => void) {
+  const w = window as Window & { requestIdleCallback?: (cb: () => void, o?: { timeout: number }) => number };
+  if (w.requestIdleCallback) w.requestIdleCallback(fn, { timeout: 1000 }); else setTimeout(fn, 300);
+}
+
 /** While animating under a frame cap, ask for a frame at most `fps` times a second. */
 function Throttle({ fps }: { fps: number }) {
   const invalidate = useThree((s) => s.invalidate);
@@ -151,6 +202,8 @@ export function Stage({ quality, animate, lostFallback, capTier, children, onCre
   const onScreen = useOnScreen(wrap);
   const [lost, setLost] = useState(false);
   const [drawn, setDrawn] = useState(false);
+  const [compiled, setCompiled] = useState(false);
+  const onCompiled = useCallback(() => setCompiled(true), []);
   const probe = probeDevice();
   const tier = capped(pickTier(quality, probe), capTier);
   const s = tierSettings(tier, probe);
@@ -169,7 +222,7 @@ export function Stage({ quality, animate, lostFallback, capTier, children, onCre
   if (lost) return <>{lostFallback}</>;
 
   const throttled = animate && s.maxFps < 60;
-  const frameloop = !onScreen ? 'never' : animate && !throttled ? 'always' : 'demand';
+  const frameloop = !onScreen || !compiled ? 'never' : animate && !throttled ? 'always' : 'demand';
   return (
     <div ref={wrap} className="absolute inset-0 stage-canvas" data-drawn={drawn} data-frameloop={frameloop}>
       <Canvas
@@ -181,6 +234,9 @@ export function Stage({ quality, animate, lostFallback, capTier, children, onCre
         onCreated={(st: RootState) => {
           const entry = live.get(id.current);
           if (entry) { entry.gl = st.gl; entry.state = st; }
+          // The renderer library drops the context on unmount; on a weak GPU that can take seconds. Defer it.
+          const lose = st.gl.forceContextLoss.bind(st.gl);
+          st.gl.forceContextLoss = () => releaseLater(lose);
           st.gl.domElement.addEventListener('webglcontextlost', (e) => {
             // Our own unmount also drops the context; only show the fallback for a real loss.
             if (live.has(id.current)) { e.preventDefault(); setLost(true); }
@@ -188,7 +244,9 @@ export function Stage({ quality, animate, lostFallback, capTier, children, onCre
           onCreated?.(st);
         }}
       >
-        {throttled && onScreen && <Throttle fps={s.maxFps} />}
+        {!compiled && <Warmup onReady={onCompiled} />}
+        <Kick when={compiled && onScreen} />
+        {throttled && onScreen && compiled && <Throttle fps={s.maxFps} />}
         <FirstFrame onDone={() => { setDrawn(true); onFirstFrame?.(); }} />
         <Grade exposure={look.exposure} />
         {children(s, look)}
