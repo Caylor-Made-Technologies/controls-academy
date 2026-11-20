@@ -65,6 +65,8 @@ export function routePreload(): Plugin {
         for (const l of LESSON_META) alias[`lesson/${l.id}`] = `@${l.file}`;
         if (map.lesson) map.lesson[1] = [];
         if (map.summary) map.summary[1] = [];
+        // Exams: the question bank (every lesson) is warmed by the page after it paints; prefetching it here competes with first paint.
+        if (map.exam) map.exam[1] = [];
         // A track summary link fetches its code plus only the lesson files that hold that track's lessons.
         const fileOf = new Map(LESSON_META.map((l) => [l.id, l.file]));
         for (const t of TRACKS) {

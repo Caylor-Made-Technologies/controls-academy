@@ -11,6 +11,7 @@
   - Lessons with a hands-on task, and Fault Hunt, start loading the workbench after the page text has painted, not before.
   - Study summaries: the track list no longer downloads every lesson; a track's summary loads only that track's lessons when opened.
   - A direct link to a Fault Hunt fetches the hunt screen's code at full priority.
+  - Practice exams: the start screen no longer downloads the question bank (every lesson); it loads in the background after the page paints, ready for Start.
 
 ## 0.10.0 — 2026-11-19 — Phase 5: Reference
 ### Added

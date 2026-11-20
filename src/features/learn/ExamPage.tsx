@@ -1,9 +1,16 @@
-import { useEffect, useMemo, useState } from 'react';
+import { useEffect, useMemo, useRef, useState } from 'react';
 import { PageHead, RouteHead } from '../../components/Brand';
 import { Icon } from '../../components/Icon';
 import { Rich } from '../../components/RichText';
-import { LESSON_BY_ID, TRACK_BY_ID } from '../../content';
-import { EXAMS, EXAM_BY_ID, bankFor, drawExam, scoreExam, type BankItem, type ExamDef, type ExamId } from '../../content/bank';
+import { LESSON_META_BY_ID as LESSON_BY_ID, TRACK_BY_ID } from '../../content/catalog';
+import { EXAM_BANK_SIZE } from '../../content/counts';
+import { useAfterPaint } from '../../lib/afterPaint';
+import { EXAMS, EXAM_BY_ID, type ExamDef, type ExamId } from '../../content/exams';
+import type { BankItem } from '../../content/bank';
+
+// The question bank holds every lesson's questions: it loads when a sitting starts (warmed after the page paints).
+type BankModule = typeof import('../../content/bank');
+const loadBank = (): Promise<BankModule> => import('../../content/bank');
 import type { TrackId } from '../../content/types';
 import { href } from '../../lib/router';
 import { PRACTICE_RECORD } from '../../lib/practice';
@@ -29,7 +36,7 @@ function ExamHome() {
               <p className="eyebrow m-0">{e.id === 'readiness' ? 'Final assessment' : 'Practice exam'}</p>
               <h2 className="text-lg font-bold mt-1">{e.title}</h2>
               <p className="text-sm text-muted m-0 mt-1">{e.blurb}</p>
-              <p className="text-xs text-muted m-0 mt-2">{e.size} questions · drawn from {bankFor(e).length} · optional {Math.round((e.size * e.secsPerQ) / 60)}-minute timer</p>
+              <p className="text-xs text-muted m-0 mt-2">{e.size} questions · drawn from {EXAM_BANK_SIZE[e.id]} · optional {Math.round((e.size * e.secsPerQ) / 60)}-minute timer</p>
               {r && <p className="m-0 mt-2"><Chip tone="live">Best {pct(r.best, r.total)} % · last {pct(r.last, r.total)} %</Chip></p>}
               {e.id === 'readiness' && <p className="text-xs m-0 mt-2 text-muted">{PRACTICE_RECORD}</p>}
             </a>
@@ -51,8 +58,12 @@ function Sitting({ exam }: { exam: ExamDef }) {
   const [left, setLeft] = useState(0);
   const [gain, setGain] = useState(0);
   const limit = exam.size * exam.secsPerQ;
+  const bank = useRef<BankModule | null>(null);
+  const painted = useAfterPaint();
+  useEffect(() => { if (painted) loadBank().then((m) => { bank.current = m; }).catch(() => {}); }, [painted]);
 
-  const start = () => {
+  const start = async () => {
+    const b = bank.current ?? (bank.current = await loadBank());
     // Readiness leans toward topics where lesson checks weren't perfect (weak topics get extra questions).
     const weights: Partial<Record<TrackId, number>> = {};
     if (exam.id === 'readiness') {
@@ -61,7 +72,7 @@ function Sitting({ exam }: { exam: ExamDef }) {
         if (l && r.total && r.score < r.total) weights[l.track] = 1;
       }
     }
-    setItems(drawExam(exam, Date.now() % 2147483647, weights));
+    setItems(b.drawExam(exam, Date.now() % 2147483647, weights));
     setAnswers({});
     setI(0);
     setLeft(limit);
@@ -70,7 +81,7 @@ function Sitting({ exam }: { exam: ExamDef }) {
   };
 
   const finish = () => {
-    const s = scoreExam(items, answers);
+    const s = bank.current!.scoreExam(items, answers);
     setGain(recordExam(exam.id, s.right, s.total, s.missedIds));
     setPhase('done');
     window.scrollTo(0, 0);
@@ -83,7 +94,7 @@ function Sitting({ exam }: { exam: ExamDef }) {
   }, [phase, timed]);
   useEffect(() => { if (phase === 'run' && timed && left <= 0) finish(); });
 
-  const result = useMemo(() => (phase === 'done' ? scoreExam(items, answers) : null), [phase, items, answers]);
+  const result = useMemo(() => (phase === 'done' && bank.current ? bank.current.scoreExam(items, answers) : null), [phase, items, answers]);
 
   if (phase === 'intro') {
     return (
@@ -92,7 +103,7 @@ function Sitting({ exam }: { exam: ExamDef }) {
         <PageHead eyebrow={exam.id === 'readiness' ? 'Final assessment' : 'Practice exam'} title={exam.title}>{exam.blurb}</PageHead>
         <div className="card card-pad space-y-3">
           <ul className="pl-5 list-disc m-0 space-y-1 text-sm">
-            <li>{exam.size} questions, drawn at random from {bankFor(exam).length}. A new set every time.</li>
+            <li>{exam.size} questions, drawn at random from {EXAM_BANK_SIZE[exam.id]}. A new set every time.</li>
             <li>You can go back and change answers. Answers and explanations are shown at the end.</li>
             <li>Missed questions are added to your Review.</li>
             {exam.id === 'readiness' && <li>Topics where your lesson checks weren't perfect get a few extra questions.</li>}
